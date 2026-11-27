@@ -163,10 +163,12 @@ func _parse_envelope(path: String) -> Dictionary:
 	var text: String = FileAccess.get_file_as_string(absolute)
 	if text.to_utf8_buffer().size() > max_bytes:
 		return {"valid": false, "reason": "Файл сохранения слишком большой"}
-	var parsed: Variant = JSON.parse_string(text)
-	if not parsed is Dictionary:
+	# Используем экземпляр JSON: статический parse_string выводит ERROR в лог
+	# для намеренно повреждённых файлов, а точечной проверке нужен чистый лог.
+	var parser: JSON = JSON.new()
+	if parser.parse(text) != OK or not parser.data is Dictionary:
 		return {"valid": false, "reason": "Некорректный JSON"}
-	var envelope: Dictionary = parsed as Dictionary
+	var envelope: Dictionary = parser.data as Dictionary
 	if str(envelope.get("format", "")) != FORMAT_LABEL:
 		return {"valid": false, "reason": "Неизвестный формат сохранения"}
 	var version: int = int(envelope.get("version", 0))
