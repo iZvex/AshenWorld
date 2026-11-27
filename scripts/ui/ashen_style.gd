@@ -1,7 +1,8 @@
 extends RefCounted
 
-# Единая палитра и компактные стили тёмного фэнтези. Крупные карточки и
-# высокие полосы заменены одной строкой здоровья и небольшими панелями.
+# Единая палитра и игровые стили тёмного фэнтези. Крупные карточки и высокие
+# полосы заменены одной строкой здоровья; нижняя навигация, рамки и активные
+# вкладки выделены так, чтобы структура экрана читалась с первого взгляда.
 
 const BACKGROUND: Color = Color("#0B0910")
 const PANEL: Color = Color("#17121F")
@@ -33,6 +34,50 @@ static func panel_style(background: Color = PANEL, border: Color = PANEL_BORDER)
 
 static func compact_panel_style() -> StyleBoxFlat:
 	return panel_style(Color("#14101C"), PANEL_BORDER)
+
+
+static func ornate_panel_style(background: Color = Color("#17121F"), border: Color = GOLD) -> StyleBoxFlat:
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = background
+	box.set_border_width_all(2)
+	box.border_color = border
+	box.set_corner_radius_all(14)
+	box.content_margin_left = 14
+	box.content_margin_right = 14
+	box.content_margin_top = 10
+	box.content_margin_bottom = 10
+	box.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	box.shadow_size = 6
+	return box
+
+
+static func header_style() -> StyleBoxFlat:
+	return ornate_panel_style(Color("#100C19"), Color("#8A6B3D"))
+
+
+static func bottom_bar_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = ornate_panel_style(Color("#100C19"), Color("#8A6B3D"))
+	box.set_corner_radius_all(12)
+	box.content_margin_top = 6
+	box.content_margin_bottom = 6
+	return box
+
+
+static func content_panel_style() -> StyleBoxFlat:
+	return ornate_panel_style(Color("#14101C"), PANEL_BORDER)
+
+
+static func active_tab_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = button_style(Color("#C8893C"), GOLD)
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(10)
+	return box
+
+
+static func inactive_tab_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = button_style(Color("#241A30"), PANEL_BORDER)
+	box.set_corner_radius_all(10)
+	return box
 
 
 static func button_style(background: Color, border: Color) -> StyleBoxFlat:
@@ -68,9 +113,16 @@ static func bar_fill(color: Color) -> StyleBoxFlat:
 	return box
 
 
-static func build_theme() -> Theme:
+static func build_theme(config: Dictionary = {}) -> Theme:
+	var fonts_value: Variant = config.get("fonts", {})
+	var fonts: Dictionary = fonts_value as Dictionary if fonts_value is Dictionary else {}
+	var default_size: int = clampi(int(fonts.get("default", 20)), 12, 48)
 	var theme: Theme = Theme.new()
-	theme.default_font_size = 18
+	theme.default_font_size = default_size
+	theme.set_font_size("font_size", "Label", clampi(int(fonts.get("label", default_size)), 12, 48))
+	theme.set_font_size("font_size", "Button", clampi(int(fonts.get("button", default_size)), 12, 48))
+	theme.set_font_size("font_size", "OptionButton", clampi(int(fonts.get("option", default_size)), 12, 48))
+	theme.set_font_size("font_size", "ItemList", clampi(int(fonts.get("item_list", default_size)), 12, 48))
 	theme.set_color("font_color", "Label", PARCHMENT)
 	theme.set_color("font_color", "Button", PARCHMENT)
 	theme.set_color("font_hover_color", "Button", GOLD)

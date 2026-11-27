@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/main/main.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/ui/background.svg" id="2"]
+[ext_resource type="Texture2D" path="res://assets/ui/background_fantasy.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/ui/divider.svg" id="3"]
 [ext_resource type="Texture2D" path="res://assets/ui/sigil.svg" id="4"]
 [ext_resource type="Texture2D" path="res://assets/ui/ember.svg" id="5"]
@@ -23,9 +23,20 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+modulate = Color(0.62, 0.57, 0.7, 1)
 texture = ExtResource("2")
 expand_mode = 1
 stretch_mode = 0
+
+[node name="DimOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.035, 0.025, 0.06, 0.48)
 
 [node name="Particles" type="CPUParticles2D" parent="."]
 position = Vector2(360, 720)
@@ -49,23 +60,20 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
 
 [node name="Panel" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 8
+size_flags_vertical = 3
 
-[node name="Header" type="HBoxContainer" parent="Margin/Panel"]
+[node name="HeaderFrame" type="PanelContainer" parent="Margin/Panel"]
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_constants/separation = 10
 
-[node name="Sigil" type="TextureRect" parent="Margin/Panel/Header"]
-custom_minimum_size = Vector2(52, 52)
+[node name="Header" type="HBoxContainer" parent="Margin/Panel/HeaderFrame"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Sigil" type="TextureRect" parent="Margin/Panel/HeaderFrame/Header"]
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -73,44 +81,29 @@ texture = ExtResource("4")
 expand_mode = 1
 stretch_mode = 4
 
-[node name="Titles" type="VBoxContainer" parent="Margin/Panel/Header"]
+[node name="Titles" type="VBoxContainer" parent="Margin/Panel/HeaderFrame/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
-theme_override_constants/separation = 2
 
-[node name="TitleLabel" type="Label" parent="Margin/Panel/Header/Titles"]
+[node name="TitleLabel" type="Label" parent="Margin/Panel/HeaderFrame/Header/Titles"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
 text = "ASHEN WORLD"
 
-[node name="StageLabel" type="Label" parent="Margin/Panel/Header/Titles"]
+[node name="StageLabel" type="Label" parent="Margin/Panel/HeaderFrame/Header/Titles"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
-text = "Пепельные земли · Этап 1/5"
-
-[node name="Divider" type="TextureRect" parent="Margin/Panel"]
-custom_minimum_size = Vector2(0, 22)
-layout_mode = 2
-size_flags_vertical = 0
-mouse_filter = 2
-texture = ExtResource("3")
-expand_mode = 1
-stretch_mode = 1
+text = "Пепельные земли · Этап 1/30"
+autowrap_mode = 2
 
 [node name="StatusRow" type="HBoxContainer" parent="Margin/Panel"]
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_constants/separation = 8
 
 [node name="LevelLabel" type="Label" parent="Margin/Panel/StatusRow"]
-custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
 text = "УР. 1"
 
 [node name="ExperienceBar" type="ProgressBar" parent="Margin/Panel/StatusRow"]
-custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -119,16 +112,12 @@ value = 0.0
 show_percentage = false
 
 [node name="GoldLabel" type="Label" parent="Margin/Panel/StatusRow"]
-custom_minimum_size = Vector2(105, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
 text = "ЗОЛОТО 0"
 horizontal_alignment = 2
 
 [node name="MaterialsLabel" type="Label" parent="Margin/Panel/StatusRow"]
-custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
 text = "ПЕПЕЛ 0"
 horizontal_alignment = 2
 
@@ -138,40 +127,32 @@ size_flags_vertical = 0
 
 [node name="HealthBox" type="VBoxContainer" parent="Margin/Panel/HealthPanel"]
 layout_mode = 2
-theme_override_constants/separation = 5
 
 [node name="HealthRow" type="HBoxContainer" parent="Margin/Panel/HealthPanel/HealthBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
 
 [node name="HeroSide" type="VBoxContainer" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 3
 
 [node name="HeroLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
 text = "ГЕРОЙ 120/120"
 
 [node name="HeroHealthBar" type="ProgressBar" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide"]
-custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 max_value = 120.0
 value = 120.0
 show_percentage = false
 
 [node name="ShieldBar" type="ProgressBar" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide"]
-custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 max_value = 120.0
 value = 0.0
 show_percentage = false
 
 [node name="SeparatorLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow"]
-custom_minimum_size = Vector2(26, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
 text = "×"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -179,583 +160,616 @@ vertical_alignment = 1
 [node name="EnemySide" type="VBoxContainer" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 3
 
 [node name="EnemyLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
 text = "ВРАГ 45/45"
 horizontal_alignment = 2
 
 [node name="EnemyHealthBar" type="ProgressBar" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide"]
-custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 max_value = 45.0
 value = 45.0
 show_percentage = false
 
 [node name="EnemyHintLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide"]
-custom_minimum_size = Vector2(0, 14)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
 text = ""
 horizontal_alignment = 2
 
 [node name="StageNotice" type="Label" parent="Margin/Panel/HealthPanel/HealthBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
 text = "ОБЫЧНЫЙ"
 horizontal_alignment = 1
 
-[node name="MenuRow" type="HBoxContainer" parent="Margin/Panel"]
+[node name="SectionTitle" type="Label" parent="Margin/Panel"]
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_constants/separation = 6
+text = "СРАЖЕНИЕ"
+horizontal_alignment = 1
 
-[node name="EquipmentButton" type="Button" parent="Margin/Panel/MenuRow"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 14
-text = "ЭКИПИРОВКА"
-
-[node name="ProgressionButton" type="Button" parent="Margin/Panel/MenuRow"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 14
-text = "ПРОГРЕССИЯ"
-
-[node name="ModeButton" type="Button" parent="Margin/Panel/MenuRow"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 14
-text = "РЕЖИМЫ"
-
-[node name="EquipmentPowerLabel" type="Label" parent="Margin/Panel/MenuRow"]
-custom_minimum_size = Vector2(120, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "СИЛА 0"
-horizontal_alignment = 2
-
-[node name="EquipmentPanel" type="PanelContainer" parent="Margin/Panel"]
-visible = false
-custom_minimum_size = Vector2(0, 360)
+[node name="Divider" type="TextureRect" parent="Margin/Panel"]
 layout_mode = 2
 size_flags_vertical = 0
+mouse_filter = 2
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 1
 
-[node name="EquipmentBox" type="VBoxContainer" parent="Margin/Panel/EquipmentPanel"]
+[node name="ContentArea" type="VBoxContainer" parent="Margin/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 6
+size_flags_vertical = 3
 
-[node name="EquipmentTopRow" type="HBoxContainer" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+[node name="BattlePanel" type="PanelContainer" parent="Margin/Panel/ContentArea"]
 layout_mode = 2
-size_flags_vertical = 0
+size_flags_vertical = 3
 
-[node name="WalletLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox/EquipmentTopRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "ЗОЛОТО 0 · ПЕПЕЛ 0"
-
-[node name="ItemPowerLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox/EquipmentTopRow"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "ПРЕДМЕТОВ 0 · НАДЕТО 0"
-horizontal_alignment = 2
-
-[node name="SummonTypeRow" type="HBoxContainer" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 6
-
-[node name="SummonTypeButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow"]
-custom_minimum_size = Vector2(0, 40)
+[node name="BattleScroll" type="ScrollContainer" parent="Margin/Panel/ContentArea/BattlePanel"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 13
-text = "ПЕПЕЛЬНЫЙ ПРИЗЫВ"
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="SummonOneButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow"]
-custom_minimum_size = Vector2(0, 40)
+[node name="BattleBox" type="VBoxContainer" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 13
-text = "×1"
 
-[node name="SummonTenButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow"]
-custom_minimum_size = Vector2(0, 40)
+[node name="BattleTitle" type="Label" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 13
-text = "×10"
+text = "ПОЛЕ БОЯ"
+horizontal_alignment = 1
 
-[node name="SummonInfoLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+[node name="BattleHintLabel" type="Label" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "Шансы призыва"
+text = "Автобой идёт постоянно. «УДАР» и «ЩИТ» применяются вручную."
 autowrap_mode = 2
+horizontal_alignment = 1
 
-[node name="SummonStatusLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "Доступно"
-
-[node name="HistoryLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "История призывов пуста"
-autowrap_mode = 2
-
-[node name="FilterRow" type="HBoxContainer" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 6
-
-[node name="SlotFilter" type="OptionButton" parent="Margin/Panel/EquipmentPanel/EquipmentBox/FilterRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-
-[node name="RarityFilter" type="OptionButton" parent="Margin/Panel/EquipmentPanel/EquipmentBox/FilterRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-
-[node name="AffixFilter" type="OptionButton" parent="Margin/Panel/EquipmentPanel/EquipmentBox/FilterRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-
-[node name="ItemList" type="ItemList" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
-custom_minimum_size = Vector2(0, 128)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 0
-theme_override_font_sizes/font_size = 13
-select_mode = 0
-
-[node name="ItemDetails" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
-custom_minimum_size = Vector2(0, 58)
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Выберите предмет"
-autowrap_mode = 2
-
-[node name="ActionsRow1" type="HBoxContainer" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 6
-
-[node name="EquipButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow1"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "НАДЕТЬ"
-
-[node name="UpgradeButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow1"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "УЛУЧШИТЬ"
-
-[node name="LockButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow1"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "ЗАБЛОК."
-
-[node name="ActionsRow2" type="HBoxContainer" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 6
-
-[node name="DismantleButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "РАЗОБРАТЬ"
-
-[node name="AutoEquipButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "АВТОНАДЕВАНИЕ"
-
-[node name="MassDismantleButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "РАЗОБРАТЬ НИЗШЕЕ"
-
-[node name="EquipmentHintLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "Бонусы экипировки применяются со следующего этапа"
-autowrap_mode = 2
-
-[node name="ProgressionPanel" type="PanelContainer" parent="Margin/Panel"]
-visible = false
-custom_minimum_size = Vector2(0, 420)
+[node name="SkillRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="ProgressionBox" type="VBoxContainer" parent="Margin/Panel/ProgressionPanel"]
-layout_mode = 2
-theme_override_constants/separation = 5
-
-[node name="ProgressionTopRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
-layout_mode = 2
-size_flags_vertical = 0
-
-[node name="ProgressionWalletLabel" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow"]
+[node name="StrikeButton" type="Button" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox/SkillRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "ОЧКИ 0/0"
-
-[node name="ProgressionPowerLabel" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "БАЛАНС 1.00"
-horizontal_alignment = 2
-
-[node name="AttributeRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 4
-
-[node name="StrengthButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow"]
-custom_minimum_size = Vector2(0, 38)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "СИЛ 0"
-
-[node name="AgilityButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow"]
-custom_minimum_size = Vector2(0, 38)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "ЛОВ 0"
-
-[node name="IntellectButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow"]
-custom_minimum_size = Vector2(0, 38)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "ИНТ 0"
-
-[node name="StaminaButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow"]
-custom_minimum_size = Vector2(0, 38)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "ВЫН 0"
-
-[node name="SpiritButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow"]
-custom_minimum_size = Vector2(0, 38)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "ДУХ 0"
-
-[node name="AttributeHintLabel" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "Каждая характеристика влияет на несколько параметров; после 10 очков рост замедляется"
-autowrap_mode = 2
-
-[node name="ProgressionSkillList" type="ItemList" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
-custom_minimum_size = Vector2(0, 92)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 0
-theme_override_font_sizes/font_size = 12
-select_mode = 0
-
-[node name="ProgressionSkillDetails" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "Выберите навык"
-autowrap_mode = 2
-
-[node name="ProgressionSkillActionsRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 4
-
-[node name="SkillUpgradeButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "УЛУЧШИТЬ"
-
-[node name="SkillAutoButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "АВТО"
-
-[node name="SkillVariantButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "ВАРИАНТ"
-
-[node name="PassiveRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 4
-
-[node name="PassiveEnduranceButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-text = "СТОЙКОСТЬ 0"
-
-[node name="PassivePrecisionButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-text = "ТОЧНОСТЬ 0"
-
-[node name="PassiveSpiritButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-text = "ДУХ 0"
-
-[node name="PetRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 4
-
-[node name="PetFoxButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PetRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "ЛИСА"
-
-[node name="PetHoundButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PetRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "ПЁС"
-
-[node name="PetOwlButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PetRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text = "СОВА"
-
-[node name="ProgressionPetDetails" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
-custom_minimum_size = Vector2(0, 34)
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "Питомец не выбран"
-autowrap_mode = 2
-
-[node name="ProgressionPetActionsRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 4
-
-[node name="PetUpgradeButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetActionsRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "УЛУЧШИТЬ"
-
-[node name="ProgressionHintLabel" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetActionsRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-text = "Характеристики и бонусы питомца — со следующего этапа; навыки и помощь питомца — сразу"
-autowrap_mode = 2
-
-[node name="ModePanel" type="PanelContainer" parent="Margin/Panel"]
-visible = false
-custom_minimum_size = Vector2(0, 220)
-layout_mode = 2
-size_flags_vertical = 0
-
-[node name="ModeBox" type="VBoxContainer" parent="Margin/Panel/ModePanel"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="ModeTopRow" type="HBoxContainer" parent="Margin/Panel/ModePanel/ModeBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 6
-
-[node name="ModeStatusLabel" type="Label" parent="Margin/Panel/ModePanel/ModeBox/ModeTopRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "ОСНОВНАЯ КАМПАНИЯ"
-
-[node name="ModeStatsLabel" type="Label" parent="Margin/Panel/ModePanel/ModeBox/ModeTopRow"]
-custom_minimum_size = Vector2(250, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "Лучший ярус 1"
-horizontal_alignment = 2
-
-[node name="ModeSwitchRow" type="HBoxContainer" parent="Margin/Panel/ModePanel/ModeBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 6
-
-[node name="CampaignModeButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/ModeSwitchRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "КАМПАНИЯ"
-
-[node name="TowerModeButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/ModeSwitchRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "БАШНЯ"
-
-[node name="DungeonModeButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/ModeSwitchRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "ПОДЗЕМЕЛЬЯ"
-
-[node name="DungeonRow" type="HBoxContainer" parent="Margin/Panel/ModePanel/ModeBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 6
-
-[node name="GoldDungeonButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/DungeonRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "ЗОЛОТО"
-
-[node name="MaterialsDungeonButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/DungeonRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "ПЕПЕЛ"
-
-[node name="ExperienceDungeonButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/DungeonRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-text = "ОПЫТ"
-
-[node name="ModeHintLabel" type="Label" parent="Margin/Panel/ModePanel/ModeBox"]
-custom_minimum_size = Vector2(0, 38)
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "Тридцать этапов, тридцать ярусов и три подземелья"
-autowrap_mode = 2
-
-[node name="SkillRow" type="HBoxContainer" parent="Margin/Panel"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 8
-
-[node name="StrikeButton" type="Button" parent="Margin/Panel/SkillRow"]
-custom_minimum_size = Vector2(0, 56)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 17
 text = "УДАР"
 
-[node name="GuardButton" type="Button" parent="Margin/Panel/SkillRow"]
-custom_minimum_size = Vector2(0, 56)
+[node name="GuardButton" type="Button" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox/SkillRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 17
 text = "ЩИТ"
 
-[node name="ActionButton" type="Button" parent="Margin/Panel"]
+[node name="ActionButton" type="Button" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
 visible = false
-custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_font_sizes/font_size = 18
 text = "ДАЛЬШЕ"
 
-[node name="LogCard" type="PanelContainer" parent="Margin/Panel"]
-custom_minimum_size = Vector2(0, 142)
+[node name="LogCard" type="PanelContainer" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="BattleLog" type="Label" parent="Margin/Panel/LogCard"]
+[node name="BattleLog" type="Label" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox/LogCard"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+size_flags_vertical = 3
 text = ""
 autowrap_mode = 2
 vertical_alignment = 0
 
-[node name="HintLabel" type="Label" parent="Margin/Panel"]
+[node name="HintLabel" type="Label" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_font_sizes/font_size = 12
 text = "Автобой · локальное сохранение · офлайн до 12 ч"
+autowrap_mode = 2
 horizontal_alignment = 1
-[node name="SettingsRow" type="HBoxContainer" parent="Margin/Panel"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 4
 
-[node name="SoundButton" type="Button" parent="Margin/Panel/SettingsRow"]
-custom_minimum_size = Vector2(0, 36)
+[node name="InventoryPanel" type="PanelContainer" parent="Margin/Panel/ContentArea"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InventoryScroll" type="ScrollContainer" parent="Margin/Panel/ContentArea/InventoryPanel"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="InventoryBox" type="VBoxContainer" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InventoryTitle" type="Label" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox"]
+layout_mode = 2
+text = "ИНВЕНТАРЬ И ЭКИПИРОВКА"
+horizontal_alignment = 1
+
+[node name="InventoryTopRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="WalletLabel" type="Label" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/InventoryTopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ЗОЛОТО 0 · ПЕПЕЛ 0"
+
+[node name="ItemPowerLabel" type="Label" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/InventoryTopRow"]
+layout_mode = 2
+text = "ПРЕДМЕТОВ 0 · НАДЕТО 0"
+
+[node name="EquipmentPowerLabel" type="Label" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/InventoryTopRow"]
+layout_mode = 2
+text = "СИЛА 0"
+horizontal_alignment = 2
+
+[node name="FilterRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="SlotFilter" type="OptionButton" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/FilterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RarityFilter" type="OptionButton" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/FilterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AffixFilter" type="OptionButton" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/FilterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ItemList" type="ItemList" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+select_mode = 0
+
+[node name="ItemDetails" type="Label" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox"]
+layout_mode = 2
+text = "Выберите предмет"
+autowrap_mode = 2
+
+[node name="ActionsRow1" type="HBoxContainer" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="EquipButton" type="Button" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/ActionsRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "НАДЕТЬ"
+
+[node name="UpgradeButton" type="Button" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/ActionsRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "УЛУЧШИТЬ"
+
+[node name="LockButton" type="Button" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/ActionsRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ЗАМОК"
+
+[node name="ActionsRow2" type="HBoxContainer" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="DismantleButton" type="Button" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/ActionsRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "РАЗОБРАТЬ"
+
+[node name="AutoEquipButton" type="Button" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/ActionsRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "АВТОНАДЕВАНИЕ"
+
+[node name="MassDismantleButton" type="Button" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox/ActionsRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "РАЗОБРАТЬ НИЗШЕЕ"
+
+[node name="EquipmentHintLabel" type="Label" parent="Margin/Panel/ContentArea/InventoryPanel/InventoryScroll/InventoryBox"]
+layout_mode = 2
+text = "Выберите предмет в списке, затем наденьте, улучшите или разберите его. Бонусы применяются со следующего этапа."
+autowrap_mode = 2
+
+[node name="SummonPanel" type="PanelContainer" parent="Margin/Panel/ContentArea"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SummonScroll" type="ScrollContainer" parent="Margin/Panel/ContentArea/SummonPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="SummonBox" type="VBoxContainer" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SummonTitle" type="Label" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox"]
+layout_mode = 2
+text = "АЛТАРЬ ПРИЗЫВА"
+horizontal_alignment = 1
+
+[node name="SummonTopRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="SummonWalletLabel" type="Label" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox/SummonTopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ЗОЛОТО 0 · ПЕПЕЛ 0"
+
+[node name="SummonTypeRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="SummonTypeButton" type="Button" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox/SummonTypeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ПЕПЕЛЬНЫЙ ПРИЗЫВ"
+
+[node name="SummonOneButton" type="Button" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox/SummonTypeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "×1"
+
+[node name="SummonTenButton" type="Button" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox/SummonTypeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "×10"
+
+[node name="SummonInfoLabel" type="Label" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox"]
+layout_mode = 2
+text = "Шансы призыва"
+autowrap_mode = 2
+
+[node name="SummonStatusLabel" type="Label" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox"]
+layout_mode = 2
+text = "Доступно"
+autowrap_mode = 2
+
+[node name="HistoryLabel" type="Label" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox"]
+layout_mode = 2
+text = "История призывов пуста"
+autowrap_mode = 2
+
+[node name="SummonHintLabel" type="Label" parent="Margin/Panel/ContentArea/SummonPanel/SummonScroll/SummonBox"]
+layout_mode = 2
+text = "Выберите тип призыва кнопкой слева, затем призовите один предмет или сразу десять."
+autowrap_mode = 2
+
+[node name="ProgressionPanel" type="PanelContainer" parent="Margin/Panel/ContentArea"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ProgressionScroll" type="ScrollContainer" parent="Margin/Panel/ContentArea/ProgressionPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ProgressionBox" type="VBoxContainer" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ProgressionTitle" type="Label" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+text = "РАЗВИТИЕ ГЕРОЯ"
+horizontal_alignment = 1
+
+[node name="ProgressionTopRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="ProgressionWalletLabel" type="Label" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/ProgressionTopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Пепельный странник · Х 0 · Н 0"
+
+[node name="ProgressionPowerLabel" type="Label" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/ProgressionTopRow"]
+layout_mode = 2
+text = "СИЛА 0"
+horizontal_alignment = 2
+
+[node name="AttributeRow" type="GridContainer" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="StrengthButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/AttributeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "СИЛА"
+
+[node name="AgilityButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/AttributeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ЛОВКОСТЬ"
+
+[node name="IntellectButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/AttributeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "РАЗУМ"
+
+[node name="StaminaButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/AttributeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ВЫНОСЛ."
+
+[node name="SpiritButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/AttributeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ДУХ"
+
+[node name="AttributeHintLabel" type="Label" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+text = "Очки распределяются кнопками выше. После мягкого предела рост замедляется."
+autowrap_mode = 2
+
+[node name="ProgressionSkillList" type="ItemList" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+select_mode = 0
+
+[node name="ProgressionSkillDetails" type="Label" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+text = "Выберите навык"
+autowrap_mode = 2
+
+[node name="ProgressionSkillActionsRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="SkillUpgradeButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/ProgressionSkillActionsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "УЛУЧШИТЬ"
+
+[node name="SkillAutoButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/ProgressionSkillActionsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "АВТО"
+
+[node name="SkillVariantButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/ProgressionSkillActionsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ВАРИАНТ"
+
+[node name="PassiveRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="PassiveEnduranceButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/PassiveRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "СТОЙКОСТЬ"
+
+[node name="PassivePrecisionButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/PassiveRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ТОЧНОСТЬ"
+
+[node name="PassiveSpiritButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/PassiveRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ДУХ"
+
+[node name="PetRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="PetFoxButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/PetRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ЛИСА"
+
+[node name="PetHoundButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/PetRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ПЁС"
+
+[node name="PetOwlButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/PetRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "СОВА"
+
+[node name="ProgressionPetDetails" type="Label" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+text = "Питомец не выбран"
+autowrap_mode = 2
+
+[node name="ProgressionPetActionsRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="PetUpgradeButton" type="Button" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/ProgressionPetActionsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "УЛУЧШИТЬ"
+
+[node name="ProgressionHintLabel" type="Label" parent="Margin/Panel/ContentArea/ProgressionPanel/ProgressionScroll/ProgressionBox/ProgressionPetActionsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Навыки и питомцы помогают сразу, бонусы характеристик — со следующего этапа."
+autowrap_mode = 2
+
+[node name="ModePanel" type="PanelContainer" parent="Margin/Panel/ContentArea"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ModeScroll" type="ScrollContainer" parent="Margin/Panel/ContentArea/ModePanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ModeBox" type="VBoxContainer" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ModeTitle" type="Label" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox"]
+layout_mode = 2
+text = "РЕЖИМЫ И ПОДЗЕМЕЛЬЯ"
+horizontal_alignment = 1
+
+[node name="ModeTopRow" type="GridContainer" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="ModeStatusLabel" type="Label" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox/ModeTopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ОСНОВНАЯ КАМПАНИЯ"
+autowrap_mode = 2
+
+[node name="ModeStatsLabel" type="Label" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox/ModeTopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Лучший ярус 1"
+autowrap_mode = 2
+horizontal_alignment = 2
+
+[node name="ModeSwitchRow" type="GridContainer" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="CampaignModeButton" type="Button" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox/ModeSwitchRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "КАМПАНИЯ"
+
+[node name="TowerModeButton" type="Button" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox/ModeSwitchRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "БАШНЯ"
+
+[node name="DungeonModeButton" type="Button" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox/ModeSwitchRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ПОДЗЕМЕЛЬЯ"
+
+[node name="DungeonRow" type="GridContainer" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="GoldDungeonButton" type="Button" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox/DungeonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ЗОЛОТО"
+
+[node name="MaterialsDungeonButton" type="Button" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox/DungeonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ПЕПЕЛ"
+
+[node name="ExperienceDungeonButton" type="Button" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox/DungeonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ОПЫТ"
+
+[node name="ModeHintLabel" type="Label" parent="Margin/Panel/ContentArea/ModePanel/ModeScroll/ModeBox"]
+layout_mode = 2
+text = "Выберите режим, затем подземелье. Цена входа видна на кнопках."
+autowrap_mode = 2
+
+[node name="SettingsPanel" type="PanelContainer" parent="Margin/Panel/ContentArea"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SettingsScroll" type="ScrollContainer" parent="Margin/Panel/ContentArea/SettingsPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="SettingsBox" type="VBoxContainer" parent="Margin/Panel/ContentArea/SettingsPanel/SettingsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SettingsTitle" type="Label" parent="Margin/Panel/ContentArea/SettingsPanel/SettingsScroll/SettingsBox"]
+layout_mode = 2
+text = "НАСТРОЙКИ И ПРОИЗВОДИТЕЛЬНОСТЬ"
+horizontal_alignment = 1
+
+[node name="SettingsInfoLabel" type="Label" parent="Margin/Panel/ContentArea/SettingsPanel/SettingsScroll/SettingsBox"]
+layout_mode = 2
+text = "Все переключатели действуют сразу и сохраняются в локальном профиле."
+autowrap_mode = 2
+horizontal_alignment = 1
+
+[node name="SettingsRow" type="GridContainer" parent="Margin/Panel/ContentArea/SettingsPanel/SettingsScroll/SettingsBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="SoundButton" type="Button" parent="Margin/Panel/ContentArea/SettingsPanel/SettingsScroll/SettingsBox/SettingsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "ЗВУК ВКЛ"
 
-[node name="ParticlesButton" type="Button" parent="Margin/Panel/SettingsRow"]
-custom_minimum_size = Vector2(0, 36)
+[node name="ParticlesButton" type="Button" parent="Margin/Panel/ContentArea/SettingsPanel/SettingsScroll/SettingsBox/SettingsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
 text = "ЧАСТИЦЫ ВКЛ"
 
-[node name="FpsButton" type="Button" parent="Margin/Panel/SettingsRow"]
-custom_minimum_size = Vector2(0, 36)
+[node name="FpsButton" type="Button" parent="Margin/Panel/ContentArea/SettingsPanel/SettingsScroll/SettingsBox/SettingsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
 text = "60 КАДРОВ/С"
 
-[node name="EffectsButton" type="Button" parent="Margin/Panel/SettingsRow"]
-custom_minimum_size = Vector2(0, 36)
+[node name="EffectsButton" type="Button" parent="Margin/Panel/ContentArea/SettingsPanel/SettingsScroll/SettingsBox/SettingsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
 text = "ЭФФЕКТЫ ПОЛНЫЕ"
+
+[node name="PerformanceLabel" type="Label" parent="Margin/Panel/ContentArea/SettingsPanel/SettingsScroll/SettingsBox"]
+layout_mode = 2
+text = "КАДРЫ —"
+horizontal_alignment = 1
+
+[node name="SettingsHintLabel" type="Label" parent="Margin/Panel/ContentArea/SettingsPanel/SettingsScroll/SettingsBox"]
+layout_mode = 2
+text = "Для слабого устройства выберите 30 кадров/с и простые эффекты. Интернет не используется."
+autowrap_mode = 2
+horizontal_alignment = 1
+
+[node name="BottomBar" type="PanelContainer" parent="Margin/Panel"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="BottomTabs" type="GridContainer" parent="Margin/Panel/BottomBar"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="BattleButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "БОЙ"
+
+[node name="EquipmentButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ИНВЕНТАРЬ"
+
+[node name="SummonButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ПРИЗЫВ"
+
+[node name="ProgressionButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ПРОГРЕССИЯ"
+
+[node name="ModeButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "РЕЖИМЫ"
+
+[node name="SettingsButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "НАСТРОЙКИ"

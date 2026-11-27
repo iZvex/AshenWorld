@@ -11,6 +11,7 @@ const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignState = preload("res://scripts/campaign/campaign_state.gd")
 const ModeCatalog = preload("res://scripts/campaign/mode_catalog.gd")
 const SaveManager = preload("res://scripts/save/save_manager.gd")
+const PresentationCatalog = preload("res://scripts/ui/presentation_catalog.gd")
 
 const TEST_PROFILE_PATH: String = "user://test_ui_profile.json"
 const TEST_TIME: int = 1800000000
@@ -49,7 +50,7 @@ func _initialize() -> void:
 	_check("Экипировка подключена", scene.campaign.equipment != null)
 	_check("Первый бой запущен", scene.campaign.system != null and scene.campaign.system.running)
 	_check("Тема применена к корню", scene.theme != null)
-	_check("Тема компактная", scene.theme != null and scene.theme.default_font_size <= 18)
+	_check("Базовый шрифт увеличен для читаемости", scene.theme != null and scene.theme.default_font_size >= 20 and scene.theme.default_font_size <= 24)
 	_check("Тема содержит стиль кнопки", scene.theme != null and scene.theme.has_stylebox("normal", "Button"))
 	_check("Тема содержит стиль панели", scene.theme != null and scene.theme.has_stylebox("panel", "PanelContainer"))
 	_check("Палитра содержит цвет угля", AshenStyle.EMBER != Color.WHITE and AshenStyle.EMBER.a > 0.9)
@@ -130,7 +131,8 @@ func _initialize() -> void:
 		"Margin/Panel/SettingsRow/EffectsButton",
 	]
 	for path in paths:
-		_check("Узел %s" % path, scene.get_node_or_null(path) != null)
+		var node_name: String = path.split("/")[-1]
+		_check("Узел %s" % node_name, scene.find_child(node_name, true, false) != null)
 	_check("Все графические ассеты на месте", _assets_exist())
 	_check("Фон использует текстуру", scene.get_node("Background").texture != null)
 	_check("Разделитель использует текстуру", scene.divider.texture != null)
@@ -144,6 +146,7 @@ func _initialize() -> void:
 	_test_equipment_ui(scene, data)
 	_test_progression_ui(scene, data)
 	_test_modes_ui(scene, data)
+	_test_bottom_navigation(scene, data)
 
 	root.remove_child(scene)
 	scene.free()
@@ -153,8 +156,8 @@ func _initialize() -> void:
 
 
 func _test_compact_layout(scene) -> void:
-	_check("Панель не растягивается на весь экран", scene.get_node("Margin/Panel").size_flags_vertical == 0)
-	_check("Заголовок уменьшен", scene.title_label.get_theme_font_size("font_size") <= 28)
+	_check("Основная панель заполняет экран до нижнего меню", scene.get_node("Margin/Panel").size_flags_vertical == 3)
+	_check("Заголовок остаётся читаемым", scene.title_label.get_theme_font_size("font_size") >= 28 and scene.title_label.get_theme_font_size("font_size") <= 32)
 	_check("Символ уменьшен", scene.sigil.custom_minimum_size.x <= 56.0)
 	_check("Разделитель уменьшен", scene.divider.custom_minimum_size.y <= 24.0)
 	_check("Полоса здоровья героя тонкая", scene.hero_health_bar.custom_minimum_size.y <= 20.0)
@@ -450,6 +453,7 @@ func _check(name: String, condition: bool) -> void:
 func _assets_exist() -> bool:
 	for path in [
 		"res://assets/ui/background.svg",
+		"res://assets/ui/background_fantasy.png",
 		"res://assets/ui/divider.svg",
 		"res://assets/ui/sigil.svg",
 		"res://assets/ui/ember.svg",
@@ -457,3 +461,51 @@ func _assets_exist() -> bool:
 		if not FileAccess.file_exists(path):
 			return false
 	return true
+
+
+func _test_bottom_navigation(scene, data: Dictionary) -> void:
+	var config: Dictionary = PresentationCatalog.interface_config(data)
+	var nav_value: Variant = config.get("navigation", {})
+	var nav: Dictionary = nav_value as Dictionary if nav_value is Dictionary else {}
+	var tab_info_value: Variant = nav.get("tabs", {})
+	var tab_info: Dictionary = tab_info_value as Dictionary if tab_info_value is Dictionary else {}
+	var order_value: Variant = nav.get("tab_order", [])
+	var order: Array = order_value as Array if order_value is Array else []
+	_check("Все шесть разделов описаны в balance.json", order.size() == 6 and tab_info.size() == 6)
+	_check("Нижнее меню закреплено последним элементом экрана", scene.bottom_bar.get_parent() == scene.get_node("Margin/Panel") and scene.bottom_bar.get_index() == scene.get_node("Margin/Panel").get_child_count() - 1)
+	_check("Вкладки образуют сетку три на две", scene.bottom_tabs is GridContainer and scene.bottom_tabs.columns == 3)
+	_check("Карта разделов заполнена", scene.tabs.size() == 6 and scene.content_panels.size() == 6)
+	_check("Все рабочие подписи увеличены", _min_font_size(scene) >= 18)
+	for raw_id in order:
+		var tab_id: String = str(raw_id)
+		var entry_value: Variant = tab_info.get(tab_id, {})
+		var entry: Dictionary = entry_value as Dictionary if entry_value is Dictionary else {}
+		var button: Button = scene.tabs.get(tab_id) as Button
+		var panel: Control = scene.content_panels.get(tab_id) as Control
+		_check("Кнопка раздела %s подключена" % tab_id, button != null and panel != null)
+		if button == null or panel == null:
+			continue
+		button.emit_signal("pressed")
+		var visible_panels: int = 0
+		for key in scene.content_panels.keys():
+			var candidate: Control = scene.content_panels[key] as Control
+			if candidate != null and candidate.visible:
+				visible_panels += 1
+		_check("Раздел %s открыт и подписан" % tab_id, scene.active_tab == tab_id and panel.visible and scene.section_title.text == str(entry.get("section_title", "")))
+		_check("Раздел %s показан без наложения" % tab_id, visible_panels == 1)
+		if tab_id != scene.default_tab:
+			_check("Активная вкладка %s показывает возврат" % tab_id, scene.hide_label in button.text)
+	var settings_button: Button = scene.tabs.get("settings") as Button
+	if settings_button != null:
+		settings_button.emit_signal("pressed")
+		_check("Повторное нажатие возвращает на экран боя", scene.active_tab == scene.default_tab and scene.battle_panel.visible)
+
+
+func _min_font_size(node: Node) -> int:
+	var result: int = 999
+	if node is Label or node is Button or node is ItemList:
+		var control: Control = node as Control
+		result = mini(result, control.get_theme_font_size("font_size"))
+	for child in node.get_children():
+		result = mini(result, _min_font_size(child))
+	return result

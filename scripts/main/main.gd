@@ -4,7 +4,7 @@ extends Control
 # здоровье героя и противника в одной строке, 30 этапов, Башня испытаний,
 # Подземелья ресурсов, награды, Алтарь призыва, инвентарь, характеристики,
 # навыки и питомцы. Восьмой этап добавляет процедурные звуки, пул эффектов,
-# упрощённый режим и обновление интерфейса по таймеру. Все кнопки связаны с состоянием.
+# упрощённый режим и нижнее игровое меню с крупными подписями. Все кнопки связаны с состоянием.
 
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignState = preload("res://scripts/campaign/campaign_state.gd")
@@ -95,6 +95,41 @@ var sound_button: Button
 var particles_button: Button
 var fps_button: Button
 var effects_button: Button
+var battle_button: Button
+var summon_button: Button
+var settings_button: Button
+var header_frame: PanelContainer
+var bottom_bar: PanelContainer
+var section_title: Label
+var content_area: VBoxContainer
+var battle_panel: PanelContainer
+var inventory_panel: PanelContainer
+var summon_panel: PanelContainer
+var settings_panel: PanelContainer
+var summon_wallet_label: Label
+var battle_title: Label
+var battle_hint_label: Label
+var inventory_title: Label
+var summon_title: Label
+var summon_hint_label: Label
+var progression_title: Label
+var mode_title: Label
+var settings_title: Label
+var settings_info_label: Label
+var performance_label: Label
+var settings_hint_label: Label
+var bottom_tabs: GridContainer
+var background: TextureRect
+var dim_overlay: ColorRect
+var interface_config: Dictionary = {}
+var navigation_config: Dictionary = {}
+var tab_info: Dictionary = {}
+var tab_order: Array = []
+var default_tab: String = "battle"
+var hide_label: String = "СКРЫТЬ"
+var tabs: Dictionary = {}
+var content_panels: Dictionary = {}
+var active_tab: String = "battle"
 var audio_player
 var effect_pool
 var effect_config: Dictionary = {}
@@ -133,8 +168,12 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 		return
 	initialized = true
 	balance = data
+	interface_config = PresentationCatalog.interface_config(balance)
+	var navigation_value: Variant = interface_config.get("navigation", {})
+	navigation_config = navigation_value as Dictionary if navigation_value is Dictionary else {}
 	_bind_nodes()
-	theme = AshenStyle.build_theme()
+	theme = AshenStyle.build_theme(interface_config)
+	_apply_interface_config()
 	_apply_styles()
 	effect_config = PresentationCatalog.effect_pool_config(balance)
 	var performance: Dictionary = PresentationCatalog.performance_config(balance)
@@ -165,6 +204,7 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 		selected_skill_id = str(skill_ids[0])
 	selected_item_id = ""
 	selected_pet_id = str(campaign.development.selected_pet_id)
+	_setup_navigation()
 	_apply_settings()
 	_add_log("Этап %d: %s" % [campaign.stage_number(), str(campaign.current_stage().get("name", ""))])
 	var startup_lines: Array = startup_report.get("log_lines", []) as Array
@@ -178,80 +218,197 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 	])
 
 
-func _bind_nodes() -> void:
-	title_label = get_node("Margin/Panel/Header/Titles/TitleLabel")
-	stage_label = get_node("Margin/Panel/Header/Titles/StageLabel")
-	sigil = get_node("Margin/Panel/Header/Sigil")
-	divider = get_node("Margin/Panel/Divider")
-	level_label = get_node("Margin/Panel/StatusRow/LevelLabel")
-	experience_bar = get_node("Margin/Panel/StatusRow/ExperienceBar")
-	gold_label = get_node("Margin/Panel/StatusRow/GoldLabel")
-	materials_label = get_node("Margin/Panel/StatusRow/MaterialsLabel")
-	health_panel = get_node("Margin/Panel/HealthPanel")
-	health_row = get_node("Margin/Panel/HealthPanel/HealthBox/HealthRow")
-	hero_side = get_node("Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide")
-	enemy_side = get_node("Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide")
-	hero_label = get_node("Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide/HeroLabel")
-	enemy_label = get_node("Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide/EnemyLabel")
-	hero_health_bar = get_node("Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide/HeroHealthBar")
-	enemy_health_bar = get_node("Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide/EnemyHealthBar")
-	shield_bar = get_node("Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide/ShieldBar")
-	separator_label = get_node("Margin/Panel/HealthPanel/HealthBox/HealthRow/SeparatorLabel")
-	enemy_hint_label = get_node("Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide/EnemyHintLabel")
-	stage_notice = get_node("Margin/Panel/HealthPanel/HealthBox/StageNotice")
-	equipment_button = get_node("Margin/Panel/MenuRow/EquipmentButton")
-	equipment_power_label = get_node("Margin/Panel/MenuRow/EquipmentPowerLabel")
-	equipment_panel = get_node("Margin/Panel/EquipmentPanel")
-	wallet_label = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/EquipmentTopRow/WalletLabel")
-	item_power_label = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/EquipmentTopRow/ItemPowerLabel")
-	summon_type_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow/SummonTypeButton")
-	summon_one_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow/SummonOneButton")
-	summon_ten_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow/SummonTenButton")
-	summon_info_label = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/SummonInfoLabel")
-	summon_status_label = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/SummonStatusLabel")
-	history_label = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/HistoryLabel")
-	slot_filter = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/FilterRow/SlotFilter")
-	rarity_filter = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/FilterRow/RarityFilter")
-	affix_filter = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/FilterRow/AffixFilter")
-	item_list = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ItemList")
-	item_details = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ItemDetails")
-	equip_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow1/EquipButton")
-	upgrade_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow1/UpgradeButton")
-	lock_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow1/LockButton")
-	dismantle_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2/DismantleButton")
-	auto_equip_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2/AutoEquipButton")
-	mass_dismantle_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2/MassDismantleButton")
-	equipment_hint_label = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/EquipmentHintLabel")
-	progression_button = get_node("Margin/Panel/MenuRow/ProgressionButton")
-	mode_button = get_node("Margin/Panel/MenuRow/ModeButton") as Button
-	progression_panel = get_node("Margin/Panel/ProgressionPanel")
-	progression_wallet_label = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow/ProgressionWalletLabel")
-	progression_power_label = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow/ProgressionPowerLabel")
-	attribute_hint_label = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/AttributeHintLabel")
-	progression_skill_list = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillList")
-	progression_skill_details = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillDetails")
-	skill_upgrade_button = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow/SkillUpgradeButton")
-	skill_auto_button = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow/SkillAutoButton")
-	skill_variant_button = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow/SkillVariantButton")
-	progression_pet_details = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetDetails")
-	pet_upgrade_button = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetActionsRow/PetUpgradeButton")
-	progression_hint_label = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetActionsRow/ProgressionHintLabel")
-	strike_button = get_node("Margin/Panel/SkillRow/StrikeButton")
-	guard_button = get_node("Margin/Panel/SkillRow/GuardButton")
-	action_button = get_node("Margin/Panel/ActionButton")
-	log_card = get_node("Margin/Panel/LogCard")
-	battle_log = get_node("Margin/Panel/LogCard/BattleLog")
-	hint_label = get_node("Margin/Panel/HintLabel")
-	mode_panel = get_node("Margin/Panel/ModePanel") as PanelContainer
-	mode_status_label = get_node("Margin/Panel/ModePanel/ModeBox/ModeTopRow/ModeStatusLabel") as Label
-	mode_stats_label = get_node("Margin/Panel/ModePanel/ModeBox/ModeTopRow/ModeStatsLabel") as Label
-	mode_hint_label = get_node("Margin/Panel/ModePanel/ModeBox/ModeHintLabel") as Label
-	particles_effect = get_node("Particles") as CPUParticles2D
-	sound_button = get_node("Margin/Panel/SettingsRow/SoundButton") as Button
-	particles_button = get_node("Margin/Panel/SettingsRow/ParticlesButton") as Button
-	fps_button = get_node("Margin/Panel/SettingsRow/FpsButton") as Button
-	effects_button = get_node("Margin/Panel/SettingsRow/EffectsButton") as Button
+func _find(node_name: String) -> Node:
+	var node: Node = find_child(node_name, true, false)
+	if node == null:
+		push_error("Не найден узел интерфейса: " + node_name)
+	return node
 
+
+func _color_from_array(value: Variant, fallback: Color) -> Color:
+	var values: Array = []
+	if value is Array:
+		values = value as Array
+	if values.size() < 4:
+		return fallback
+	return Color(float(values[0]), float(values[1]), float(values[2]), float(values[3]))
+
+
+func _collect_controls(node: Node, result: Array) -> void:
+	for child in node.get_children():
+		if child is Control:
+			result.append(child)
+		_collect_controls(child, result)
+
+
+func _apply_interface_config() -> void:
+	var fonts: Dictionary = {}
+	var fonts_value: Variant = interface_config.get("fonts", {})
+	if fonts_value is Dictionary:
+		fonts = fonts_value as Dictionary
+	var node_sizes: Dictionary = {}
+	var node_sizes_value: Variant = fonts.get("node_sizes", {})
+	if node_sizes_value is Dictionary:
+		node_sizes = node_sizes_value as Dictionary
+	var minimum_sizes: Dictionary = {}
+	var minimum_sizes_value: Variant = interface_config.get("minimum_sizes", {})
+	if minimum_sizes_value is Dictionary:
+		minimum_sizes = minimum_sizes_value as Dictionary
+	var spacing: Dictionary = {}
+	var spacing_value: Variant = interface_config.get("spacing", {})
+	if spacing_value is Dictionary:
+		spacing = spacing_value as Dictionary
+	var layout: Dictionary = {}
+	var layout_value: Variant = interface_config.get("layout", {})
+	if layout_value is Dictionary:
+		layout = layout_value as Dictionary
+	var grid_columns: Dictionary = {}
+	var grid_columns_value: Variant = layout.get("grid_columns", {})
+	if grid_columns_value is Dictionary:
+		grid_columns = grid_columns_value as Dictionary
+	var controls: Array = []
+	controls.append(self)
+	_collect_controls(self, controls)
+	for item in controls:
+		var control: Control = item as Control
+		if control == null:
+			continue
+		var node_name: String = str(control.name)
+		if minimum_sizes.has(node_name):
+			var size_value: Variant = minimum_sizes[node_name]
+			if size_value is Array:
+				var size_array: Array = size_value as Array
+				if size_array.size() >= 2:
+					control.custom_minimum_size = Vector2(float(size_array[0]), float(size_array[1]))
+		if spacing.has(node_name):
+			var constants_value: Variant = spacing[node_name]
+			if constants_value is Dictionary:
+				var constants: Dictionary = constants_value as Dictionary
+				for constant_name in constants.keys():
+					control.add_theme_constant_override(str(constant_name), int(constants[constant_name]))
+		if control is GridContainer and grid_columns.has(node_name):
+			control.columns = clampi(int(grid_columns[node_name]), 1, 6)
+		if control is Label or control is Button or control is ItemList:
+			var font_size: int = clampi(int(fonts.get("default", 20)), 12, 48)
+			if control is OptionButton:
+				font_size = clampi(int(fonts.get("option", font_size)), 12, 48)
+			elif control is Button:
+				font_size = clampi(int(fonts.get("button", font_size)), 12, 48)
+			elif control is ItemList:
+				font_size = clampi(int(fonts.get("item_list", font_size)), 12, 48)
+			elif control is Label:
+				font_size = clampi(int(fonts.get("label", font_size)), 12, 48)
+			if node_sizes.has(node_name):
+				font_size = clampi(int(node_sizes[node_name]), 12, 48)
+			control.add_theme_font_size_override("font_size", font_size)
+	if background != null:
+		var texture_path: String = str(layout.get("background_texture", ""))
+		if texture_path != "" and ResourceLoader.exists(texture_path):
+			background.texture = load(texture_path)
+		background.modulate = _color_from_array(layout.get("background_modulate_rgba", []), background.modulate)
+	if dim_overlay != null:
+		dim_overlay.color = _color_from_array(layout.get("dim_overlay_color_rgba", []), dim_overlay.color)
+
+
+func _bind_nodes() -> void:
+	title_label = _find("TitleLabel") as Label
+	stage_label = _find("StageLabel") as Label
+	sigil = _find("Sigil") as TextureRect
+	divider = _find("Divider") as TextureRect
+	level_label = _find("LevelLabel") as Label
+	experience_bar = _find("ExperienceBar") as ProgressBar
+	gold_label = _find("GoldLabel") as Label
+	materials_label = _find("MaterialsLabel") as Label
+	health_panel = _find("HealthPanel") as PanelContainer
+	health_row = _find("HealthRow") as HBoxContainer
+	hero_side = _find("HeroSide") as VBoxContainer
+	enemy_side = _find("EnemySide") as VBoxContainer
+	hero_label = _find("HeroLabel") as Label
+	enemy_label = _find("EnemyLabel") as Label
+	hero_health_bar = _find("HeroHealthBar") as ProgressBar
+	enemy_health_bar = _find("EnemyHealthBar") as ProgressBar
+	shield_bar = _find("ShieldBar") as ProgressBar
+	separator_label = _find("SeparatorLabel") as Label
+	enemy_hint_label = _find("EnemyHintLabel") as Label
+	stage_notice = _find("StageNotice") as Label
+	header_frame = _find("HeaderFrame") as PanelContainer
+	section_title = _find("SectionTitle") as Label
+	content_area = _find("ContentArea") as VBoxContainer
+	battle_panel = _find("BattlePanel") as PanelContainer
+	inventory_panel = _find("InventoryPanel") as PanelContainer
+	summon_panel = _find("SummonPanel") as PanelContainer
+	settings_panel = _find("SettingsPanel") as PanelContainer
+	bottom_bar = _find("BottomBar") as PanelContainer
+	bottom_tabs = _find("BottomTabs") as GridContainer
+	background = _find("Background") as TextureRect
+	dim_overlay = _find("DimOverlay") as ColorRect
+	equipment_panel = inventory_panel
+	progression_panel = _find("ProgressionPanel") as PanelContainer
+	mode_panel = _find("ModePanel") as PanelContainer
+	equipment_button = _find("EquipmentButton") as Button
+	progression_button = _find("ProgressionButton") as Button
+	mode_button = _find("ModeButton") as Button
+	battle_button = _find("BattleButton") as Button
+	summon_button = _find("SummonButton") as Button
+	settings_button = _find("SettingsButton") as Button
+	equipment_power_label = _find("EquipmentPowerLabel") as Label
+	wallet_label = _find("WalletLabel") as Label
+	item_power_label = _find("ItemPowerLabel") as Label
+	summon_type_button = _find("SummonTypeButton") as Button
+	summon_one_button = _find("SummonOneButton") as Button
+	summon_ten_button = _find("SummonTenButton") as Button
+	summon_info_label = _find("SummonInfoLabel") as Label
+	summon_status_label = _find("SummonStatusLabel") as Label
+	history_label = _find("HistoryLabel") as Label
+	summon_wallet_label = _find("SummonWalletLabel") as Label
+	slot_filter = _find("SlotFilter") as OptionButton
+	rarity_filter = _find("RarityFilter") as OptionButton
+	affix_filter = _find("AffixFilter") as OptionButton
+	item_list = _find("ItemList") as ItemList
+	item_details = _find("ItemDetails") as Label
+	equip_button = _find("EquipButton") as Button
+	upgrade_button = _find("UpgradeButton") as Button
+	lock_button = _find("LockButton") as Button
+	dismantle_button = _find("DismantleButton") as Button
+	auto_equip_button = _find("AutoEquipButton") as Button
+	mass_dismantle_button = _find("MassDismantleButton") as Button
+	equipment_hint_label = _find("EquipmentHintLabel") as Label
+	progression_wallet_label = _find("ProgressionWalletLabel") as Label
+	progression_power_label = _find("ProgressionPowerLabel") as Label
+	attribute_hint_label = _find("AttributeHintLabel") as Label
+	progression_skill_list = _find("ProgressionSkillList") as ItemList
+	progression_skill_details = _find("ProgressionSkillDetails") as Label
+	skill_upgrade_button = _find("SkillUpgradeButton") as Button
+	skill_auto_button = _find("SkillAutoButton") as Button
+	skill_variant_button = _find("SkillVariantButton") as Button
+	progression_pet_details = _find("ProgressionPetDetails") as Label
+	pet_upgrade_button = _find("PetUpgradeButton") as Button
+	progression_hint_label = _find("ProgressionHintLabel") as Label
+	strike_button = _find("StrikeButton") as Button
+	guard_button = _find("GuardButton") as Button
+	action_button = _find("ActionButton") as Button
+	log_card = _find("LogCard") as PanelContainer
+	battle_log = _find("BattleLog") as Label
+	hint_label = _find("HintLabel") as Label
+	mode_status_label = _find("ModeStatusLabel") as Label
+	mode_stats_label = _find("ModeStatsLabel") as Label
+	mode_hint_label = _find("ModeHintLabel") as Label
+	particles_effect = _find("Particles") as CPUParticles2D
+	sound_button = _find("SoundButton") as Button
+	particles_button = _find("ParticlesButton") as Button
+	fps_button = _find("FpsButton") as Button
+	effects_button = _find("EffectsButton") as Button
+	battle_title = _find("BattleTitle") as Label
+	battle_hint_label = _find("BattleHintLabel") as Label
+	inventory_title = _find("InventoryTitle") as Label
+	summon_title = _find("SummonTitle") as Label
+	summon_hint_label = _find("SummonHintLabel") as Label
+	progression_title = _find("ProgressionTitle") as Label
+	mode_title = _find("ModeTitle") as Label
+	settings_title = _find("SettingsTitle") as Label
+	settings_info_label = _find("SettingsInfoLabel") as Label
+	performance_label = _find("PerformanceLabel") as Label
+	settings_hint_label = _find("SettingsHintLabel") as Label
 
 func _load_data() -> Dictionary:
 	# В игре данные приходят из автозагрузки, а в точечном тесте сцены
@@ -265,11 +422,10 @@ func _load_data() -> Dictionary:
 
 
 func _apply_styles() -> void:
-	health_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
-	equipment_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
-	progression_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
-	mode_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
-	log_card.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
+	header_frame.add_theme_stylebox_override("panel", AshenStyle.header_style())
+	bottom_bar.add_theme_stylebox_override("panel", AshenStyle.bottom_bar_style())
+	for panel in [health_panel, battle_panel, inventory_panel, summon_panel, progression_panel, mode_panel, settings_panel, log_card]:
+		panel.add_theme_stylebox_override("panel", AshenStyle.content_panel_style())
 	action_button.add_theme_stylebox_override("normal", AshenStyle.action_button_style())
 	for bar in [hero_health_bar, enemy_health_bar, shield_bar, experience_bar]:
 		bar.add_theme_stylebox_override("background", AshenStyle.bar_background())
@@ -277,8 +433,14 @@ func _apply_styles() -> void:
 	enemy_health_bar.add_theme_stylebox_override("fill", AshenStyle.bar_fill(AshenStyle.ENEMY_COLOR))
 	shield_bar.add_theme_stylebox_override("fill", AshenStyle.bar_fill(AshenStyle.SHIELD_COLOR))
 	experience_bar.add_theme_stylebox_override("fill", AshenStyle.bar_fill(AshenStyle.GOLD))
+	for label in [section_title, battle_title, inventory_title, summon_title, progression_title, mode_title, settings_title]:
+		label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	for label in [battle_hint_label, settings_info_label, settings_hint_label, summon_hint_label]:
+		label.add_theme_color_override("font_color", AshenStyle.RUNE)
+	performance_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	summon_wallet_label.add_theme_color_override("font_color", AshenStyle.MUTED)
 	title_label.add_theme_color_override("font_color", AshenStyle.GOLD)
-	stage_label.add_theme_color_override("font_color", AshenStyle.MUTED)
+	stage_label.add_theme_color_override("font_color", AshenStyle.PARCHMENT)
 	level_label.add_theme_color_override("font_color", AshenStyle.STEEL)
 	gold_label.add_theme_color_override("font_color", AshenStyle.GOLD)
 	materials_label.add_theme_color_override("font_color", AshenStyle.EMBER)
@@ -306,7 +468,6 @@ func _apply_styles() -> void:
 	mode_status_label.add_theme_color_override("font_color", AshenStyle.GOLD)
 	mode_stats_label.add_theme_color_override("font_color", AshenStyle.MUTED)
 	mode_hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
-
 
 func _configure_particles() -> void:
 	if particles_effect == null:
@@ -348,9 +509,6 @@ func _connect_ui_signals() -> void:
 	strike_button.pressed.connect(_on_strike_pressed)
 	guard_button.pressed.connect(_on_guard_pressed)
 	action_button.pressed.connect(_on_action_pressed)
-	equipment_button.pressed.connect(_on_equipment_toggle_pressed)
-	progression_button.pressed.connect(_on_progression_toggle_pressed)
-	mode_button.pressed.connect(_on_mode_toggle_pressed)
 	_populate_modes()
 	progression_skill_list.item_selected.connect(_on_skill_selected)
 	skill_upgrade_button.pressed.connect(_on_skill_upgrade_pressed)
@@ -403,37 +561,37 @@ func _populate_progression() -> void:
 	pet_buttons.clear()
 	var attribute_ids: Array = ProgressionCatalog.attribute_ids(balance)
 	var attribute_paths: Array = [
-		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/StrengthButton",
-		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/AgilityButton",
-		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/IntellectButton",
-		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/StaminaButton",
-		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/SpiritButton",
+		"StrengthButton",
+		"AgilityButton",
+		"IntellectButton",
+		"StaminaButton",
+		"SpiritButton",
 	]
 	for index in range(mini(attribute_ids.size(), attribute_paths.size())):
 		var attribute_id: String = str(attribute_ids[index])
-		var attribute_button: Button = get_node(str(attribute_paths[index])) as Button
+		var attribute_button: Button = find_child(str(attribute_paths[index]), true, false) as Button
 		attribute_buttons[attribute_id] = attribute_button
 		attribute_button.pressed.connect(_on_attribute_pressed.bind(attribute_id))
 	var passive_paths: Array = [
-		"Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow/PassiveEnduranceButton",
-		"Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow/PassivePrecisionButton",
-		"Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow/PassiveSpiritButton",
+		"PassiveEnduranceButton",
+		"PassivePrecisionButton",
+		"PassiveSpiritButton",
 	]
 	var passive_ids: Array = campaign.get_passive_ids()
 	for index in range(mini(passive_ids.size(), passive_paths.size())):
 		var passive_id: String = str(passive_ids[index])
-		var passive_button: Button = get_node(str(passive_paths[index])) as Button
+		var passive_button: Button = find_child(str(passive_paths[index]), true, false) as Button
 		passive_buttons[passive_id] = passive_button
 		passive_button.pressed.connect(_on_passive_pressed.bind(passive_id))
 	var pet_paths: Array = [
-		"Margin/Panel/ProgressionPanel/ProgressionBox/PetRow/PetFoxButton",
-		"Margin/Panel/ProgressionPanel/ProgressionBox/PetRow/PetHoundButton",
-		"Margin/Panel/ProgressionPanel/ProgressionBox/PetRow/PetOwlButton",
+		"PetFoxButton",
+		"PetHoundButton",
+		"PetOwlButton",
 	]
 	var pet_ids: Array = campaign.get_pet_ids()
 	for index in range(mini(pet_ids.size(), pet_paths.size())):
 		var pet_id: String = str(pet_ids[index])
-		var pet_button: Button = get_node(str(pet_paths[index])) as Button
+		var pet_button: Button = find_child(str(pet_paths[index]), true, false) as Button
 		pet_buttons[pet_id] = pet_button
 		pet_button.pressed.connect(_on_pet_selected.bind(pet_id))
 
@@ -555,24 +713,8 @@ func _update_view() -> void:
 			str(summary["mode_short"]),
 			fps_text,
 		]
+		performance_label.text = "КАДРЫ %s · ЦЕЛЬ %d" % [fps_text, int(profile_manager.settings().get("target_fps", 60))]
 	_refresh_settings_ui()
-
-
-func _on_equipment_toggle_pressed() -> void:
-	equipment_visible = not equipment_visible
-	equipment_panel.visible = equipment_visible
-	_clear_force_dismantle()
-	if equipment_visible:
-		progression_visible = false
-		progression_panel.visible = false
-		progression_button.text = "ПРОГРЕССИЯ"
-		mode_visible = false
-		mode_panel.visible = false
-		mode_button.text = "РЕЖИМЫ"
-		equipment_button.text = "СКРЫТЬ ЭКИПИРОВКУ"
-		_refresh_equipment_ui()
-	else:
-		equipment_button.text = "ЭКИПИРОВКА"
 
 
 func _on_summon_type_pressed() -> void:
@@ -712,6 +854,7 @@ func _refresh_equipment_ui() -> void:
 		return
 	var summary: Dictionary = campaign.get_summary()
 	wallet_label.text = "ЗОЛОТО %d · ПЕПЕЛ %d" % [int(summary["gold"]), int(summary["materials"])]
+	summon_wallet_label.text = wallet_label.text
 	item_power_label.text = "ПРЕДМЕТОВ %d · НАДЕТО %d" % [int(summary["inventory_count"]), int(summary["equipped_count"])]
 	var summon: Dictionary = EquipmentCatalog.summon_by_id(balance, selected_summon_id)
 	summon_type_button.text = str(summon.get("name", "")).to_upper()
@@ -833,63 +976,111 @@ func _refresh_item_details() -> void:
 	mass_dismantle_button.disabled = false
 
 
-func _on_progression_toggle_pressed() -> void:
-	progression_visible = not progression_visible
-	progression_panel.visible = progression_visible
-	if progression_visible:
-		equipment_visible = false
-		equipment_panel.visible = false
-		equipment_button.text = "ЭКИПИРОВКА"
-		mode_visible = false
-		mode_panel.visible = false
-		mode_button.text = "РЕЖИМЫ"
-		_clear_force_dismantle()
-		progression_button.text = "СКРЫТЬ ПРОГРЕССИЮ"
+func _setup_navigation() -> void:
+	tabs.clear()
+	content_panels.clear()
+	tab_order.clear()
+	tab_info.clear()
+	var order_value: Variant = navigation_config.get("tab_order", [])
+	if order_value is Array:
+		tab_order = (order_value as Array).duplicate()
+	var info_value: Variant = navigation_config.get("tabs", {})
+	if info_value is Dictionary:
+		tab_info = (info_value as Dictionary).duplicate()
+	default_tab = str(navigation_config.get("default_tab", "battle"))
+	hide_label = str(navigation_config.get("hide_label", "СКРЫТЬ"))
+	for raw_id in tab_order:
+		var tab_id: String = str(raw_id)
+		var entry: Dictionary = {}
+		var entry_value: Variant = tab_info.get(tab_id, {})
+		if entry_value is Dictionary:
+			entry = entry_value as Dictionary
+		var button: Button = _find(str(entry.get("button", ""))) as Button
+		var panel: Control = _find(str(entry.get("panel", ""))) as Control
+		if button == null or panel == null:
+			continue
+		tabs[tab_id] = button
+		content_panels[tab_id] = panel
+		button.text = str(entry.get("label", tab_id.to_upper()))
+		var title_node: Label = _find(str(entry.get("panel_title_node", ""))) as Label
+		if title_node != null:
+			title_node.text = str(entry.get("panel_title", ""))
+		button.pressed.connect(_on_tab_pressed.bind(tab_id))
+	active_tab = default_tab
+	_select_tab(default_tab, false)
+
+func _select_tab(tab_id: String, with_sound: bool = true) -> void:
+	var source_id: String = tab_id
+	if not tab_info.has(source_id):
+		return
+	if tab_id == active_tab and tab_id != default_tab:
+		tab_id = default_tab
+	active_tab = tab_id
+	for key in content_panels.keys():
+		var panel: Control = content_panels[key] as Control
+		if panel != null:
+			panel.visible = str(key) == active_tab
+	for key in tabs.keys():
+		var button: Button = tabs[key] as Button
+		if button == null:
+			continue
+		var key_id: String = str(key)
+		var entry: Dictionary = {}
+		var entry_value: Variant = tab_info.get(key_id, {})
+		if entry_value is Dictionary:
+			entry = entry_value as Dictionary
+		var active: bool = key_id == active_tab
+		button.text = hide_label if active and key_id != default_tab else str(entry.get("label", key_id.to_upper()))
+		button.add_theme_stylebox_override("normal", AshenStyle.active_tab_style() if active else AshenStyle.inactive_tab_style())
+		button.add_theme_color_override("font_color", AshenStyle.BACKGROUND if active else AshenStyle.PARCHMENT)
+	var current: Dictionary = {}
+	var current_value: Variant = tab_info.get(active_tab, {})
+	if current_value is Dictionary:
+		current = current_value as Dictionary
+	section_title.text = str(current.get("section_title", active_tab.to_upper()))
+	equipment_visible = bool(current.get("refresh_equipment", false))
+	progression_visible = bool(current.get("refresh_progression", false))
+	mode_visible = bool(current.get("refresh_modes", false))
+	_clear_force_dismantle()
+	if with_sound and tabs.has(source_id):
+		var source_button: Button = tabs[source_id] as Button
+		if source_button != null:
+			_pulse_button(source_button)
+	if equipment_visible:
+		_refresh_equipment_ui()
+	elif progression_visible:
 		_refresh_progression_ui()
-	else:
-		progression_button.text = "ПРОГРЕССИЯ"
-
-
-func _on_mode_toggle_pressed() -> void:
-	mode_visible = not mode_visible
-	mode_panel.visible = mode_visible
-	if mode_visible:
-		equipment_visible = false
-		equipment_panel.visible = false
-		equipment_button.text = "ЭКИПИРОВКА"
-		progression_visible = false
-		progression_panel.visible = false
-		progression_button.text = "ПРОГРЕССИЯ"
-		_clear_force_dismantle()
-		mode_button.text = "СКРЫТЬ РЕЖИМЫ"
+	elif mode_visible:
 		_refresh_mode_ui()
-	else:
-		mode_button.text = "РЕЖИМЫ"
+	_update_view()
 
+
+func _on_tab_pressed(tab_id: String, with_sound: bool = true) -> void:
+	_select_tab(tab_id, with_sound)
 
 func _populate_modes() -> void:
 	mode_buttons.clear()
 	dungeon_buttons.clear()
 	var mode_paths: Array = [
-		"Margin/Panel/ModePanel/ModeBox/ModeSwitchRow/CampaignModeButton",
-		"Margin/Panel/ModePanel/ModeBox/ModeSwitchRow/TowerModeButton",
-		"Margin/Panel/ModePanel/ModeBox/ModeSwitchRow/DungeonModeButton",
+		"CampaignModeButton",
+		"TowerModeButton",
+		"DungeonModeButton",
 	]
 	var mode_ids: Array = ModeCatalog.mode_ids(balance)
 	for index in range(mini(mode_ids.size(), mode_paths.size())):
 		var mode_id: String = str(mode_ids[index])
-		var button: Button = get_node(str(mode_paths[index])) as Button
+		var button: Button = find_child(str(mode_paths[index]), true, false) as Button
 		mode_buttons[mode_id] = button
 		button.pressed.connect(_on_mode_button_pressed.bind(mode_id))
 	var dungeon_paths: Array = [
-		"Margin/Panel/ModePanel/ModeBox/DungeonRow/GoldDungeonButton",
-		"Margin/Panel/ModePanel/ModeBox/DungeonRow/MaterialsDungeonButton",
-		"Margin/Panel/ModePanel/ModeBox/DungeonRow/ExperienceDungeonButton",
+		"GoldDungeonButton",
+		"MaterialsDungeonButton",
+		"ExperienceDungeonButton",
 	]
 	var dungeon_ids: Array = ModeCatalog.dungeon_ids(balance)
 	for index in range(mini(dungeon_ids.size(), dungeon_paths.size())):
 		var dungeon_id: String = str(dungeon_ids[index])
-		var button: Button = get_node(str(dungeon_paths[index])) as Button
+		var button: Button = find_child(str(dungeon_paths[index]), true, false) as Button
 		dungeon_buttons[dungeon_id] = button
 		button.pressed.connect(_on_dungeon_button_pressed.bind(dungeon_id))
 

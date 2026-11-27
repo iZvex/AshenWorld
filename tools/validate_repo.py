@@ -515,7 +515,7 @@ for rel in stage_files:
     if not (ROOT / rel).is_file():
         err(f"Седьмой этап: отсутствует {rel}")
 main_src = (ROOT / "scripts/main/main.gd").read_text(encoding="utf-8") if (ROOT / "scripts/main/main.gd").is_file() else ""
-for token in ["ModeCatalog", "_on_mode_toggle_pressed", "_refresh_mode_ui", "_on_dungeon_button_pressed", "вход в подземелье"]:
+for token in ["ModeCatalog", "_on_tab_pressed", "_refresh_mode_ui", "_on_dungeon_button_pressed", "вход в подземелье"]:
     if token not in main_src:
         err(f"scripts/main/main.gd: отсутствует подключение режимов ({token})")
 scene_src = (ROOT / "scenes/main/main.tscn").read_text(encoding="utf-8") if (ROOT / "scenes/main/main.tscn").is_file() else ""
@@ -608,6 +608,81 @@ notes.append(
     f"Полировка: интерфейс {ui_refresh:g} с, пул {pool_capacity}, "
     f"звуков {len(sound_specs) if isinstance(sound_specs, dict) else 0}, "
     f"частиц {int(ambient.get('amount', 0)) if isinstance(ambient, dict) else 0}"
+)
+
+# --- 5.5. Игровое нижнее меню и читаемые шрифты ----------------------------
+interface = presentation.get("interface", {})
+if not isinstance(interface, dict):
+    err("data/balance.json: presentation.interface должен быть объектом")
+    interface = {}
+fonts = interface.get("fonts", {})
+if not isinstance(fonts, dict):
+    err("data/balance.json: presentation.interface.fonts должен быть объектом")
+    fonts = {}
+node_sizes = fonts.get("node_sizes", {})
+if not isinstance(node_sizes, dict) or len(node_sizes) < 80:
+    err("data/balance.json: должны быть описаны размеры шрифтов всех рабочих узлов")
+    node_sizes = {}
+if int(fonts.get("default", 0)) < 20:
+    err("data/balance.json: базовый шрифт интерфейса должен быть не меньше 20")
+if any(int(value) < 18 for value in node_sizes.values()):
+    err("data/balance.json: рабочие подписи интерфейса должны быть не меньше 18")
+if int(effect_pool.get("skill_font_size", 0)) < 18:
+    err("data/balance.json: всплывающие названия навыков должны быть не меньше 18")
+minimum_sizes = interface.get("minimum_sizes", {})
+if not isinstance(minimum_sizes, dict) or len(minimum_sizes) < 90:
+    err("data/balance.json: размеры панелей и кнопок должны быть централизованы")
+spacing = interface.get("spacing", {})
+if not isinstance(spacing, dict) or len(spacing) < 30:
+    err("data/balance.json: отступы интерфейса должны быть централизованы")
+layout = interface.get("layout", {})
+if not isinstance(layout, dict):
+    err("data/balance.json: presentation.interface.layout должен быть объектом")
+    layout = {}
+grid_columns = layout.get("grid_columns", {})
+if not isinstance(grid_columns, dict) or int(grid_columns.get("BottomTabs", 0)) != 3:
+    err("data/balance.json: нижнее меню должно содержать три колонки")
+navigation = interface.get("navigation", {})
+if not isinstance(navigation, dict):
+    err("data/balance.json: presentation.interface.navigation должен быть объектом")
+    navigation = {}
+tab_order = navigation.get("tab_order", [])
+tabs = navigation.get("tabs", {})
+expected_tabs = {"battle", "inventory", "summon", "progression", "mode", "settings"}
+if not isinstance(tab_order, list) or len(tab_order) != 6 or set(tab_order) != expected_tabs:
+    err("data/balance.json: нижнее меню должно содержать шесть рабочих разделов")
+if not isinstance(tabs, dict) or set(tabs) != expected_tabs:
+    err("data/balance.json: разделы нижнего меню должны быть описаны полностью")
+else:
+    for tab_id, spec in tabs.items():
+        if not isinstance(spec, dict) or any(key not in spec for key in ("button", "panel", "label", "section_title", "panel_title_node")):
+            err(f"data/balance.json: неполное описание раздела {tab_id}")
+if str(layout.get("background_texture", "")) != "res://assets/ui/background_fantasy.png":
+    err("data/balance.json: игровой фон должен быть задан через presentation.interface")
+background_png = ROOT / "assets/ui/background_fantasy.png"
+if not background_png.is_file() or not (ROOT / "assets/ui/background_fantasy.png.import").is_file():
+    err("Ассеты игрового фона и его файл импорта должны присутствовать в репозитории")
+for token in ["background_fantasy.png", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle"]:
+    if token not in scene_src:
+        err(f"scenes/main/main.tscn: отсутствует узел или ресурс игрового меню ({token})")
+for token in ["PresentationCatalog.interface_config", "AshenStyle.build_theme(interface_config)", "_apply_interface_config", "_on_tab_pressed", "_select_tab"]:
+    if token not in main_src:
+        err(f"scripts/main/main.gd: отсутствует подключение нижнего меню ({token})")
+presentation_catalog = (ROOT / "scripts/ui/presentation_catalog.gd").read_text(encoding="utf-8") if (ROOT / "scripts/ui/presentation_catalog.gd").is_file() else ""
+if "static func interface_config" not in presentation_catalog:
+    err("scripts/ui/presentation_catalog.gd: отсутствует чтение параметров интерфейса")
+ui_doc = (ROOT / "docs/ui.md").read_text(encoding="utf-8") if (ROOT / "docs/ui.md").is_file() else ""
+for token in ["нижнее меню", "presentation.interface", "БОЙ", "ИНВЕНТАРЬ", "ПРИЗЫВ", "НАСТРОЙКИ"]:
+    if token not in ui_doc:
+        err(f"docs/ui.md: отсутствует описание игрового интерфейса ({token})")
+ui_tests = (ROOT / "tests/test_ui.gd").read_text(encoding="utf-8") if (ROOT / "tests/test_ui.gd").is_file() else ""
+if "_test_bottom_navigation" not in ui_tests:
+    err("tests/test_ui.gd: отсутствуют сценарии нижнего меню")
+if 'presentation["interface"]' not in ci_src:
+    err(".github/workflows/ci.yml: отсутствует проверка параметров presentation.interface в APK")
+notes.append(
+    f"Интерфейс: разделов {len(tabs) if isinstance(tabs, dict) else 0}, "
+    f"шрифт {int(fonts.get('default', 0))}, колонок {int(grid_columns.get('BottomTabs', 0)) if isinstance(grid_columns, dict) else 0}"
 )
 
 # --- 6. Скрипты GDScript ---------------------------------------------------

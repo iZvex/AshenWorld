@@ -21,6 +21,22 @@ static func ui_refresh_seconds(balance: Dictionary) -> float:
 	return clampf(float(section(balance).get("ui_refresh_seconds", DEFAULT_UI_REFRESH_SECONDS)), 0.02, 1.0)
 
 
+static func _dict(source: Dictionary, key: String) -> Dictionary:
+	var value: Variant = source.get(key, {})
+	return value as Dictionary if value is Dictionary else {}
+
+
+static func interface_config(balance: Dictionary) -> Dictionary:
+	var data: Dictionary = _dict(section(balance), "interface")
+	return {
+		"fonts": _dict(data, "fonts"),
+		"minimum_sizes": _dict(data, "minimum_sizes"),
+		"spacing": _dict(data, "spacing"),
+		"layout": _dict(data, "layout"),
+		"navigation": _dict(data, "navigation"),
+	}
+
+
 static func performance_config(balance: Dictionary) -> Dictionary:
 	var data: Dictionary = section(balance)
 	return {

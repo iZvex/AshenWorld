@@ -36,6 +36,18 @@ func _initialize() -> void:
 
 func _test_balance(data: Dictionary) -> void:
 	var section: Dictionary = PresentationCatalog.section(data)
+	var interface: Dictionary = PresentationCatalog.interface_config(data)
+	var fonts: Dictionary = interface.get("fonts", {}) as Dictionary
+	var node_sizes: Dictionary = fonts.get("node_sizes", {}) as Dictionary
+	var minimum_sizes: Dictionary = interface.get("minimum_sizes", {}) as Dictionary
+	var layout: Dictionary = interface.get("layout", {}) as Dictionary
+	var grid_columns: Dictionary = layout.get("grid_columns", {}) as Dictionary
+	var navigation: Dictionary = interface.get("navigation", {}) as Dictionary
+	var tabs: Dictionary = navigation.get("tabs", {}) as Dictionary
+	_check("Читаемые шрифты заданы централизованно", int(fonts.get("default", 0)) >= 20 and node_sizes.size() >= 80)
+	_check("Размеры панелей заданы централизованно", minimum_sizes.size() >= 90 and int(grid_columns.get("BottomTabs", 0)) == 3)
+	_check("Шесть разделов нижнего меню заданы в балансе", tabs.size() == 6 and (navigation.get("tab_order", []) as Array).size() == 6)
+	_check("Игровой фон задан в балансе", str(layout.get("background_texture", "")).ends_with("background_fantasy.png"))
 	_check("Версия баланса восьмого этапа", int(data.get("version", 0)) == 8)
 	_check("Раздел presentation добавлен", not section.is_empty())
 	_check("Частота обновления интерфейса ограничена", PresentationCatalog.ui_refresh_seconds(data) <= 0.2)
@@ -45,7 +57,7 @@ func _test_balance(data: Dictionary) -> void:
 	var effects: Dictionary = PresentationCatalog.effect_pool_config(data)
 	_check("Пул эффектов ограничен", int(effects.get("capacity", 0)) > 0 and int(effects.get("capacity", 0)) <= 16)
 	_check("Длительности анимаций положительны", float(effects.get("label_duration_seconds", 0.0)) > 0.0 and float(effects.get("flash_duration_seconds", 0.0)) > 0.0)
-	_check("Размеры подписей заданы централизованно", int(effects.get("label_font_size", 0)) > 0 and int(effects.get("skill_font_size", 0)) > 0)
+	_check("Размеры подписей заданы централизованно", int(effects.get("label_font_size", 0)) >= 20 and int(effects.get("skill_font_size", 0)) >= 18)
 	var particles: Dictionary = PresentationCatalog.particle_config(data)
 	_check("Фоновых частиц меньше прежних восемнадцати", int(particles.get("amount", 99)) < 18 and int(particles.get("amount", 0)) > 0)
 	_check("Цвет частиц задан в балансе", (particles.get("color", Color.WHITE) as Color).a > 0.0)
@@ -88,6 +100,11 @@ func _test_scene(data: Dictionary) -> void:
 	scene.set_process(false)
 	scene.setup(data, TEST_PROFILE_PATH, TEST_TIME)
 	_check("Сцена полировки создана", scene.audio_player != null and scene.effect_pool != null)
+	var interface: Dictionary = PresentationCatalog.interface_config(data)
+	var fonts: Dictionary = interface.get("fonts", {}) as Dictionary
+	_check("Базовый шрифт применён из баланса", scene.theme.default_font_size == int(fonts.get("default", 0)))
+	_check("Нижние вкладки крупные и образуют три колонки", scene.bottom_tabs.columns == 3 and scene.battle_button.get_theme_font_size("font_size") >= 18)
+	_check("Экран боя открыт по умолчанию", scene.active_tab == "battle" and scene.battle_panel.visible and not scene.summon_panel.visible)
 	_check("Пул голосов создан один раз", scene.audio_player.voice_count() == 6 and scene.audio_player.stream_count() == 8)
 	_check("Пул подписей создан один раз", scene.effect_pool.pool_size() == 8)
 	_check("Фоновые частицы настроены из баланса", scene.particles_effect.amount == 12)

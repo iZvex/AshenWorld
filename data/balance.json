@@ -2649,7 +2649,7 @@
       "label_duration_seconds": 0.55,
       "label_rise_pixels": 52.0,
       "label_font_size": 24,
-      "skill_font_size": 15,
+      "skill_font_size": 20,
       "flash_duration_seconds": 0.28
     },
     "audio": {
@@ -2728,6 +2728,738 @@
           "amplitude": 0.32,
           "fade_seconds": 0.006,
           "volume_db": -18.0
+        }
+      }
+    },
+    "interface": {
+      "fonts": {
+        "default": 20,
+        "label": 18,
+        "button": 18,
+        "option": 18,
+        "item_list": 18,
+        "node_sizes": {
+          "ActionButton": 20,
+          "AffixFilter": 18,
+          "AgilityButton": 18,
+          "AttributeHintLabel": 18,
+          "AutoEquipButton": 18,
+          "BattleButton": 18,
+          "BattleHintLabel": 18,
+          "BattleLog": 18,
+          "BattleTitle": 22,
+          "CampaignModeButton": 18,
+          "DismantleButton": 18,
+          "DungeonModeButton": 18,
+          "EffectsButton": 18,
+          "EnemyHintLabel": 18,
+          "EnemyLabel": 18,
+          "EquipButton": 18,
+          "EquipmentButton": 18,
+          "EquipmentHintLabel": 18,
+          "EquipmentPowerLabel": 18,
+          "ExperienceDungeonButton": 18,
+          "FpsButton": 18,
+          "GoldDungeonButton": 18,
+          "GoldLabel": 18,
+          "GuardButton": 22,
+          "HeroLabel": 18,
+          "HintLabel": 18,
+          "HistoryLabel": 18,
+          "IntellectButton": 18,
+          "InventoryTitle": 22,
+          "ItemDetails": 18,
+          "ItemList": 18,
+          "ItemPowerLabel": 18,
+          "LevelLabel": 18,
+          "LockButton": 18,
+          "MassDismantleButton": 18,
+          "MaterialsDungeonButton": 18,
+          "MaterialsLabel": 18,
+          "ModeButton": 18,
+          "ModeHintLabel": 18,
+          "ModeStatsLabel": 18,
+          "ModeStatusLabel": 18,
+          "ModeTitle": 22,
+          "ParticlesButton": 18,
+          "PassiveEnduranceButton": 18,
+          "PassivePrecisionButton": 18,
+          "PassiveSpiritButton": 18,
+          "PerformanceLabel": 19,
+          "PetFoxButton": 18,
+          "PetHoundButton": 18,
+          "PetOwlButton": 18,
+          "PetUpgradeButton": 18,
+          "ProgressionButton": 18,
+          "ProgressionHintLabel": 18,
+          "ProgressionPetDetails": 18,
+          "ProgressionPowerLabel": 18,
+          "ProgressionSkillDetails": 18,
+          "ProgressionSkillList": 18,
+          "ProgressionTitle": 22,
+          "ProgressionWalletLabel": 18,
+          "RarityFilter": 18,
+          "SectionTitle": 24,
+          "SeparatorLabel": 20,
+          "SettingsButton": 18,
+          "SettingsHintLabel": 18,
+          "SettingsInfoLabel": 18,
+          "SettingsTitle": 22,
+          "SkillAutoButton": 18,
+          "SkillUpgradeButton": 18,
+          "SkillVariantButton": 18,
+          "SlotFilter": 18,
+          "SoundButton": 18,
+          "SpiritButton": 18,
+          "StageLabel": 19,
+          "StageNotice": 18,
+          "StaminaButton": 18,
+          "StrengthButton": 18,
+          "StrikeButton": 22,
+          "SummonButton": 18,
+          "SummonHintLabel": 18,
+          "SummonInfoLabel": 18,
+          "SummonOneButton": 20,
+          "SummonStatusLabel": 18,
+          "SummonTenButton": 20,
+          "SummonTitle": 22,
+          "SummonTypeButton": 18,
+          "SummonWalletLabel": 18,
+          "TitleLabel": 30,
+          "TowerModeButton": 18,
+          "UpgradeButton": 18,
+          "WalletLabel": 18
+        }
+      },
+      "minimum_sizes": {
+        "ActionButton": [
+          0,
+          56
+        ],
+        "AffixFilter": [
+          0,
+          46
+        ],
+        "AgilityButton": [
+          0,
+          48
+        ],
+        "AttributeHintLabel": [
+          0,
+          52
+        ],
+        "AttributeRow": [
+          0,
+          152
+        ],
+        "AutoEquipButton": [
+          0,
+          50
+        ],
+        "BattleButton": [
+          0,
+          54
+        ],
+        "BattleHintLabel": [
+          0,
+          60
+        ],
+        "BattleScroll": [
+          0,
+          250
+        ],
+        "BottomBar": [
+          0,
+          128
+        ],
+        "BottomTabs": [
+          0,
+          112
+        ],
+        "CampaignModeButton": [
+          0,
+          50
+        ],
+        "DismantleButton": [
+          0,
+          50
+        ],
+        "Divider": [
+          0,
+          14
+        ],
+        "DungeonModeButton": [
+          0,
+          50
+        ],
+        "EffectsButton": [
+          0,
+          56
+        ],
+        "EnemyHealthBar": [
+          0,
+          18
+        ],
+        "EnemyHintLabel": [
+          0,
+          28
+        ],
+        "EnemyLabel": [
+          0,
+          24
+        ],
+        "EquipButton": [
+          0,
+          50
+        ],
+        "EquipmentButton": [
+          0,
+          54
+        ],
+        "EquipmentHintLabel": [
+          0,
+          52
+        ],
+        "EquipmentPowerLabel": [
+          130,
+          0
+        ],
+        "ExperienceBar": [
+          0,
+          12
+        ],
+        "ExperienceDungeonButton": [
+          0,
+          50
+        ],
+        "FpsButton": [
+          0,
+          56
+        ],
+        "GoldDungeonButton": [
+          0,
+          50
+        ],
+        "GoldLabel": [
+          130,
+          0
+        ],
+        "GuardButton": [
+          0,
+          60
+        ],
+        "HeaderFrame": [
+          0,
+          84
+        ],
+        "HeroHealthBar": [
+          0,
+          18
+        ],
+        "HeroLabel": [
+          0,
+          24
+        ],
+        "HintLabel": [
+          0,
+          40
+        ],
+        "HistoryLabel": [
+          0,
+          100
+        ],
+        "IntellectButton": [
+          0,
+          48
+        ],
+        "InventoryPanel": [
+          0,
+          360
+        ],
+        "InventoryScroll": [
+          0,
+          300
+        ],
+        "ItemDetails": [
+          0,
+          90
+        ],
+        "ItemList": [
+          0,
+          140
+        ],
+        "ItemPowerLabel": [
+          145,
+          0
+        ],
+        "LevelLabel": [
+          90,
+          0
+        ],
+        "LockButton": [
+          0,
+          50
+        ],
+        "LogCard": [
+          0,
+          150
+        ],
+        "MassDismantleButton": [
+          0,
+          50
+        ],
+        "MaterialsDungeonButton": [
+          0,
+          50
+        ],
+        "MaterialsLabel": [
+          115,
+          0
+        ],
+        "ModeButton": [
+          0,
+          54
+        ],
+        "ModeHintLabel": [
+          0,
+          60
+        ],
+        "ModePanel": [
+          0,
+          220
+        ],
+        "ModeScroll": [
+          0,
+          180
+        ],
+        "ModeStatsLabel": [
+          0,
+          0
+        ],
+        "ModeStatusLabel": [
+          0,
+          0
+        ],
+        "ParticlesButton": [
+          0,
+          56
+        ],
+        "PassiveEnduranceButton": [
+          0,
+          48
+        ],
+        "PassivePrecisionButton": [
+          0,
+          48
+        ],
+        "PassiveSpiritButton": [
+          0,
+          48
+        ],
+        "PerformanceLabel": [
+          0,
+          34
+        ],
+        "PetFoxButton": [
+          0,
+          48
+        ],
+        "PetHoundButton": [
+          0,
+          48
+        ],
+        "PetOwlButton": [
+          0,
+          48
+        ],
+        "PetUpgradeButton": [
+          0,
+          48
+        ],
+        "ProgressionButton": [
+          0,
+          54
+        ],
+        "ProgressionHintLabel": [
+          0,
+          60
+        ],
+        "ProgressionPanel": [
+          0,
+          420
+        ],
+        "ProgressionPetDetails": [
+          0,
+          80
+        ],
+        "ProgressionPowerLabel": [
+          120,
+          0
+        ],
+        "ProgressionScroll": [
+          0,
+          340
+        ],
+        "ProgressionSkillDetails": [
+          0,
+          90
+        ],
+        "ProgressionSkillList": [
+          0,
+          120
+        ],
+        "ProgressionWalletLabel": [
+          180,
+          0
+        ],
+        "RarityFilter": [
+          0,
+          46
+        ],
+        "SectionTitle": [
+          0,
+          36
+        ],
+        "SeparatorLabel": [
+          28,
+          0
+        ],
+        "SettingsButton": [
+          0,
+          54
+        ],
+        "SettingsHintLabel": [
+          0,
+          70
+        ],
+        "SettingsInfoLabel": [
+          0,
+          64
+        ],
+        "SettingsPanel": [
+          0,
+          260
+        ],
+        "SettingsRow": [
+          0,
+          116
+        ],
+        "SettingsScroll": [
+          0,
+          220
+        ],
+        "ShieldBar": [
+          0,
+          6
+        ],
+        "Sigil": [
+          56,
+          56
+        ],
+        "SkillAutoButton": [
+          0,
+          48
+        ],
+        "SkillUpgradeButton": [
+          0,
+          48
+        ],
+        "SkillVariantButton": [
+          0,
+          48
+        ],
+        "SlotFilter": [
+          0,
+          46
+        ],
+        "SoundButton": [
+          0,
+          56
+        ],
+        "SpiritButton": [
+          0,
+          48
+        ],
+        "StageNotice": [
+          0,
+          28
+        ],
+        "StaminaButton": [
+          0,
+          48
+        ],
+        "StrengthButton": [
+          0,
+          48
+        ],
+        "StrikeButton": [
+          0,
+          60
+        ],
+        "SummonButton": [
+          0,
+          54
+        ],
+        "SummonHintLabel": [
+          0,
+          60
+        ],
+        "SummonInfoLabel": [
+          0,
+          100
+        ],
+        "SummonOneButton": [
+          0,
+          56
+        ],
+        "SummonPanel": [
+          0,
+          320
+        ],
+        "SummonScroll": [
+          0,
+          260
+        ],
+        "SummonStatusLabel": [
+          0,
+          28
+        ],
+        "SummonTenButton": [
+          0,
+          56
+        ],
+        "SummonTypeButton": [
+          0,
+          56
+        ],
+        "SummonWalletLabel": [
+          0,
+          28
+        ],
+        "TowerModeButton": [
+          0,
+          50
+        ],
+        "UpgradeButton": [
+          0,
+          50
+        ],
+        "WalletLabel": [
+          150,
+          0
+        ]
+      },
+      "spacing": {
+        "ActionsRow1": {
+          "separation": 6
+        },
+        "ActionsRow2": {
+          "separation": 6
+        },
+        "AttributeRow": {
+          "h_separation": 4,
+          "v_separation": 4
+        },
+        "BattleBox": {
+          "separation": 10
+        },
+        "BottomTabs": {
+          "h_separation": 4,
+          "v_separation": 4
+        },
+        "ContentArea": {
+          "separation": 0
+        },
+        "DungeonRow": {
+          "h_separation": 4,
+          "v_separation": 4
+        },
+        "EnemySide": {
+          "separation": 4
+        },
+        "FilterRow": {
+          "separation": 6
+        },
+        "Header": {
+          "separation": 12
+        },
+        "HealthBox": {
+          "separation": 6
+        },
+        "HealthRow": {
+          "separation": 10
+        },
+        "HeroSide": {
+          "separation": 4
+        },
+        "InventoryBox": {
+          "separation": 8
+        },
+        "InventoryTopRow": {
+          "separation": 8
+        },
+        "Margin": {
+          "margin_left": 14,
+          "margin_top": 14,
+          "margin_right": 14,
+          "margin_bottom": 12
+        },
+        "ModeBox": {
+          "separation": 8
+        },
+        "ModeSwitchRow": {
+          "h_separation": 4,
+          "v_separation": 4
+        },
+        "ModeTopRow": {
+          "h_separation": 4,
+          "v_separation": 4
+        },
+        "Panel": {
+          "separation": 8
+        },
+        "PassiveRow": {
+          "separation": 4
+        },
+        "PetRow": {
+          "separation": 4
+        },
+        "ProgressionBox": {
+          "separation": 8
+        },
+        "ProgressionPetActionsRow": {
+          "separation": 4
+        },
+        "ProgressionSkillActionsRow": {
+          "separation": 4
+        },
+        "ProgressionTopRow": {
+          "separation": 8
+        },
+        "SettingsBox": {
+          "separation": 10
+        },
+        "SettingsRow": {
+          "h_separation": 4,
+          "v_separation": 4
+        },
+        "SkillRow": {
+          "separation": 8
+        },
+        "StatusRow": {
+          "separation": 8
+        },
+        "SummonBox": {
+          "separation": 10
+        },
+        "SummonTypeRow": {
+          "separation": 6
+        },
+        "Titles": {
+          "separation": 4
+        }
+      },
+      "layout": {
+        "grid_columns": {
+          "BottomTabs": 3,
+          "AttributeRow": 2,
+          "SettingsRow": 2,
+          "ModeTopRow": 2,
+          "ModeSwitchRow": 2,
+          "DungeonRow": 2
+        },
+        "background_texture": "res://assets/ui/background_fantasy.png",
+        "dim_overlay_color_rgba": [
+          0.035,
+          0.025,
+          0.06,
+          0.48
+        ],
+        "background_modulate_rgba": [
+          0.62,
+          0.57,
+          0.7,
+          1.0
+        ]
+      },
+      "navigation": {
+        "default_tab": "battle",
+        "hide_label": "СКРЫТЬ",
+        "tab_order": [
+          "battle",
+          "inventory",
+          "summon",
+          "progression",
+          "mode",
+          "settings"
+        ],
+        "tabs": {
+          "battle": {
+            "button": "BattleButton",
+            "panel": "BattlePanel",
+            "label": "БОЙ",
+            "section_title": "СРАЖЕНИЕ",
+            "panel_title_node": "BattleTitle",
+            "panel_title": "ПОЛЕ БОЯ",
+            "refresh_equipment": false,
+            "refresh_progression": false,
+            "refresh_modes": false
+          },
+          "inventory": {
+            "button": "EquipmentButton",
+            "panel": "InventoryPanel",
+            "label": "ИНВЕНТАРЬ",
+            "section_title": "ИНВЕНТАРЬ И ЭКИПИРОВКА",
+            "panel_title_node": "InventoryTitle",
+            "panel_title": "ИНВЕНТАРЬ И ЭКИПИРОВКА",
+            "refresh_equipment": true,
+            "refresh_progression": false,
+            "refresh_modes": false
+          },
+          "summon": {
+            "button": "SummonButton",
+            "panel": "SummonPanel",
+            "label": "ПРИЗЫВ",
+            "section_title": "АЛТАРЬ ПРИЗЫВА",
+            "panel_title_node": "SummonTitle",
+            "panel_title": "АЛТАРЬ ПРИЗЫВА",
+            "refresh_equipment": true,
+            "refresh_progression": false,
+            "refresh_modes": false
+          },
+          "progression": {
+            "button": "ProgressionButton",
+            "panel": "ProgressionPanel",
+            "label": "ПРОГРЕССИЯ",
+            "section_title": "РАЗВИТИЕ ГЕРОЯ",
+            "panel_title_node": "ProgressionTitle",
+            "panel_title": "РАЗВИТИЕ ГЕРОЯ",
+            "refresh_equipment": false,
+            "refresh_progression": true,
+            "refresh_modes": false
+          },
+          "mode": {
+            "button": "ModeButton",
+            "panel": "ModePanel",
+            "label": "РЕЖИМЫ",
+            "section_title": "РЕЖИМЫ И ПОДЗЕМЕЛЬЯ",
+            "panel_title_node": "ModeTitle",
+            "panel_title": "РЕЖИМЫ И ПОДЗЕМЕЛЬЯ",
+            "refresh_equipment": false,
+            "refresh_progression": false,
+            "refresh_modes": true
+          },
+          "settings": {
+            "button": "SettingsButton",
+            "panel": "SettingsPanel",
+            "label": "НАСТРОЙКИ",
+            "section_title": "НАСТРОЙКИ И ПРОИЗВОДИТЕЛЬНОСТЬ",
+            "panel_title_node": "SettingsTitle",
+            "panel_title": "НАСТРОЙКИ И ПРОИЗВОДИТЕЛЬНОСТЬ",
+            "refresh_equipment": false,
+            "refresh_progression": false,
+            "refresh_modes": false
+          }
         }
       }
     }

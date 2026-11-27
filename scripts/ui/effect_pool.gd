@@ -17,9 +17,11 @@ func configure(target: Control, data: Dictionary) -> void:
 	config = data.duplicate(true)
 	set_process(false)
 	var capacity: int = clampi(int(config.get("capacity", 8)), 1, 32)
+	var default_font_size: int = clampi(int(config.get("label_font_size", 24)), 12, 48)
 	for _index in range(capacity):
 		var label: Label = Label.new()
 		label.visible = false
+		label.add_theme_font_size_override("font_size", default_font_size)
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		label.z_index = 10
 		canvas.add_child(label)
