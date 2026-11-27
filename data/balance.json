@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "combat": {
     "attack_interval_seconds": 1.0,
     "base_damage": 10,
@@ -1630,7 +1630,7 @@
     "stage_target_growth": 1.035
   },
   "save": {
-    "format_version": 7,
+    "format_version": 8,
     "profile_path": "user://ashenworld_profile.json",
     "temp_suffix": ".tmp",
     "backup_suffix": ".bak",
@@ -1639,7 +1639,8 @@
     "default_settings": {
       "sound_enabled": true,
       "particles_enabled": true,
-      "target_fps": 60
+      "target_fps": 60,
+      "effects_enabled": true
     },
     "fps_options": [
       30,
@@ -2621,6 +2622,114 @@
           ]
         }
       ]
+    }
+  },
+  "presentation": {
+    "ui_refresh_seconds": 0.1,
+    "performance_sample_seconds": 1.0,
+    "performance_warning_fps": 45.0,
+    "ambient_particles": {
+      "amount": 12,
+      "lifetime_seconds": 4.0,
+      "spread_degrees": 28.0,
+      "gravity_y": -14.0,
+      "velocity_min": 18.0,
+      "velocity_max": 56.0,
+      "scale_min": 0.3,
+      "scale_max": 0.9,
+      "color_rgba": [
+        0.878,
+        0.541,
+        0.235,
+        0.7
+      ]
+    },
+    "effect_pool": {
+      "capacity": 8,
+      "label_duration_seconds": 0.55,
+      "label_rise_pixels": 52.0,
+      "label_font_size": 24,
+      "skill_font_size": 15,
+      "flash_duration_seconds": 0.28
+    },
+    "audio": {
+      "mix_rate_hz": 22050,
+      "voice_count": 6,
+      "master_volume_db": -8.0,
+      "sounds": {
+        "attack": {
+          "waveform": "sine",
+          "frequency_hz": 196.0,
+          "end_frequency_hz": 124.0,
+          "duration_seconds": 0.09,
+          "amplitude": 0.42,
+          "fade_seconds": 0.008,
+          "volume_db": -14.0
+        },
+        "critical": {
+          "waveform": "triangle",
+          "frequency_hz": 310.0,
+          "end_frequency_hz": 620.0,
+          "duration_seconds": 0.14,
+          "amplitude": 0.55,
+          "fade_seconds": 0.01,
+          "volume_db": -10.0
+        },
+        "skill": {
+          "waveform": "sine",
+          "frequency_hz": 330.0,
+          "end_frequency_hz": 495.0,
+          "duration_seconds": 0.16,
+          "amplitude": 0.46,
+          "fade_seconds": 0.012,
+          "volume_db": -12.0
+        },
+        "shield": {
+          "waveform": "sine",
+          "frequency_hz": 262.0,
+          "end_frequency_hz": 392.0,
+          "duration_seconds": 0.18,
+          "amplitude": 0.4,
+          "fade_seconds": 0.015,
+          "volume_db": -13.0
+        },
+        "victory": {
+          "waveform": "triangle",
+          "frequency_hz": 392.0,
+          "end_frequency_hz": 784.0,
+          "duration_seconds": 0.32,
+          "amplitude": 0.5,
+          "fade_seconds": 0.03,
+          "volume_db": -9.0
+        },
+        "defeat": {
+          "waveform": "sine",
+          "frequency_hz": 220.0,
+          "end_frequency_hz": 98.0,
+          "duration_seconds": 0.28,
+          "amplitude": 0.45,
+          "fade_seconds": 0.025,
+          "volume_db": -11.0
+        },
+        "boss": {
+          "waveform": "triangle",
+          "frequency_hz": 147.0,
+          "end_frequency_hz": 220.0,
+          "duration_seconds": 0.22,
+          "amplitude": 0.52,
+          "fade_seconds": 0.02,
+          "volume_db": -10.0
+        },
+        "click": {
+          "waveform": "sine",
+          "frequency_hz": 440.0,
+          "end_frequency_hz": 330.0,
+          "duration_seconds": 0.06,
+          "amplitude": 0.32,
+          "fade_seconds": 0.006,
+          "volume_db": -18.0
+        }
+      }
     }
   }
 }

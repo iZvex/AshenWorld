@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Точечная проверка игрового цикла третьего этапа и контента седьмого этапа.
+# Точечная проверка игрового цикла третьего этапа и контента восьмого этапа.
 # Запуск: godot --headless --path . --script tests/test_campaign.gd
 # Полная сборка APK для этой проверки не требуется.
 
@@ -15,7 +15,7 @@ var failed: int = 0
 
 
 func _initialize() -> void:
-	print("Проверка игрового цикла и контента седьмого этапа")
+	print("Проверка игрового цикла и контента восьмого этапа")
 	var data: Dictionary = CombatCatalog.load_balance()
 	_check("Файл баланса загружен", not data.is_empty())
 	_test_campaign_data(data)
@@ -38,7 +38,7 @@ func _check(name: String, condition: bool) -> void:
 
 
 func _test_campaign_data(data: Dictionary) -> void:
-	_check("Версия баланса седьмого этапа", int(data.get("version", 0)) == 7)
+	_check("Версия баланса восьмого этапа", int(data.get("version", 0)) == 8)
 	var stages: Array = CampaignCatalog.stages(data)
 	_check("Кампания содержит тридцать этапов", stages.size() == 30)
 	var campaign_data: Dictionary = CampaignCatalog.campaign(data)

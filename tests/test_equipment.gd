@@ -38,7 +38,7 @@ func _check(name: String, condition: bool) -> void:
 
 
 func _test_data(data: Dictionary) -> void:
-	_check("Версия баланса седьмого этапа", int(data.get("version", 0)) == 7)
+	_check("Версия баланса восьмого этапа", int(data.get("version", 0)) == 8)
 	_check("Слотов экипировки девять", EquipmentCatalog.slots(data).size() == 9)
 	_check("Редкостей шесть", EquipmentCatalog.rarities(data).size() == 6)
 	_check("Случайных свойств три", EquipmentCatalog.affixes(data).size() == 3)

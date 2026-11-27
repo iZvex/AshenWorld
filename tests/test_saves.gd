@@ -1,7 +1,7 @@
 extends SceneTree
 
-# Точечная проверка седьмого этапа: формула AFK, безопасная запись,
-# резервная копия, миграция v6→v7, режимы и восстановление после перезапуска.
+# Точечная проверка восьмого этапа: формула AFK, безопасная запись,
+# резервная копия, миграции v6/v7→v8, режимы и восстановление после перезапуска.
 # Запуск: godot --headless --path . --script tests/test_saves.gd
 
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
@@ -23,14 +23,15 @@ var failed: int = 0
 
 
 func _initialize() -> void:
-	print("Проверка сохранений, миграции и офлайн-наград седьмого этапа")
+	print("Проверка сохранений, миграции и офлайн-наград восьмого этапа")
 	var data: Dictionary = CombatCatalog.load_balance()
 	_cleanup_all(data)
 	_test_config(data)
 	_test_offline_formula(data)
 	_test_safe_files(data)
 	_test_migration(data)
-	_test_v6_to_v7_migration(data)
+	_test_v6_to_v8_migration(data)
+	_test_v7_to_v8_migration(data)
 	_test_campaign_snapshot(data)
 	_test_restart_with_offline(data)
 	_test_settings_controls(data)
@@ -69,20 +70,21 @@ func _corrupt(path: String, text: String) -> void:
 
 
 func _test_config(data: Dictionary) -> void:
-	_check("Версия баланса седьмого этапа", int(data.get("version", 0)) == 7)
+	_check("Версия баланса восьмого этапа", int(data.get("version", 0)) == 8)
 	_check("Лимит AFK равен двенадцати часам", SaveCatalog.limit_hours(data) == 12 and SaveCatalog.limit_seconds(data) == 43200)
-	_check("Версия формата сохранения седьмая", SaveCatalog.format_version(data) == 7)
+	_check("Версия формата сохранения восьмая", SaveCatalog.format_version(data) == 8)
 	_check("Интервал автосохранения положителен", SaveCatalog.autosave_interval_seconds(data) > 0.0)
 	_check("Предел размера профиля положителен", SaveCatalog.max_profile_bytes(data) > 0)
 	_check("Путь профиля локальный", SaveCatalog.profile_path(data).begins_with("user://"))
 	_check("Суффиксы временного файла и копии различны", SaveCatalog.temp_suffix(data) != SaveCatalog.backup_suffix(data))
 	var settings: Dictionary = SaveCatalog.default_settings(data)
-	_check("Настройки игрока подготовлены", settings.has("sound_enabled") and settings.has("particles_enabled") and int(settings.get("target_fps", 0)) > 0)
+	_check("Настройки игрока подготовлены", settings.has("sound_enabled") and settings.has("particles_enabled") and settings.has("effects_enabled") and int(settings.get("target_fps", 0)) > 0)
+	_check("Полные эффекты включены по умолчанию", bool(settings.get("effects_enabled", false)))
 	var fps_options: Array = SaveCatalog.fps_options(data)
 	_check("Варианты частоты кадров заданы в балансе", fps_options.size() >= 2 and fps_options.has(int(settings.get("target_fps", 60))))
 	_check("Целевая частота кадров переключается по балансу", SaveCatalog.next_target_fps(data, int(settings.get("target_fps", 60))) != int(settings.get("target_fps", 60)))
-	var normalized: Dictionary = SaveCatalog.normalize_settings({"target_fps": 47, "sound_enabled": 0}, data)
-	_check("Некорректные настройки приведены к доступным значениям", fps_options.has(int(normalized.get("target_fps", 0))) and not bool(normalized.get("sound_enabled", true)))
+	var normalized: Dictionary = SaveCatalog.normalize_settings({"target_fps": 47, "sound_enabled": 0, "effects_enabled": 0}, data)
+	_check("Некорректные настройки приведены к доступным значениям", fps_options.has(int(normalized.get("target_fps", 0))) and not bool(normalized.get("sound_enabled", true)) and not bool(normalized.get("effects_enabled", true)))
 	_check("Активная игра эффективнее AFK", SaveCatalog.active_efficiency(data) > SaveCatalog.efficiency(data, 5))
 	_check("Пятый этап эффективнее первого", SaveCatalog.stage_multiplier(data, 5) > SaveCatalog.stage_multiplier(data, 1))
 	var rewards: Dictionary = _dict(_dict(data.get("afk", {})).get("rewards_per_tick", {}))
@@ -124,7 +126,7 @@ func _test_safe_files(data: Dictionary) -> void:
 	var loaded_payload: Dictionary = _dict(loaded.get("payload", {}))
 	_check("Профиль загружен", str(loaded.get("status", "")) == "loaded" and str(loaded_payload.get("marker", "")) == "первый")
 	_check("Метка времени сохранена", int(loaded.get("saved_at", 0)) == TEST_TIME)
-	_check("Версия формата добавлена при загрузке", int(loaded_payload.get("profile_version", 0)) == 7)
+	_check("Версия формата добавлена при загрузке", int(loaded_payload.get("profile_version", 0)) == 8)
 	_check("Настройки профиля добавлены", _dict(_dict(loaded_payload.get("profile", {})).get("settings", {})).has("sound_enabled"))
 
 	var second: Dictionary = manager.save_profile({"marker": "второй", "number": 8}, TEST_TIME + 60)
@@ -175,14 +177,14 @@ func _test_migration(data: Dictionary) -> void:
 	var profile: Dictionary = _dict(payload.get("profile", {}))
 	_check("Старый профиль обновлён", str(loaded.get("status", "")) == "migrated" and int(payload.get("migrated_from", 0)) == 5)
 	_check("Данные старого профиля сохранены", str(payload.get("marker", "")) == "старый" and int(payload.get("highest_stage", 0)) == 3)
-	_check("Версия формата повышена", int(payload.get("profile_version", 0)) == 7)
+	_check("Версия формата повышена", int(payload.get("profile_version", 0)) == 8)
 	_check("Состояние AFK создано при миграции", int(profile.get("last_offline_claim_at", 0)) == TEST_TIME - 1000)
 	_check("Настройки перенесены", not bool(_dict(profile.get("settings", {})).get("sound_enabled", true)))
 	_check("Недостающие настройки дополнены", int(_dict(profile.get("settings", {})).get("target_fps", 0)) == 60)
 	manager.clear_files()
 
 
-func _test_v6_to_v7_migration(data: Dictionary) -> void:
+func _test_v6_to_v8_migration(data: Dictionary) -> void:
 	var manager = SaveManager.new(data, MIGRATION_PATH)
 	manager.clear_files()
 	var old_payload: Dictionary = {
@@ -203,8 +205,8 @@ func _test_v6_to_v7_migration(data: Dictionary) -> void:
 	var loaded: Dictionary = manager.load_profile()
 	var payload: Dictionary = _dict(loaded.get("payload", {}))
 	var modes: Dictionary = _dict(payload.get("modes", {}))
-	_check("Профиль v6 обновлён до v7", str(loaded.get("status", "")) == "migrated" and int(payload.get("migrated_from", 0)) == 6)
-	_check("Версия профиля и баланса повышена", int(payload.get("profile_version", 0)) == 7 and int(payload.get("balance_version", 0)) == 7)
+	_check("Профиль v6 обновлён до v8", str(loaded.get("status", "")) == "migrated" and int(payload.get("migrated_from", 0)) == 6)
+	_check("Версия профиля и баланса повышена", int(payload.get("profile_version", 0)) == 8 and int(payload.get("balance_version", 0)) == 8)
 	_check("Прогресс кампании сохранён при миграции", int(payload.get("stage_index", -1)) == 4 and int(payload.get("highest_stage", 0)) == 5 and int(payload.get("gold", 0)) == 321)
 	_check("Состояние трёх режимов создано", modes.size() >= 6 and str(modes.get("active_mode", "")) == "campaign")
 	_check("Победы режимов обнулены", _dict(modes.get("mode_victories", {})).size() == 3)
@@ -213,6 +215,30 @@ func _test_v6_to_v7_migration(data: Dictionary) -> void:
 	state.import_state(payload)
 	_check("Старое завершение не обрывает кампанию из 30 этапов", state.status == CampaignState.STATUS_BATTLE and state.stage_number() == 5)
 	_check("Активный режим после миграции — кампания", state.mode_id() == "campaign")
+	manager.clear_files()
+
+
+func _test_v7_to_v8_migration(data: Dictionary) -> void:
+	var manager = SaveManager.new(data, MIGRATION_PATH)
+	manager.clear_files()
+	var old_payload: Dictionary = {
+		"balance_version": 7,
+		"stage_index": 4,
+		"highest_stage": 5,
+		"profile": {"settings": {"sound_enabled": false, "particles_enabled": true, "target_fps": 30}},
+		"profile_version": 7,
+		"modes": {"active_mode": "campaign", "tower_floor": 3},
+	}
+	var envelope: Dictionary = SaveManager.build_envelope(old_payload, TEST_TIME - 1000, 7)
+	_check("Профиль седьмого этапа записан для миграции", SaveManager.store_envelope(envelope, MIGRATION_PATH))
+	var loaded: Dictionary = manager.load_profile()
+	var payload: Dictionary = _dict(loaded.get("payload", {}))
+	var settings: Dictionary = _dict(_dict(payload.get("profile", {})).get("settings", {}))
+	_check("Профиль v7 обновлён до v8", str(loaded.get("status", "")) == "migrated" and int(payload.get("migrated_from", 0)) == 7)
+	_check("Версии профиля и баланса обновлены", int(payload.get("profile_version", 0)) == 8 and int(payload.get("balance_version", 0)) == 8)
+	_check("Настройки v7 сохранены", not bool(settings.get("sound_enabled", true)) and bool(settings.get("particles_enabled", false)) and int(settings.get("target_fps", 0)) == 30)
+	_check("Настройка полных эффектов добавлена миграцией", bool(settings.get("effects_enabled", false)))
+	_check("Прогресс кампании не потерян", int(payload.get("stage_index", -1)) == 4 and int(payload.get("highest_stage", 0)) == 5)
 	manager.clear_files()
 
 
@@ -245,7 +271,7 @@ func _test_campaign_snapshot(data: Dictionary) -> void:
 		state.equipment.equip(first_id)
 		state.equipment.upgrade(first_id)
 	var snapshot: Dictionary = state.export_state()
-	_check("Снимок содержит версию баланса", int(snapshot.get("balance_version", 0)) == 7)
+	_check("Снимок содержит версию баланса", int(snapshot.get("balance_version", 0)) == 8)
 	_check("Снимок содержит экипировку и развитие", _dict(snapshot.get("equipment", {})).size() > 0 and _dict(snapshot.get("development", {})).size() > 0)
 	_check("Состояние генератора предметов сохранено", str(_dict(snapshot.get("equipment", {})).get("rng_state", "")) != "")
 
@@ -390,18 +416,20 @@ func _test_settings_controls(data: Dictionary) -> void:
 	_check("Звук по умолчанию включён", bool(defaults.get("sound_enabled", false)) and not AudioServer.is_bus_mute(0))
 	_check("Частицы по умолчанию включены", bool(defaults.get("particles_enabled", false)) and scene.particles_effect.emitting and scene.particles_effect.visible)
 	_check("Частота кадров применена к движку", Engine.max_fps == int(defaults.get("target_fps", 0)))
-	_check("Кнопки настроек доступны", not scene.sound_button.disabled and not scene.particles_button.disabled and not scene.fps_button.disabled)
+	_check("Кнопки настроек доступны", not scene.sound_button.disabled and not scene.particles_button.disabled and not scene.fps_button.disabled and not scene.effects_button.disabled)
 	_check("Текст частоты кадров соответствует настройке", str(int(defaults.get("target_fps", 0))) in scene.fps_button.text)
 
 	scene._on_sound_pressed()
 	_check("Выключатель звука отключил шину", AudioServer.is_bus_mute(0) and "ВЫКЛ" in scene.sound_button.text)
 	scene._on_particles_pressed()
 	_check("Выключатель частиц остановил эффект", not scene.particles_effect.emitting and not scene.particles_effect.visible and "ВЫКЛ" in scene.particles_button.text)
+	scene._on_effects_pressed()
+	_check("Упрощённый режим отключил визуальные эффекты", not bool(scene.profile_manager.settings().get("effects_enabled", true)) and "ПРОСТЫЕ" in scene.effects_button.text and scene.effect_pool.pool_size() == 8)
 	var previous_fps: int = Engine.max_fps
 	scene._on_fps_pressed()
 	_check("Кнопка частоты кадров изменила предел", Engine.max_fps != previous_fps and str(Engine.max_fps) in scene.fps_button.text)
 	var changed: Dictionary = scene.profile_manager.settings()
-	_check("Изменения записаны в профиль", not bool(changed.get("sound_enabled", true)) and not bool(changed.get("particles_enabled", true)))
+	_check("Изменения записаны в профиль", not bool(changed.get("sound_enabled", true)) and not bool(changed.get("particles_enabled", true)) and not bool(changed.get("effects_enabled", true)))
 
 	var saves_before: int = int(scene.profile_manager.get_report().get("total_saves", 0))
 	scene.profile_manager.tick(float(SaveCatalog.autosave_interval_seconds(data)))
@@ -425,7 +453,7 @@ func _test_settings_controls(data: Dictionary) -> void:
 	reload_scene.set_process(false)
 	reload_scene.setup(data, SETTINGS_PATH, TEST_TIME + 3660)
 	var restored: Dictionary = reload_scene.profile_manager.settings()
-	_check("Настройки восстановлены после перезапуска", not bool(restored.get("sound_enabled", true)) and not bool(restored.get("particles_enabled", true)) and restored.get("target_fps", 0) == changed.get("target_fps", 0))
+	_check("Настройки восстановлены после перезапуска", not bool(restored.get("sound_enabled", true)) and not bool(restored.get("particles_enabled", true)) and not bool(restored.get("effects_enabled", true)) and restored.get("target_fps", 0) == changed.get("target_fps", 0))
 	_check("Звук остался выключенным", AudioServer.is_bus_mute(0))
 	_check("Частицы остались выключенными", not reload_scene.particles_effect.emitting)
 	_check("Частота кадров восстановлена", Engine.max_fps == int(restored.get("target_fps", 0)))

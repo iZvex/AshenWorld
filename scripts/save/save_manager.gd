@@ -1,7 +1,7 @@
 extends RefCounted
 
 # Локальный профиль ASHEN WORLD: JSON в user://, контрольная сумма, версия
-# формата, миграция v6→v7, состояние режимов, резервная копия и атомарная
+# формата, миграция v6/v7→v8, состояние режимов, резервная копия и атомарная
 # замена основного файла. Никаких сетевых зависимостей и секретов: профиль
 # целиком офлайн.
 
@@ -13,7 +13,7 @@ const FNV_OFFSET: int = 2166136261
 const FNV_PRIME: int = 16777619
 
 var balance: Dictionary = {}
-var format_version: int = 7
+var format_version: int = 8
 var profile_path: String = "user://ashenworld_profile.json"
 var temp_path: String = "user://ashenworld_profile.tmp"
 var backup_path: String = "user://ashenworld_profile.bak"

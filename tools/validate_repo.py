@@ -7,7 +7,7 @@
 Проверяет только то, что можно проверить без движка:
   * целостность спецификации README.md;
   * синтаксис описаний сборок и файлов данных;
-  * целостность данных кампании, режимов, экипировки, прогрессии, сохранений и AFK;
+  * целостность данных кампании, режимов, экипировки, прогрессии, сохранений, AFK и полировки;
   * конфликтные маркеры и переводы строк в скриптах GDScript;
   * базовую структуру project.godot, когда он появится.
 """
@@ -55,6 +55,10 @@ else:
     duplicates = sorted({n for n in nums if nums.count(n) > 1})
     if duplicates:
         err(f"Дублируются номера разделов: {duplicates}")
+    if "8. **Готово. Полировка" not in text:
+        err("README.md: восьмой этап не отмечен готовым")
+    if "9. **Далее. Подготовка" not in text:
+        err("README.md: девятый этап должен оставаться следующим")
     if "Краткое резюме" not in text:
         err("В README.md нет раздела «Краткое резюме»")
     if len(text) < 1000:
@@ -98,10 +102,10 @@ if balance_file.is_file():
         balance = {}
         err(f"data/balance.json: некорректные данные кампании: {exc}")
     if isinstance(balance, dict):
-        if int(balance.get("version", 0)) != 7:
-            err("data/balance.json: для контента MVP ожидается версия баланса 7")
-        if len(balance) != 18:
-            err(f"data/balance.json: ожидается 18 разделов, найдено {len(balance)}")
+        if int(balance.get("version", 0)) != 8:
+            err("data/balance.json: для полировки MVP ожидается версия баланса 8")
+        if len(balance) != 19:
+            err(f"data/balance.json: ожидается 19 разделов, найдено {len(balance)}")
         campaign = balance.get("campaign", {})
         stages = campaign.get("stages", []) if isinstance(campaign, dict) else []
         enemies = balance.get("enemies", {}) if isinstance(balance.get("enemies", {}), dict) else {}
@@ -358,8 +362,8 @@ if max_afk_efficiency >= active_efficiency:
 afk_rewards = afk.get("rewards_per_tick", {})
 if not isinstance(afk_rewards, dict) or any(float(value) <= 0.0 for value in afk_rewards.values()):
     err("data/balance.json: награды AFK за интервал должны быть положительными")
-if int(save.get("format_version", 0)) != 7:
-    err("data/balance.json: после изменения структуры данных ожидается версия формата сохранения 7")
+if int(save.get("format_version", 0)) != 8:
+    err("data/balance.json: после изменения настроек ожидается версия формата сохранения 8")
 if float(save.get("autosave_interval_seconds", 0)) <= 0.0:
     err("data/balance.json: интервал автосохранения должен быть положительным")
 if int(save.get("max_profile_bytes", 0)) <= 0:
@@ -370,7 +374,13 @@ if not profile_path.startswith("user://") or not profile_path.endswith(".json"):
 if not str(save.get("temp_suffix", "")) or not str(save.get("backup_suffix", "")) or str(save.get("temp_suffix", "")) == str(save.get("backup_suffix", "")):
     err("data/balance.json: у временного файла и резервной копии должны быть разные суффиксы")
 player_settings = save.get("default_settings", {})
-if not isinstance(player_settings, dict) or "sound_enabled" not in player_settings or "particles_enabled" not in player_settings or int(player_settings.get("target_fps", 0)) <= 0:
+if (
+    not isinstance(player_settings, dict)
+    or "sound_enabled" not in player_settings
+    or "particles_enabled" not in player_settings
+    or "effects_enabled" not in player_settings
+    or int(player_settings.get("target_fps", 0)) <= 0
+):
     err("data/balance.json: некорректные сохраняемые настройки игрока")
 fps_options = save.get("fps_options", [])
 if not isinstance(fps_options, list) or not fps_options or any(int(value) <= 0 for value in fps_options):
@@ -523,7 +533,82 @@ for token in ["ModeCatalog.stage_at", "ModeCatalog.state_from_snapshot", "select
 ci_src = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8") if (ROOT / ".github/workflows/ci.yml").is_file() else ""
 if "tests/test_modes.gd" not in ci_src:
     err(".github/workflows/ci.yml: отсутствует точечная проверка режимов")
+if "tests/test_presentation.gd" not in ci_src:
+    err(".github/workflows/ci.yml: отсутствует точечная проверка полировки")
 notes.append(f"Режимы: {len(mode_list)}, ярусов {len(tower_floors)}, подземелий {len(dungeon_runs)}")
+
+# --- 5.4. Полировка восьмого этапа -----------------------------------------
+presentation = balance.get("presentation", {})
+if not isinstance(presentation, dict):
+    err("data/balance.json: раздел presentation должен быть объектом")
+    presentation = {}
+ui_refresh = float(presentation.get("ui_refresh_seconds", 0))
+if not 0.0 < ui_refresh <= 0.2:
+    err("data/balance.json: интервал обновления интерфейса должен быть не более 0.2 с")
+performance_sample = float(presentation.get("performance_sample_seconds", 0))
+if not 0.0 < performance_sample <= 10.0:
+    err("data/balance.json: некорректный интервал замера частоты кадров")
+effect_pool = presentation.get("effect_pool", {})
+if not isinstance(effect_pool, dict):
+    err("data/balance.json: effect_pool должен быть объектом")
+    effect_pool = {}
+pool_capacity = int(effect_pool.get("capacity", 0))
+if not 1 <= pool_capacity <= 16:
+    err("data/balance.json: пул эффектов должен содержать от 1 до 16 подписей")
+for key in ("label_duration_seconds", "label_rise_pixels", "label_font_size", "skill_font_size", "flash_duration_seconds"):
+    if float(effect_pool.get(key, 0)) <= 0:
+        err(f"data/balance.json: параметр эффекта {key} должен быть положительным")
+ambient = presentation.get("ambient_particles", {})
+if not isinstance(ambient, dict) or not 1 <= int(ambient.get("amount", 0)) < 18:
+    err("data/balance.json: количество фоновых частиц должно быть уменьшено")
+audio = presentation.get("audio", {})
+if not isinstance(audio, dict):
+    err("data/balance.json: раздел audio должен быть объектом")
+    audio = {}
+if not 8000 <= int(audio.get("mix_rate_hz", 0)) <= 48000 or not 1 <= int(audio.get("voice_count", 0)) <= 16:
+    err("data/balance.json: некорректные параметры пула локальных звуков")
+sound_specs = audio.get("sounds", {})
+required_sounds = {"attack", "critical", "skill", "shield", "victory", "defeat", "boss", "click"}
+if not isinstance(sound_specs, dict) or set(sound_specs) != required_sounds:
+    err("data/balance.json: должны быть описаны все восемь звуковых событий")
+else:
+    for event_id, spec in sound_specs.items():
+        if not isinstance(spec, dict) or any(float(spec.get(key, 0)) <= 0 for key in ("frequency_hz", "end_frequency_hz", "duration_seconds", "amplitude", "fade_seconds")):
+            err(f"data/balance.json: некорректные параметры звука {event_id}")
+stage8_files = [
+    "scripts/ui/presentation_catalog.gd",
+    "scripts/ui/ashen_audio.gd",
+    "scripts/ui/effect_pool.gd",
+    "tests/test_presentation.gd",
+    "docs/android.md",
+]
+for rel in stage8_files:
+    if not (ROOT / rel).is_file():
+        err(f"Восьмой этап: отсутствует {rel}")
+for token in ["PresentationCatalog", "AshenAudio", "EffectPool", "_on_effects_pressed", "_configure_particles", "view_refresh_seconds", "audio_player.play"]:
+    if token not in main_src:
+        err(f"scripts/main/main.gd: отсутствует подключение полировки ({token})")
+for token in ["EffectsButton", "amount = 12"]:
+    if token not in scene_src:
+        err(f"scenes/main/main.tscn: отсутствует настройка полировки {token}")
+catalog_src = (ROOT / "scripts/save/save_catalog.gd").read_text(encoding="utf-8")
+for token in ["DEFAULT_FORMAT_VERSION: int = 8", '"effects_enabled"']:
+    if token not in catalog_src:
+        err(f"scripts/save/save_catalog.gd: отсутствует настройка восьмого этапа ({token})")
+android_doc = (ROOT / "docs/android.md").read_text(encoding="utf-8") if (ROOT / "docs/android.md").is_file() else ""
+for token in ["реальном Android-устройстве", "авиарежиме", "30 FPS", "упрощён"]:
+    if token not in android_doc:
+        err(f"docs/android.md: отсутствует пункт проверки ({token})")
+external_audio = files("*.wav") + files("*.ogg") + files("*.mp3")
+if external_audio:
+    err("Восьмой этап: звуки должны создаваться в памяти, внешние аудиофайлы не нужны")
+if "Проверка офлайн-пакета и параметров полировки" not in ci_src:
+    err(".github/workflows/ci.yml: отсутствует проверка офлайн-пакета восьмого этапа")
+notes.append(
+    f"Полировка: интерфейс {ui_refresh:g} с, пул {pool_capacity}, "
+    f"звуков {len(sound_specs) if isinstance(sound_specs, dict) else 0}, "
+    f"частиц {int(ambient.get('amount', 0)) if isinstance(ambient, dict) else 0}"
+)
 
 # --- 6. Скрипты GDScript ---------------------------------------------------
 gd_paths = files("*.gd")
@@ -536,6 +621,9 @@ for path in gd_paths:
         warn(f"{rel}: переводы строк CRLF (Godot ожидает LF)")
     if src.strip() and not src.endswith("\n"):
         warn(f"{rel}: нет перевода строки в конце файла")
+    for token in ["HTTPRequest.new", "WebSocket", "ENetMultiplayerPeer", "WebRTCMultiplayerPeer", "MultiplayerAPI", "HTTPClient"]:
+        if token in src:
+            err(f"{rel}: базовый игровой процесс должен оставаться офлайн ({token})")
 notes.append(f"Скриптов GDScript проверено: {len(gd_paths)}")
 
 # --- 7. Настройки проекта и требования портретного Android -----------------
@@ -587,7 +675,9 @@ if preset.is_file():
     for line in cfg_text.splitlines():
         if line.startswith("keystore/") and '=""' not in line:
             err(f"export_presets.cfg: указан ключ подписи ({line.split('=')[0]}), секреты коммитить нельзя")
-    notes.append("Пресет Android найден, ключи подписи в репозиторий не попали")
+    if "permissions/internet=false" not in cfg_text or "permissions/access_network_state=false" not in cfg_text:
+        err("export_presets.cfg: APK не должен запрашивать доступ к сети или её состоянию")
+    notes.append("Пресет Android найден, офлайн-разрешения и ключи подписи проверены")
 else:
     notes.append("Пресет Android ещё не создан")
 

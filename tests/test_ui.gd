@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Точечная проверка компактного интерфейса, экрана экипировки, трёх режимов
-# и рабочих настроек седьмого этапа.
+# и рабочих настроек восьмого этапа.
 # Запуск: godot --headless --path . --script tests/test_ui.gd
 # Полная сборка APK для этой проверки не требуется.
 
@@ -34,10 +34,12 @@ func _initialize() -> void:
 	_check("Профиль создан при первом запуске", str(scene.profile_manager.get_report().get("status", "")) == "new")
 	_check("Нижняя строка сообщает о локальном сохранении", "локальное сохранение" in scene.hint_label.text)
 	_check("Офлайн-лимит показан", "12 ч" in scene.hint_label.text)
-	_check("Ряд рабочих настроек добавлен", scene.sound_button != null and scene.particles_button != null and scene.fps_button != null)
-	_check("Настройки игрока доступны", not scene.sound_button.disabled and not scene.particles_button.disabled and not scene.fps_button.disabled)
+	_check("Ряд рабочих настроек добавлен", scene.sound_button != null and scene.particles_button != null and scene.fps_button != null and scene.effects_button != null)
+	_check("Настройки игрока доступны", not scene.sound_button.disabled and not scene.particles_button.disabled and not scene.fps_button.disabled and not scene.effects_button.disabled)
 	_check("Звук и частицы включены по умолчанию", "ВКЛ" in scene.sound_button.text and "ВКЛ" in scene.particles_button.text)
 	_check("Частота кадров показана", "КАДРОВ/С" in scene.fps_button.text and Engine.max_fps == 60)
+	_check("Режим эффектов показан", "ПОЛНЫЕ" in scene.effects_button.text)
+	_check("Процедурные звуки подготовлены", scene.audio_player.stream_count() == 8 and scene.audio_player.voice_count() == 6)
 	_check("Компактная строка здоровья сохранена", "ГЕРОЙ" in scene.hero_label.text and "×" in scene.separator_label.text and "ВРАГ" in scene.enemy_label.text)
 	_check("Игровой цикл подключён", scene.campaign != null)
 	if scene.campaign == null:
@@ -125,6 +127,7 @@ func _initialize() -> void:
 		"Margin/Panel/ActionButton",
 		"Margin/Panel/LogCard/BattleLog",
 		"Margin/Panel/HintLabel",
+		"Margin/Panel/SettingsRow/EffectsButton",
 	]
 	for path in paths:
 		_check("Узел %s" % path, scene.get_node_or_null(path) != null)
@@ -245,7 +248,7 @@ func _test_battle_controls(scene) -> void:
 	scene._process(1.0)
 	_check("После автоатаки урон принят щитом или здоровьем", scene.hero_health_bar.value < hero_before or scene.shield_bar.value > shield_before or scene.shield_bar.value < shield_before)
 	_check("После автоатаки здоровье врага уменьшилось", scene.enemy_health_bar.value < enemy_before)
-	_check("Всплывающие числа урона созданы", scene.get_child_count() > 3)
+	_check("Всплывающие числа урона созданы", scene.effect_pool.active_count() > 0 and scene.effect_pool.pool_size() == 8)
 	_check("Лог ограничен пятью строками", scene.log_lines.size() <= 5)
 
 

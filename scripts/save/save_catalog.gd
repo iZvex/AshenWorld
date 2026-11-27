@@ -1,6 +1,6 @@
 extends RefCounted
 
-# Единые правила шестого и седьмого этапов: настройки локального профиля,
+# Единые правила шестого–восьмого этапов: настройки локального профиля,
 # лимит AFK, эффективность по последнему достигнутому этапу и формула
 # офлайн-наград. Здесь же находятся подписи для интерфейса, чтобы не
 # дублировать их в main.gd.
@@ -13,7 +13,7 @@ const DEFAULT_ACTIVE_EFFICIENCY: float = 1.0
 const DEFAULT_STAGE_EFFICIENCY: float = 0.1
 const DEFAULT_MAX_STAGE_MULTIPLIER: float = 1.5
 const DEFAULT_AUTOSAVE_SECONDS: float = 15.0
-const DEFAULT_FORMAT_VERSION: int = 7
+const DEFAULT_FORMAT_VERSION: int = 8
 const DEFAULT_MAX_PROFILE_BYTES: int = 1048576
 
 
@@ -59,6 +59,7 @@ static func default_settings(balance: Dictionary) -> Dictionary:
 	var result: Dictionary = {
 		"sound_enabled": true,
 		"particles_enabled": true,
+		"effects_enabled": true,
 		"target_fps": 60,
 	}
 	if configured is Dictionary:
@@ -85,6 +86,7 @@ static func normalize_settings(value: Variant, balance: Dictionary) -> Dictionar
 			result[str(key)] = (value as Dictionary).get(str(key), result[str(key)])
 	result["sound_enabled"] = bool(result.get("sound_enabled", true))
 	result["particles_enabled"] = bool(result.get("particles_enabled", true))
+	result["effects_enabled"] = bool(result.get("effects_enabled", true))
 	var options: Array = fps_options(balance)
 	var target: int = maxi(1, int(result.get("target_fps", 60)))
 	if not options.has(target):

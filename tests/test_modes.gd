@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Точечная проверка седьмого этапа: один регион, три режима, 30 этапов
+# Точечная проверка восьмого этапа: один регион, три режима, 30 этапов
 # кампании, 30 ярусов Башни и три подземелья ресурсов.
 # Запуск: godot --headless --path . --script tests/test_modes.gd
 
@@ -14,9 +14,9 @@ var failed: int = 0
 
 
 func _initialize() -> void:
-	print("Проверка контента и режимов седьмого этапа")
+	print("Проверка контента и режимов восьмого этапа")
 	var data: Dictionary = CombatCatalog.load_balance()
-	_check("Версия баланса седьмого этапа", int(data.get("version", 0)) == 7)
+	_check("Версия баланса восьмого этапа", int(data.get("version", 0)) == 8)
 	_test_modes_data(data)
 	_test_catalog(data)
 	_test_state(data)

@@ -3,7 +3,8 @@ extends Control
 # Компактный экран кампании, экипировки, прогрессии, сохранений и трёх режимов:
 # здоровье героя и противника в одной строке, 30 этапов, Башня испытаний,
 # Подземелья ресурсов, награды, Алтарь призыва, инвентарь, характеристики,
-# навыки и питомцы. Все кнопки связаны с состоянием.
+# навыки и питомцы. Восьмой этап добавляет процедурные звуки, пул эффектов,
+# упрощённый режим и обновление интерфейса по таймеру. Все кнопки связаны с состоянием.
 
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignState = preload("res://scripts/campaign/campaign_state.gd")
@@ -13,6 +14,9 @@ const ProgressionCatalog = preload("res://scripts/progression/progression_catalo
 const SaveCatalog = preload("res://scripts/save/save_catalog.gd")
 const ProfileManager = preload("res://scripts/save/profile_manager.gd")
 const AshenStyle = preload("res://scripts/ui/ashen_style.gd")
+const PresentationCatalog = preload("res://scripts/ui/presentation_catalog.gd")
+const AshenAudio = preload("res://scripts/ui/ashen_audio.gd")
+const EffectPool = preload("res://scripts/ui/effect_pool.gd")
 
 var title_label: Label
 var stage_label: Label
@@ -90,6 +94,15 @@ var particles_effect: CPUParticles2D
 var sound_button: Button
 var particles_button: Button
 var fps_button: Button
+var effects_button: Button
+var audio_player
+var effect_pool
+var effect_config: Dictionary = {}
+var view_refresh_seconds: float = 0.1
+var view_refresh_timer: float = 0.0
+var fps_sample_seconds: float = 1.0
+var fps_sample_timer: float = 0.0
+var measured_fps: float = 0.0
 
 var campaign
 var profile_manager
@@ -123,6 +136,19 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 	_bind_nodes()
 	theme = AshenStyle.build_theme()
 	_apply_styles()
+	effect_config = PresentationCatalog.effect_pool_config(balance)
+	var performance: Dictionary = PresentationCatalog.performance_config(balance)
+	view_refresh_seconds = PresentationCatalog.ui_refresh_seconds(balance)
+	fps_sample_seconds = float(performance.get("sample_seconds", 1.0))
+	audio_player = AshenAudio.new()
+	add_child(audio_player)
+	audio_player.configure(balance, bool(SaveCatalog.default_settings(balance).get("sound_enabled", true)))
+	effect_pool = EffectPool.new()
+	add_child(effect_pool)
+	effect_pool.configure(self, effect_config)
+	_configure_particles()
+	if not resized.is_connected(_on_viewport_resized):
+		resized.connect(_on_viewport_resized)
 	campaign = CampaignState.new(data)
 	profile_manager = ProfileManager.new(balance, profile_path, now_unix)
 	var startup_report: Dictionary = profile_manager.bootstrap(campaign)
@@ -146,7 +172,7 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 		_add_log(str(line))
 	_update_view()
 	var startup_summary: Dictionary = campaign.get_summary()
-	print("Игровой цикл, экипировка, прогрессия, сохранения и режимы запущены: %s, профиль %s" % [
+	print("Игровой цикл, режимы, звук и эффекты запущены: %s, профиль %s" % [
 		str(startup_summary.get("mode_progress", "")),
 		str(startup_report.get("status_text", "")),
 	])
@@ -224,6 +250,7 @@ func _bind_nodes() -> void:
 	sound_button = get_node("Margin/Panel/SettingsRow/SoundButton") as Button
 	particles_button = get_node("Margin/Panel/SettingsRow/ParticlesButton") as Button
 	fps_button = get_node("Margin/Panel/SettingsRow/FpsButton") as Button
+	effects_button = get_node("Margin/Panel/SettingsRow/EffectsButton") as Button
 
 
 func _load_data() -> Dictionary:
@@ -281,6 +308,28 @@ func _apply_styles() -> void:
 	mode_hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
 
 
+func _configure_particles() -> void:
+	if particles_effect == null:
+		return
+	var settings: Dictionary = PresentationCatalog.particle_config(balance)
+	particles_effect.amount = int(settings.get("amount", 12))
+	particles_effect.lifetime = float(settings.get("lifetime_seconds", 4.0))
+	particles_effect.direction = Vector2(0.0, -1.0)
+	particles_effect.spread = float(settings.get("spread_degrees", 28.0))
+	particles_effect.gravity = Vector2(0.0, float(settings.get("gravity_y", -14.0)))
+	particles_effect.initial_velocity_min = float(settings.get("velocity_min", 18.0))
+	particles_effect.initial_velocity_max = float(settings.get("velocity_max", 56.0))
+	particles_effect.scale_amount_min = float(settings.get("scale_min", 0.3))
+	particles_effect.scale_amount_max = float(settings.get("scale_max", 0.9))
+	particles_effect.color = settings.get("color", AshenStyle.EMBER) as Color
+	particles_effect.position = size * 0.5
+
+
+func _on_viewport_resized() -> void:
+	if particles_effect != null:
+		particles_effect.position = size * 0.5
+
+
 func _connect_battle_signals() -> void:
 	var battle = campaign.system
 	if battle == null:
@@ -324,6 +373,7 @@ func _connect_ui_signals() -> void:
 	sound_button.pressed.connect(_on_sound_pressed)
 	particles_button.pressed.connect(_on_particles_pressed)
 	fps_button.pressed.connect(_on_fps_pressed)
+	effects_button.pressed.connect(_on_effects_pressed)
 
 
 func _populate_filters() -> void:
@@ -393,11 +443,23 @@ func _process(delta: float) -> void:
 		return
 	var previous_status: int = campaign.status
 	campaign.advance(delta)
-	if previous_status == CampaignState.STATUS_BATTLE and campaign.status != CampaignState.STATUS_BATTLE:
-		_on_stage_finished()
+	fps_sample_timer += delta
+	if fps_sample_timer >= fps_sample_seconds:
+		fps_sample_timer = 0.0
+		measured_fps = Engine.get_frames_per_second()
 	if profile_manager != null:
 		profile_manager.tick(delta)
-	_update_view()
+	# Перерисовка всех панелей выполняется не каждый кадр; смена статуса боя
+	# и нажатия кнопок обновляют экран сразу.
+	if previous_status == CampaignState.STATUS_BATTLE and campaign.status != CampaignState.STATUS_BATTLE:
+		_on_stage_finished()
+		_update_view()
+		view_refresh_timer = 0.0
+		return
+	view_refresh_timer += delta
+	if view_refresh_timer >= view_refresh_seconds:
+		_update_view()
+		view_refresh_timer = 0.0
 
 
 func _update_view() -> void:
@@ -487,7 +549,12 @@ func _update_view() -> void:
 	if mode_visible:
 		_refresh_mode_ui()
 	if profile_manager != null:
-		hint_label.text = "%s · %s" % [profile_manager.hint_text(), str(summary["mode_short"])]
+		var fps_text: String = "—" if measured_fps <= 0.0 else "%.0f" % measured_fps
+		hint_label.text = "%s · %s · КАДРЫ %s" % [
+			profile_manager.hint_text(),
+			str(summary["mode_short"]),
+			fps_text,
+		]
 	_refresh_settings_ui()
 
 
@@ -1128,14 +1195,17 @@ func _on_pet_upgrade_pressed() -> void:
 
 
 func _on_strike_pressed() -> void:
+	_pulse_button(strike_button)
 	campaign.use_skill("heavy_strike")
 
 
 func _on_guard_pressed() -> void:
+	_pulse_button(guard_button)
 	campaign.use_skill("ash_guard")
 
 
 func _on_action_pressed() -> void:
+	_pulse_button(action_button)
 	var changed: bool = false
 	match campaign.status:
 		CampaignState.STATUS_VICTORY:
@@ -1163,6 +1233,10 @@ func _on_action_pressed() -> void:
 
 func _on_stage_finished() -> void:
 	var reward: Dictionary = campaign.last_reward
+	if campaign.status == CampaignState.STATUS_DEFEAT and audio_player != null:
+		audio_player.play("defeat")
+	elif campaign.status != CampaignState.STATUS_BATTLE and audio_player != null:
+		audio_player.play("victory")
 	match campaign.status:
 		CampaignState.STATUS_VICTORY:
 			_add_log("Победа: +%d опыта, +%d золота, +%d пепла" % [
@@ -1189,8 +1263,13 @@ func _on_damage_dealt(target_name: String, amount: float, is_critical: bool) -> 
 	var hit_hero: bool = target_name == campaign.system.hero.display_name
 	var side: Control = hero_side if hit_hero else enemy_side
 	var color: Color = AshenStyle.CRIMSON if hit_hero else AshenStyle.GOLD
+	if is_critical and not hit_hero:
+		color = AshenStyle.EMBER
+	var damage_text: String = "КРИТ %.0f" % amount if is_critical else "%.0f" % amount
 	_flash(side, color)
-	_spawn_floating_number("%.0f" % amount, side, color)
+	_spawn_floating_number(damage_text, side, color)
+	if audio_player != null:
+		audio_player.play("critical" if is_critical else "attack")
 
 
 func _on_enemy_defeated(enemy_name: String) -> void:
@@ -1199,18 +1278,29 @@ func _on_enemy_defeated(enemy_name: String) -> void:
 
 func _on_hero_defeated() -> void:
 	_add_log("Герой пал")
+	if audio_player != null:
+		audio_player.play("defeat")
 
 
 func _on_skill_used(skill_name: String) -> void:
 	_add_log("Навык: %s" % skill_name)
+	_spawn_floating_number(str(skill_name).to_upper(), stage_notice, AshenStyle.RUNE, int(effect_config.get("skill_font_size", 15)))
+	if audio_player != null:
+		audio_player.play("skill")
 
 
 func _on_shield_changed(amount: float) -> void:
 	_add_log("Щит: +%.0f" % amount)
+	_spawn_floating_number("ЩИТ", hero_side, AshenStyle.SHIELD_COLOR, int(effect_config.get("skill_font_size", 15)))
+	if audio_player != null:
+		audio_player.play("shield")
 
 
 func _on_boss_phase_started(enemy_name: String, phase_name: String) -> void:
 	_add_log("%s: %s" % [enemy_name, phase_name])
+	_spawn_floating_number(str(phase_name).to_upper(), stage_notice, AshenStyle.EMBER, int(effect_config.get("skill_font_size", 15)))
+	if audio_player != null:
+		audio_player.play("boss")
 
 
 func _on_pet_attack(pet_name: String, assist_name: String, amount: float) -> void:
@@ -1232,12 +1322,17 @@ func _apply_settings() -> void:
 	var current: Dictionary = profile_manager.settings()
 	var sound_on: bool = bool(current.get("sound_enabled", true))
 	var particles_on: bool = bool(current.get("particles_enabled", true))
+	var effects_on: bool = bool(current.get("effects_enabled", true))
 	var target_fps: int = maxi(1, int(current.get("target_fps", 60)))
 	if AudioServer.get_bus_count() > 0:
 		AudioServer.set_bus_mute(0, not sound_on)
+	if audio_player != null:
+		audio_player.set_enabled(sound_on)
+	if effect_pool != null:
+		effect_pool.set_full_effects(effects_on)
 	if particles_effect != null:
-		particles_effect.visible = particles_on
-		particles_effect.emitting = particles_on
+		particles_effect.visible = particles_on and effects_on
+		particles_effect.emitting = particles_on and effects_on
 	Engine.max_fps = target_fps
 	_refresh_settings_ui(current)
 
@@ -1249,9 +1344,11 @@ func _refresh_settings_ui(current: Dictionary = {}) -> void:
 	sound_button.text = "ЗВУК ВКЛ" if bool(settings.get("sound_enabled", true)) else "ЗВУК ВЫКЛ"
 	particles_button.text = "ЧАСТИЦЫ ВКЛ" if bool(settings.get("particles_enabled", true)) else "ЧАСТИЦЫ ВЫКЛ"
 	fps_button.text = "%d КАДРОВ/С" % int(settings.get("target_fps", 60))
+	effects_button.text = "ЭФФЕКТЫ ПОЛНЫЕ" if bool(settings.get("effects_enabled", true)) else "ЭФФЕКТЫ ПРОСТЫЕ"
 
 
 func _on_sound_pressed() -> void:
+	_pulse_button(sound_button)
 	var enabled: bool = not bool(profile_manager.settings().get("sound_enabled", true))
 	profile_manager.set_setting("sound_enabled", enabled)
 	_apply_settings()
@@ -1260,6 +1357,7 @@ func _on_sound_pressed() -> void:
 
 
 func _on_particles_pressed() -> void:
+	_pulse_button(particles_button)
 	var enabled: bool = not bool(profile_manager.settings().get("particles_enabled", true))
 	profile_manager.set_setting("particles_enabled", enabled)
 	_apply_settings()
@@ -1268,12 +1366,29 @@ func _on_particles_pressed() -> void:
 
 
 func _on_fps_pressed() -> void:
+	_pulse_button(fps_button)
 	var current_fps: int = int(profile_manager.settings().get("target_fps", 60))
 	var next_fps: int = SaveCatalog.next_target_fps(balance, current_fps)
 	profile_manager.set_setting("target_fps", next_fps)
 	_apply_settings()
 	_add_log("Частота кадров: %d" % next_fps)
 	_save("настройка частоты кадров")
+
+
+func _on_effects_pressed() -> void:
+	_pulse_button(effects_button)
+	var enabled: bool = not bool(profile_manager.settings().get("effects_enabled", true))
+	profile_manager.set_setting("effects_enabled", enabled)
+	_apply_settings()
+	_add_log("Эффекты %s" % ("полные" if enabled else "упрощены"))
+	_save("настройка эффектов")
+
+
+func _pulse_button(button: Button) -> void:
+	if effect_pool != null and button != null:
+		effect_pool.pulse(button, AshenStyle.RUNE)
+	if audio_player != null:
+		audio_player.play("click")
 
 
 func _save(reason: String) -> Dictionary:
@@ -1291,7 +1406,11 @@ func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_EXIT_TREE:
 			profile_manager.on_pause()
+			if audio_player != null:
+				audio_player.set_enabled(false)
 		NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_APPLICATION_FOCUS_IN:
+			if audio_player != null:
+				audio_player.set_enabled(bool(profile_manager.settings().get("sound_enabled", true)))
 			var report: Dictionary = profile_manager.on_resume()
 			if bool(report.get("eligible", false)):
 				_add_log(SaveCatalog.reward_text(report))
@@ -1306,20 +1425,12 @@ func _add_log(line: String) -> void:
 
 
 func _flash(side: Control, color: Color) -> void:
-	var tween: Tween = create_tween()
-	tween.tween_property(side, "modulate", color, 0.06)
-	tween.tween_property(side, "modulate", Color.WHITE, 0.22)
+	if effect_pool != null:
+		effect_pool.flash(side, color)
 
 
-func _spawn_floating_number(text: String, near: Control, color: Color) -> void:
-	var label: Label = Label.new()
-	label.text = text
-	label.add_theme_color_override("font_color", color)
-	label.add_theme_font_size_override("font_size", 24)
-	var center: Vector2 = near.get_global_rect().get_center()
-	label.position = center - Vector2(12, 18)
-	add_child(label)
-	var tween: Tween = create_tween()
-	tween.tween_property(label, "position:y", label.position.y - 52.0, 0.55)
-	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.55)
-	tween.tween_callback(label.queue_free)
+func _spawn_floating_number(text: String, near: Control, color: Color, font_size: int = 0) -> void:
+	if effect_pool == null:
+		return
+	var size: int = font_size if font_size > 0 else int(effect_config.get("label_font_size", 24))
+	effect_pool.spawn_text(text, near, color, size)

@@ -101,7 +101,7 @@ jobs:
         if: needs.detect.outputs.has_project == 'true'
         run: |
           set -euo pipefail
-          for test_script in tests/test_combat.gd tests/test_campaign.gd tests/test_equipment.gd tests/test_progression.gd tests/test_saves.gd tests/test_modes.gd tests/test_ui.gd; do
+          for test_script in tests/test_combat.gd tests/test_campaign.gd tests/test_equipment.gd tests/test_progression.gd tests/test_saves.gd tests/test_modes.gd tests/test_ui.gd tests/test_presentation.gd; do
             name="$(basename "$test_script")"
             log="/tmp/${name}.log"
             echo "::group::$name"
@@ -250,6 +250,37 @@ jobs:
           grep -q "package: name='com.izvex.ashenworld'" /tmp/apk-badging.txt
           grep -q "application-label:'ASHEN WORLD'" /tmp/apk-badging.txt
           echo "Имя пакета и название приложения совпадают с пресетом"
+
+      - name: Проверка офлайн-пакета и параметров полировки
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import zipfile
+
+          apk = "build/android/AshenWorld-debug.apk"
+          with zipfile.ZipFile(apk) as archive:
+              balance = json.loads(archive.read("assets/data/balance.json"))
+              presentation = balance["presentation"]
+              assert balance["version"] == 8
+              assert balance["save"]["format_version"] == 8
+              assert balance["save"]["default_settings"]["effects_enabled"] is True
+              assert presentation["ui_refresh_seconds"] <= 0.2
+              assert presentation["ambient_particles"]["amount"] < 18
+              assert presentation["effect_pool"]["capacity"] <= 16
+              assert len(presentation["audio"]["sounds"]) == 8
+              assert any(name.endswith("presentation_catalog.gdc") for name in archive.namelist())
+              assert any(name.endswith("test_presentation.gdc") for name in archive.namelist())
+          print("APK содержит баланс v8, офлайн-настройки и скрипты полировки")
+          PY
+          sdk_path="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          aapt_bin=$(find "$sdk_path/build-tools" -type f -name aapt | sort | tail -1)
+          "$aapt_bin" dump badging build/android/AshenWorld-debug.apk > /tmp/apk-badging.txt 2>/dev/null || true
+          if grep -q "android.permission.INTERNET" /tmp/apk-badging.txt; then
+            echo "::error::APK запрашивает доступ к интернету"
+            exit 1
+          fi
+          echo "Разрешение на интернет в APK отсутствует"
 
       - name: Выгрузка APK как артефакта
         uses: actions/upload-artifact@v4
