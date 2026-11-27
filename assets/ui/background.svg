@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#09070f"/>
+      <stop offset="0.42" stop-color="#171020"/>
+      <stop offset="1" stop-color="#2c1720"/>
+    </linearGradient>
+    <radialGradient id="emberGlow" cx="0.5" cy="1" r="0.85">
+      <stop offset="0" stop-color="#8a3a18" stop-opacity="0.72"/>
+      <stop offset="0.55" stop-color="#5a2418" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#5a2418" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b49ac6" stop-opacity="0"/>
+      <stop offset="1" stop-color="#b49ac6" stop-opacity="0.07"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="1280" fill="url(#sky)"/>
+  <rect width="720" height="1280" fill="url(#emberGlow)"/>
+  <g fill="#0c0913" opacity="0.92">
+    <path d="M0 820 L0 566 L52 566 L52 512 L92 512 L92 622 L150 622 L150 470 L194 470 L194 604 L246 604 L246 546 L296 546 L296 704 L352 704 L352 512 L404 404 L456 512 L456 646 L512 646 L512 486 L560 486 L560 606 L616 606 L616 542 L668 542 L668 668 L720 668 L720 820 Z"/>
+  </g>
+  <g fill="none" stroke="#3a2a46" stroke-width="5" opacity="0.5">
+    <path d="M112 824 V612 Q112 548 172 548 Q232 548 232 612 V824"/>
+    <path d="M488 824 V596 Q488 532 548 532 Q608 532 608 596 V824"/>
+  </g>
+  <g fill="#1a1220" opacity="0.85">
+    <path d="M0 960 L90 900 L180 948 L280 886 L380 952 L480 898 L590 950 L720 890 L720 1280 L0 1280 Z"/>
+  </g>
+  <rect y="700" width="720" height="580" fill="url(#mist)"/>
+  <g fill="#d8c7b0">
+    <circle cx="64" cy="182" r="2" opacity="0.42"/><circle cx="158" cy="326" r="1.6" opacity="0.30"/>
+    <circle cx="242" cy="128" r="2.2" opacity="0.36"/><circle cx="338" cy="268" r="1.4" opacity="0.28"/>
+    <circle cx="426" cy="162" r="2" opacity="0.40"/><circle cx="536" cy="312" r="1.8" opacity="0.32"/>
+    <circle cx="632" cy="214" r="2.4" opacity="0.38"/><circle cx="98" cy="468" r="1.6" opacity="0.34"/>
+    <circle cx="286" cy="412" r="2" opacity="0.44"/><circle cx="392" cy="520" r="1.4" opacity="0.26"/>
+    <circle cx="578" cy="462" r="2.2" opacity="0.40"/><circle cx="684" cy="392" r="1.6" opacity="0.30"/>
+    <circle cx="46" cy="690" r="2" opacity="0.36"/><circle cx="206" cy="742" r="1.8" opacity="0.30"/>
+    <circle cx="470" cy="704" r="2.2" opacity="0.42"/><circle cx="656" cy="766" r="1.4" opacity="0.28"/>
+    <circle cx="132" cy="880" r="2.4" opacity="0.34"/><circle cx="362" cy="836" r="1.8" opacity="0.38"/>
+    <circle cx="612" cy="912" r="2" opacity="0.32"/>
+  </g>
+  <g fill="#e08a3c">
+    <circle cx="84" cy="1120" r="3" opacity="0.55"/><circle cx="196" cy="1184" r="2.4" opacity="0.42"/>
+    <circle cx="318" cy="1108" r="3.2" opacity="0.60"/><circle cx="446" cy="1210" r="2.2" opacity="0.48"/>
+    <circle cx="568" cy="1142" r="2.8" opacity="0.52"/><circle cx="662" cy="1236" r="3" opacity="0.44"/>
+    <circle cx="256" cy="1252" r="2" opacity="0.40"/><circle cx="512" cy="1068" r="2.4" opacity="0.36"/>
+  </g>
+</svg>
