@@ -35,7 +35,7 @@ func _check(name: String, condition: bool) -> void:
 
 
 func _test_campaign_data(data: Dictionary) -> void:
-	_check("Версия баланса обновлена", int(data.get("version", 0)) == 5)
+	_check("Версия баланса шестого этапа", int(data.get("version", 0)) == 6)
 	var stages: Array = CampaignCatalog.stages(data)
 	_check("Кампания содержит пять этапов", stages.size() == 5)
 	var enemies: Dictionary = data.get("enemies", {}) as Dictionary

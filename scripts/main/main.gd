@@ -1,13 +1,15 @@
 extends Control
 
-# Компактный экран кампании, экипировки и прогрессии: здоровье героя и
-# противника в одной строке, этапы, награды, Алтарь призыва, инвентарь,
-# характеристики, навыки и питомцы. Все кнопки связаны с рабочим состоянием.
+# Компактный экран кампании, экипировки, прогрессии и сохранений: здоровье
+# героя и противника в одной строке, этапы, награды, Алтарь призыва,
+# инвентарь, характеристики, навыки и питомцы. Все кнопки связаны с состоянием.
 
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignState = preload("res://scripts/campaign/campaign_state.gd")
 const EquipmentCatalog = preload("res://scripts/equipment/equipment_catalog.gd")
 const ProgressionCatalog = preload("res://scripts/progression/progression_catalog.gd")
+const SaveCatalog = preload("res://scripts/save/save_catalog.gd")
+const ProfileManager = preload("res://scripts/save/profile_manager.gd")
 const AshenStyle = preload("res://scripts/ui/ashen_style.gd")
 
 var title_label: Label
@@ -75,8 +77,13 @@ var action_button: Button
 var log_card: PanelContainer
 var battle_log: Label
 var hint_label: Label
+var particles_effect: CPUParticles2D
+var sound_button: Button
+var particles_button: Button
+var fps_button: Button
 
 var campaign
+var profile_manager
 var balance: Dictionary = {}
 var log_lines: PackedStringArray = PackedStringArray()
 var initialized: bool = false
@@ -96,7 +103,7 @@ func _ready() -> void:
 	setup(_load_data())
 
 
-func setup(data: Dictionary) -> void:
+func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> void:
 	# Явный вызов нужен точечному тесту: при запуске через --script узел
 	# входит в дерево раньше, чем движок успевает вызвать _ready().
 	if initialized:
@@ -107,6 +114,8 @@ func setup(data: Dictionary) -> void:
 	theme = AshenStyle.build_theme()
 	_apply_styles()
 	campaign = CampaignState.new(data)
+	profile_manager = ProfileManager.new(balance, profile_path, now_unix)
+	var startup_report: Dictionary = profile_manager.bootstrap(campaign)
 	campaign.boss_phase_started.connect(_on_boss_phase_started)
 	_connect_battle_signals()
 	_connect_ui_signals()
@@ -118,9 +127,19 @@ func setup(data: Dictionary) -> void:
 	var skill_ids: Array = campaign.get_skill_ids()
 	if skill_ids.size() > 0:
 		selected_skill_id = str(skill_ids[0])
+	selected_item_id = ""
+	selected_pet_id = str(campaign.development.selected_pet_id)
+	_apply_settings()
 	_add_log("Этап %d: %s" % [campaign.stage_number(), str(campaign.current_stage().get("name", ""))])
+	var startup_lines: Array = startup_report.get("log_lines", []) as Array
+	for line in startup_lines:
+		_add_log(str(line))
 	_update_view()
-	print("Игровой цикл, экипировка и прогрессия запущены: этапов %d, текущий этап %d" % [campaign.stage_count(), campaign.stage_number()])
+	print("Игровой цикл, экипировка, прогрессия и сохранения запущены: этапов %d, текущий этап %d, профиль %s" % [
+		campaign.stage_count(),
+		campaign.stage_number(),
+		str(startup_report.get("status_text", "")),
+	])
 
 
 func _bind_nodes() -> void:
@@ -186,6 +205,10 @@ func _bind_nodes() -> void:
 	log_card = get_node("Margin/Panel/LogCard")
 	battle_log = get_node("Margin/Panel/LogCard/BattleLog")
 	hint_label = get_node("Margin/Panel/HintLabel")
+	particles_effect = get_node("Particles") as CPUParticles2D
+	sound_button = get_node("Margin/Panel/SettingsRow/SoundButton") as Button
+	particles_button = get_node("Margin/Panel/SettingsRow/ParticlesButton") as Button
+	fps_button = get_node("Margin/Panel/SettingsRow/FpsButton") as Button
 
 
 func _load_data() -> Dictionary:
@@ -277,6 +300,9 @@ func _connect_ui_signals() -> void:
 	dismantle_button.pressed.connect(_on_dismantle_pressed)
 	auto_equip_button.pressed.connect(_on_auto_equip_pressed)
 	mass_dismantle_button.pressed.connect(_on_mass_dismantle_pressed)
+	sound_button.pressed.connect(_on_sound_pressed)
+	particles_button.pressed.connect(_on_particles_pressed)
+	fps_button.pressed.connect(_on_fps_pressed)
 
 
 func _populate_filters() -> void:
@@ -348,6 +374,8 @@ func _process(delta: float) -> void:
 	campaign.advance(delta)
 	if previous_status == CampaignState.STATUS_BATTLE and campaign.status != CampaignState.STATUS_BATTLE:
 		_on_stage_finished()
+	if profile_manager != null:
+		profile_manager.tick(delta)
 	_update_view()
 
 
@@ -428,6 +456,9 @@ func _update_view() -> void:
 		_refresh_equipment_ui()
 	if progression_visible:
 		_refresh_progression_ui()
+	if profile_manager != null:
+		hint_label.text = profile_manager.hint_text()
+	_refresh_settings_ui()
 
 
 func _on_equipment_toggle_pressed() -> void:
@@ -476,12 +507,14 @@ func _run_summon(count: int) -> void:
 	if items.size() > 0 and items[0] is Dictionary:
 		var first: Dictionary = items[0] as Dictionary
 		_add_log("%s · %s" % [str(first.get("name", "")), str(first.get("rarity_name", ""))])
+	_save("призыв экипировки")
 	_update_view()
 
 
 func _on_filters_changed(_index: int) -> void:
 	campaign.set_equipment_filters(slot_filter.selected, rarity_filter.selected, affix_filter.selected)
 	_refresh_equipment_ui()
+	_save("фильтры инвентаря")
 
 
 func _on_item_selected(index: int) -> void:
@@ -497,6 +530,7 @@ func _on_equip_pressed() -> void:
 		_add_log("Предмет надет")
 	else:
 		_add_log("Надеть предмет не удалось")
+	_save("надевание предмета")
 	_update_view()
 
 
@@ -506,6 +540,7 @@ func _on_upgrade_pressed() -> void:
 		_add_log("Улучшение: −%d золота, −%d пепла" % [int(result.get("gold", 0)), int(result.get("materials", 0))])
 	else:
 		_add_log("Улучшение недоступно: %s" % str(result.get("reason", "")))
+	_save("улучшение предмета")
 	_update_view()
 
 
@@ -515,6 +550,7 @@ func _on_lock_pressed() -> void:
 		_add_log("Предмет заблокирован")
 	else:
 		_add_log("Замок снят")
+	_save("блокировка предмета")
 	_update_view()
 
 
@@ -538,6 +574,7 @@ func _on_dismantle_pressed() -> void:
 	else:
 		_clear_force_dismantle()
 		_add_log("Разбор недоступен: %s" % str(result.get("reason", "")))
+	_save("разбор предмета")
 	_update_view()
 
 
@@ -553,6 +590,7 @@ func _clear_force_dismantle() -> void:
 func _on_auto_equip_pressed() -> void:
 	var changed: int = campaign.auto_equip_items()
 	_add_log("Автонадевание: обновлено слотов %d" % changed)
+	_save("автонадевание")
 	_update_view()
 
 
@@ -565,6 +603,7 @@ func _on_mass_dismantle_pressed() -> void:
 		int(result.get("materials", 0)),
 	])
 	selected_item_id = ""
+	_save("массовый разбор")
 	_update_view()
 
 
@@ -869,6 +908,7 @@ func _on_attribute_pressed(attribute_id: String) -> void:
 		_add_log("Характеристика: %s" % str(attribute.get("name", id)))
 	else:
 		_add_log("Очко характеристики недоступно")
+	_save("характеристика")
 	_update_view()
 
 
@@ -883,12 +923,14 @@ func _on_skill_upgrade_pressed() -> void:
 		_add_log("Навык улучшен: −%d золота, −%d пепла" % [int(result.get("gold", 0)), int(result.get("materials", 0))])
 	else:
 		_add_log("Навык не улучшен: %s" % str(result.get("reason", "")))
+	_save("улучшение навыка")
 	_update_view()
 
 
 func _on_skill_auto_pressed() -> void:
 	var enabled: bool = campaign.toggle_skill_auto(selected_skill_id)
 	_add_log("Авто-навык: %s" % ("вкл" if enabled else "выкл"))
+	_save("авто-режим навыка")
 	_update_view()
 
 
@@ -896,6 +938,7 @@ func _on_skill_variant_pressed() -> void:
 	var variant: String = campaign.cycle_skill_variant(selected_skill_id)
 	if variant != "":
 		_add_log("Вариант навыка изменён")
+	_save("вариант навыка")
 	_update_view()
 
 
@@ -905,6 +948,7 @@ func _on_passive_pressed(passive_id: String) -> void:
 		_add_log("Пассивная способность улучшена")
 	else:
 		_add_log("Способность не улучшена: %s" % str(result.get("reason", "")))
+	_save("пассивная способность")
 	_update_view()
 
 
@@ -916,6 +960,7 @@ func _on_pet_selected(pet_id: String) -> void:
 		_add_log("Питомец выбран: %s" % str(pet.get("name", id)))
 	else:
 		_add_log("Питомец ещё не открыт")
+	_save("выбор питомца")
 	_update_view()
 
 
@@ -928,6 +973,7 @@ func _on_pet_upgrade_pressed() -> void:
 		_add_log("Питомец улучшен: −%d золота, −%d пепла" % [int(result.get("gold", 0)), int(result.get("materials", 0))])
 	else:
 		_add_log("Питомец не улучшен: %s" % str(result.get("reason", "")))
+	_save("улучшение питомца")
 	_update_view()
 
 
@@ -954,6 +1000,7 @@ func _on_action_pressed() -> void:
 				_connect_battle_signals()
 				selected_pet_id = ""
 				_add_log("Новый поход: этап 1")
+	_save("переход этапа")
 	_update_view()
 
 
@@ -976,6 +1023,7 @@ func _on_stage_finished() -> void:
 			_add_log("Герой пал. Повторить этап?")
 		CampaignState.STATUS_COMPLETE:
 			_add_log("Кампания пройдена. Уровень %d" % campaign.level)
+	_save("итог этапа")
 
 
 func _on_damage_dealt(target_name: String, amount: float, is_critical: bool) -> void:
@@ -1019,6 +1067,78 @@ func _on_hero_healed(amount: float) -> void:
 
 func _on_attack_dodged(target_name: String) -> void:
 	_add_log("Уклонение: %s" % target_name)
+
+
+func _apply_settings() -> void:
+	if profile_manager == null:
+		return
+	var current: Dictionary = profile_manager.settings()
+	var sound_on: bool = bool(current.get("sound_enabled", true))
+	var particles_on: bool = bool(current.get("particles_enabled", true))
+	var target_fps: int = maxi(1, int(current.get("target_fps", 60)))
+	if AudioServer.get_bus_count() > 0:
+		AudioServer.set_bus_mute(0, not sound_on)
+	if particles_effect != null:
+		particles_effect.visible = particles_on
+		particles_effect.emitting = particles_on
+	Engine.max_fps = target_fps
+	_refresh_settings_ui(current)
+
+
+func _refresh_settings_ui(current: Dictionary = {}) -> void:
+	if profile_manager == null:
+		return
+	var settings: Dictionary = current if not current.is_empty() else profile_manager.settings()
+	sound_button.text = "ЗВУК ВКЛ" if bool(settings.get("sound_enabled", true)) else "ЗВУК ВЫКЛ"
+	particles_button.text = "ЧАСТИЦЫ ВКЛ" if bool(settings.get("particles_enabled", true)) else "ЧАСТИЦЫ ВЫКЛ"
+	fps_button.text = "%d КАДРОВ/С" % int(settings.get("target_fps", 60))
+
+
+func _on_sound_pressed() -> void:
+	var enabled: bool = not bool(profile_manager.settings().get("sound_enabled", true))
+	profile_manager.set_setting("sound_enabled", enabled)
+	_apply_settings()
+	_add_log("Звук %s" % ("включён" if enabled else "выключен"))
+	_save("настройка звука")
+
+
+func _on_particles_pressed() -> void:
+	var enabled: bool = not bool(profile_manager.settings().get("particles_enabled", true))
+	profile_manager.set_setting("particles_enabled", enabled)
+	_apply_settings()
+	_add_log("Частицы %s" % ("включены" if enabled else "выключены"))
+	_save("настройка частиц")
+
+
+func _on_fps_pressed() -> void:
+	var current_fps: int = int(profile_manager.settings().get("target_fps", 60))
+	var next_fps: int = SaveCatalog.next_target_fps(balance, current_fps)
+	profile_manager.set_setting("target_fps", next_fps)
+	_apply_settings()
+	_add_log("Частота кадров: %d" % next_fps)
+	_save("настройка частоты кадров")
+
+
+func _save(reason: String) -> Dictionary:
+	if profile_manager == null:
+		return {"success": false, "reason": "Профиль не подключён"}
+	var result: Dictionary = profile_manager.save(reason)
+	if not bool(result.get("success", false)):
+		_add_log("Сохранение недоступно: %s" % str(result.get("reason", "")))
+	return result
+
+
+func _notification(what: int) -> void:
+	if not initialized or profile_manager == null:
+		return
+	match what:
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_EXIT_TREE:
+			profile_manager.on_pause()
+		NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_APPLICATION_FOCUS_IN:
+			var report: Dictionary = profile_manager.on_resume()
+			if bool(report.get("eligible", false)):
+				_add_log(SaveCatalog.reward_text(report))
+			_update_view()
 
 
 func _add_log(line: String) -> void:

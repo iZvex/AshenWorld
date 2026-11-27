@@ -7,7 +7,7 @@
 Проверяет только то, что можно проверить без движка:
   * целостность спецификации README.md;
   * синтаксис описаний сборок и файлов данных;
-  * целостность данных кампании, экипировки и прогрессии;
+  * целостность данных кампании, экипировки, прогрессии, сохранений и AFK;
   * конфликтные маркеры и переводы строк в скриптах GDScript;
   * базовую структуру project.godot, когда он появится.
 """
@@ -98,8 +98,8 @@ if balance_file.is_file():
         balance = {}
         err(f"data/balance.json: некорректные данные кампании: {exc}")
     if isinstance(balance, dict):
-        if int(balance.get("version", 0)) < 5:
-            err("data/balance.json: для прогрессии ожидается версия баланса не ниже 5")
+        if int(balance.get("version", 0)) < 6:
+            err("data/balance.json: для сохранений и AFK ожидается версия баланса не ниже 6")
         campaign = balance.get("campaign", {})
         stages = campaign.get("stages", []) if isinstance(campaign, dict) else []
         enemies = balance.get("enemies", {}) if isinstance(balance.get("enemies", {}), dict) else {}
@@ -288,6 +288,75 @@ auto_battle = balance_settings.get("auto_battle", {})
 if not isinstance(auto_battle, dict) or not 0.0 < float(auto_battle.get("max_skill_share", 0)) <= 1.0 or float(auto_battle.get("min_stage_duration_seconds", 0)) <= 0.0:
     err("data/balance.json: некорректные ограничения автоматического боя")
 notes.append(f"Прогрессия: характеристик {len(attributes)}, навыков {len(skills)}, пассивных способностей {len(passives)}, питомцев {len(pets)}")
+
+# --- 5.2. Сохранения и офлайн-награды шестого этапа -----------------------
+afk = balance.get("afk", {})
+save = balance.get("save", {})
+if not isinstance(afk, dict):
+    err("data/balance.json: раздел afk должен быть объектом")
+    afk = {}
+if not isinstance(save, dict):
+    err("data/balance.json: раздел save должен быть объектом")
+    save = {}
+if float(afk.get("limit_hours", 0)) <= 0.0:
+    err("data/balance.json: лимит AFK должен быть положительным")
+if int(afk.get("tick_seconds", 0)) <= 0 or int(afk.get("min_seconds", -1)) < 0:
+    err("data/balance.json: некорректные интервалы расчёта AFK")
+passive_efficiency = float(afk.get("afk_efficiency", 0))
+active_efficiency = float(afk.get("active_efficiency", 0))
+if not 0.0 < passive_efficiency < active_efficiency <= 1.0:
+    err("data/balance.json: активная игра должна быть эффективнее AFK")
+if float(afk.get("stage_efficiency_per_stage", -1)) < 0.0 or float(afk.get("max_stage_multiplier", 0)) < 1.0:
+    err("data/balance.json: некорректная эффективность по достигнутому этапу")
+max_afk_efficiency = passive_efficiency * float(afk.get("max_stage_multiplier", 1.0))
+if max_afk_efficiency >= active_efficiency:
+    err("data/balance.json: максимальная эффективность AFK должна уступать активной игре")
+afk_rewards = afk.get("rewards_per_tick", {})
+if not isinstance(afk_rewards, dict) or any(float(value) <= 0.0 for value in afk_rewards.values()):
+    err("data/balance.json: награды AFK за интервал должны быть положительными")
+if int(save.get("format_version", 0)) < 6:
+    err("data/balance.json: версия формата сохранения должна быть не ниже 6")
+if float(save.get("autosave_interval_seconds", 0)) <= 0.0:
+    err("data/balance.json: интервал автосохранения должен быть положительным")
+if int(save.get("max_profile_bytes", 0)) <= 0:
+    err("data/balance.json: предел размера профиля должен быть положительным")
+profile_path = str(save.get("profile_path", ""))
+if not profile_path.startswith("user://") or not profile_path.endswith(".json"):
+    err("data/balance.json: профиль должен храниться в локальном user:// JSON-файле")
+if not str(save.get("temp_suffix", "")) or not str(save.get("backup_suffix", "")) or str(save.get("temp_suffix", "")) == str(save.get("backup_suffix", "")):
+    err("data/balance.json: у временного файла и резервной копии должны быть разные суффиксы")
+player_settings = save.get("default_settings", {})
+if not isinstance(player_settings, dict) or "sound_enabled" not in player_settings or "particles_enabled" not in player_settings or int(player_settings.get("target_fps", 0)) <= 0:
+    err("data/balance.json: некорректные сохраняемые настройки игрока")
+fps_options = save.get("fps_options", [])
+if not isinstance(fps_options, list) or not fps_options or any(int(value) <= 0 for value in fps_options):
+    err("data/balance.json: варианты частоты кадров должны быть положительными")
+elif isinstance(player_settings, dict) and int(player_settings.get("target_fps", 0)) not in [int(value) for value in fps_options]:
+    err("data/balance.json: частота кадров по умолчанию должна входить в список вариантов")
+for rel in [
+    "scripts/save/save_catalog.gd",
+    "scripts/save/save_manager.gd",
+    "scripts/save/profile_manager.gd",
+    "tests/test_saves.gd",
+    "docs/saves.md",
+]:
+    if not (ROOT / rel).is_file():
+        err(f"Шестой этап: отсутствует {rel}")
+main_src = (ROOT / "scripts/main/main.gd").read_text(encoding="utf-8") if (ROOT / "scripts/main/main.gd").is_file() else ""
+for token in ["profile_manager.bootstrap", "NOTIFICATION_APPLICATION_PAUSED", "NOTIFICATION_EXIT_TREE", "_apply_settings", "_save("]:
+    if token not in main_src:
+        err(f"scripts/main/main.gd: отсутствует подключение сохранений ({token})")
+scene_src = (ROOT / "scenes/main/main.tscn").read_text(encoding="utf-8") if (ROOT / "scenes/main/main.tscn").is_file() else ""
+for token in ["SettingsRow", "SoundButton", "ParticlesButton", "FpsButton"]:
+    if token not in scene_src:
+        err(f"scenes/main/main.tscn: отсутствует рабочая настройка {token}")
+if "сохранение появится позже" in scene_src or "сохранение появится позже" in main_src:
+    err("Шестой этап: в интерфейсе осталась устаревшая подсказка о сохранении")
+notes.append(
+    f"Сохранение: версия {int(save.get('format_version', 0))}, "
+    f"AFK {float(afk.get('limit_hours', 0)):g} ч, автосохранение "
+    f"{float(save.get('autosave_interval_seconds', 0)):g} с"
+)
 
 # --- 6. Скрипты GDScript ---------------------------------------------------
 gd_paths = files("*.gd")

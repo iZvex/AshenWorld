@@ -631,5 +631,30 @@ vertical_alignment = 0
 layout_mode = 2
 size_flags_vertical = 0
 theme_override_font_sizes/font_size = 12
-text = "Автобой · навыки вручную · сохранение появится позже"
+text = "Автобой · локальное сохранение · офлайн до 12 ч"
 horizontal_alignment = 1
+[node name="SettingsRow" type="HBoxContainer" parent="Margin/Panel"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="SoundButton" type="Button" parent="Margin/Panel/SettingsRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "ЗВУК ВКЛ"
+
+[node name="ParticlesButton" type="Button" parent="Margin/Panel/SettingsRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "ЧАСТИЦЫ ВКЛ"
+
+[node name="FpsButton" type="Button" parent="Margin/Panel/SettingsRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "60 КАДРОВ/С"

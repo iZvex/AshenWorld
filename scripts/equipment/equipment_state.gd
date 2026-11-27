@@ -438,6 +438,77 @@ func _dismantle_reward(item: Dictionary) -> Dictionary:
 	}
 
 
+static func _as_dictionary(value: Variant) -> Dictionary:
+	return value as Dictionary if value is Dictionary else {}
+
+
+static func _as_array(value: Variant) -> Array:
+	return value as Array if value is Array else []
+
+
+func export_state() -> Dictionary:
+	return {
+		"seed_value": seed_value,
+		"rng_state": str(rng.state),
+		"next_item_id": next_item_id,
+		"inventory": inventory.duplicate(true),
+		"equipped": equipped.duplicate(true),
+		"history": history.duplicate(true),
+		"summons_since_guaranteed": summons_since_guaranteed.duplicate(true),
+		"total_summons": total_summons,
+		"filter_slot_index": filter_slot_index,
+		"filter_rarity_index": filter_rarity_index,
+		"filter_affix_index": filter_affix_index,
+	}
+
+
+func import_state(snapshot: Dictionary) -> void:
+	var saved_rng_state: String = str(snapshot.get("rng_state", ""))
+	seed_value = int(snapshot.get("seed_value", seed_value))
+	reset()
+	rng.seed = seed_value
+	if saved_rng_state != "":
+		rng.state = int(saved_rng_state)
+	next_item_id = maxi(1, int(snapshot.get("next_item_id", 1)))
+	var seen: Dictionary = {}
+	var source_inventory: Array = _as_array(snapshot.get("inventory", []))
+	for entry in source_inventory:
+		if not entry is Dictionary:
+			continue
+		var item: Dictionary = (entry as Dictionary).duplicate(true)
+		var item_id: String = str(item.get("id", ""))
+		if item_id == "" or seen.has(item_id):
+			continue
+		seen[item_id] = true
+		item["level"] = maxi(0, int(item.get("level", 0)))
+		item["locked"] = bool(item.get("locked", false))
+		item["rarity_score"] = maxi(1, int(item.get("rarity_score", 1)))
+		_recalculate_stats(item)
+		inventory.append(item)
+		var suffix: String = item_id.trim_prefix("item-")
+		if suffix.is_valid_int():
+			next_item_id = maxi(next_item_id, int(suffix) + 1)
+	var source_equipped: Dictionary = _as_dictionary(snapshot.get("equipped", {}))
+	for slot_id in source_equipped.keys():
+		var item_id: String = str(source_equipped[slot_id])
+		var item: Dictionary = get_item(item_id)
+		if not item.is_empty() and str(item.get("slot", "")) == str(slot_id):
+			equipped[str(slot_id)] = item_id
+	var source_history: Array = _as_array(snapshot.get("history", []))
+	for entry in source_history:
+		if entry is Dictionary:
+			history.append((entry as Dictionary).duplicate(true))
+	if history.size() > 20:
+		history.resize(20)
+	var source_pity: Dictionary = _as_dictionary(snapshot.get("summons_since_guaranteed", {}))
+	for summon_id in get_summon_ids():
+		summons_since_guaranteed[str(summon_id)] = maxi(0, int(source_pity.get(str(summon_id), 0)))
+	total_summons = maxi(0, int(snapshot.get("total_summons", 0)))
+	filter_slot_index = clampi(int(snapshot.get("filter_slot_index", 0)), 0, EquipmentCatalog.slots(balance).size())
+	filter_rarity_index = clampi(int(snapshot.get("filter_rarity_index", 0)), 0, EquipmentCatalog.rarities(balance).size())
+	filter_affix_index = clampi(int(snapshot.get("filter_affix_index", 0)), 0, EquipmentCatalog.affixes(balance).size())
+
+
 func get_summary() -> Dictionary:
 	var bonuses: Dictionary = get_total_bonuses()
 	return {

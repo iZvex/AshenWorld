@@ -221,6 +221,68 @@ func get_pet_combat_data() -> Dictionary:
 	return ProgressionCatalog.pet_combat_data(balance, selected_pet_id, pet_levels)
 
 
+static func _as_dictionary(value: Variant) -> Dictionary:
+	return value as Dictionary if value is Dictionary else {}
+
+
+func export_state() -> Dictionary:
+	return {
+		"level": level,
+		"attribute_points": attribute_points,
+		"skill_points": skill_points,
+		"allocated": allocated.duplicate(true),
+		"skill_levels": skill_levels.duplicate(true),
+		"skill_variants": skill_variants.duplicate(true),
+		"skill_auto_use": skill_auto_use.duplicate(true),
+		"passive_levels": passive_levels.duplicate(true),
+		"pet_levels": pet_levels.duplicate(true),
+		"selected_pet_id": selected_pet_id,
+	}
+
+
+func import_state(snapshot: Dictionary) -> void:
+	reset()
+	level = maxi(1, int(snapshot.get("level", 1)))
+	attribute_points = maxi(0, int(snapshot.get("attribute_points", 0)))
+	skill_points = maxi(0, int(snapshot.get("skill_points", 0)))
+	var source_allocated: Dictionary = _as_dictionary(snapshot.get("allocated", {}))
+	for attribute_id in ProgressionCatalog.attribute_ids(balance):
+		var id: String = str(attribute_id)
+		var limit: int = ProgressionCatalog.attribute_max_points(balance, id)
+		allocated[id] = clampi(int(source_allocated.get(id, 0)), 0, limit)
+	var source_levels: Dictionary = _as_dictionary(snapshot.get("skill_levels", {}))
+	var source_variants: Dictionary = _as_dictionary(snapshot.get("skill_variants", {}))
+	var source_auto: Dictionary = _as_dictionary(snapshot.get("skill_auto_use", {}))
+	var variants: Dictionary = ProgressionCatalog.skill_variants(balance)
+	for skill_id in ProgressionCatalog.skill_ids(balance):
+		var id: String = str(skill_id)
+		var skill: Dictionary = ProgressionCatalog.skill_by_id(balance, id)
+		var limit: int = maxi(1, int(skill.get("max_level", 5)))
+		skill_levels[id] = clampi(int(source_levels.get(id, 1)), 1, limit)
+		var variant: String = str(source_variants.get(id, "power"))
+		if not variants.has(variant):
+			variant = "power"
+		skill_variants[id] = variant
+		skill_auto_use[id] = bool(source_auto.get(id, skill.get("auto_use", false)))
+	var source_passives: Dictionary = _as_dictionary(snapshot.get("passive_levels", {}))
+	for passive_id in ProgressionCatalog.passive_ids(balance):
+		var id: String = str(passive_id)
+		var passive: Dictionary = ProgressionCatalog.passive_by_id(balance, id)
+		var limit: int = maxi(1, int(passive.get("max_level", 5)))
+		passive_levels[id] = clampi(int(source_passives.get(id, 0)), 0, limit)
+	var source_pets: Dictionary = _as_dictionary(snapshot.get("pet_levels", {}))
+	for pet_id in ProgressionCatalog.pet_ids(balance):
+		var id: String = str(pet_id)
+		var pet: Dictionary = ProgressionCatalog.pet_by_id(balance, id)
+		var limit: int = maxi(1, int(pet.get("max_level", 5)))
+		pet_levels[id] = clampi(int(source_pets.get(id, 0)), 0, limit)
+	var selected: String = str(snapshot.get("selected_pet_id", ""))
+	if pet_levels.has(selected) and int(pet_levels[selected]) > 0:
+		selected_pet_id = selected
+	else:
+		selected_pet_id = ""
+
+
 func get_summary() -> Dictionary:
 	var bonuses: Dictionary = get_bonuses()
 	var weights: Dictionary = ProgressionCatalog.power_weights(balance)

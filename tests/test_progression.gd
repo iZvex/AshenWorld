@@ -45,7 +45,7 @@ func _check(name: String, condition: bool) -> void:
 
 
 func _test_data(data: Dictionary) -> void:
-	_check("Версия баланса пятого этапа", int(data.get("version", 0)) == 5)
+	_check("Версия баланса шестого этапа", int(data.get("version", 0)) == 6)
 	var hero: Dictionary = CombatCatalog.hero_data(data)
 	_check("Один базовый класс задан", str(hero.get("class_name", "")) != "")
 	_check("Характеристик пять", ProgressionCatalog.attributes(data).size() == 5)

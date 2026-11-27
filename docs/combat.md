@@ -9,7 +9,7 @@
 | `scripts/combat/combat_formulas.gd` | Все формулы урона, защиты, сопротивления, крита и уклонения |
 | `scripts/combat/combat_catalog.gd` | Чтение боевых данных из файла баланса |
 | `scripts/combat/combat_system.gd` | Автоматический бой, новые параметры, смена противников, навыки, откаты, помощь питомца и сигналы |
-| `scripts/main/main.gd`, `scenes/main/main.tscn` | Компактный экран кампании: здоровье героя и противника в одной строке, этапы, награды, быстрые навыки, панель прогрессии и лог |
+| `scripts/main/main.gd`, `scenes/main/main.tscn` | Компактный экран кампании: здоровье героя и противника в одной строке, этапы, награды, быстрые навыки, панель прогрессии, рабочие настройки и лог |
 | `tests/test_combat.gd` | Точечная проверка только боевой логики |
 
 Логика боя не зависит от сцен и узлов интерфейса, поэтому проверяется отдельно, без сборки APK. Пятый этап расширил участника боя раздельными физической и магической атаками, множителем крита, скоростью атаки, вампиризмом, сопротивлением, уклонением и восстановлением здоровья; эти поля описаны в `docs/progression.md`.
@@ -71,6 +71,7 @@
 ```bash
 godot --headless --path . --editor --quit          # разбор новых скриптов
 godot --headless --path . --script tests/test_combat.gd
+godot --headless --path . --script tests/test_saves.gd
 godot --headless --path . --script tests/test_progression.gd
 godot --headless --path . --script tests/test_campaign.gd
 godot --headless --path . --script tests/test_ui.gd

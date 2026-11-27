@@ -1,8 +1,8 @@
 extends RefCounted
 
 # Состояние игрового цикла: этапы, победы, опыт, валюта, экипировка
-# и прогрессия пятого этапа. Сохранения появятся позже, поэтому прогресс
-# живёт в течение запуска игры.
+# и прогрессия пятого этапа. Шестой этап добавляет экспорт и импорт
+# долгосрочного состояния, поэтому прогресс живёт между запусками.
 
 const CombatSystem = preload("res://scripts/combat/combat_system.gd")
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
@@ -32,6 +32,7 @@ var gold: int = 0
 var materials: int = 0
 var victories: int = 0
 var defeats: int = 0
+var highest_stage: int = 1
 var status: int = STATUS_BATTLE
 var system
 var last_reward: Dictionary = {}
@@ -63,6 +64,7 @@ func start_stage() -> void:
 	current_boss_phase_name = ""
 	auto_skill_timer = 0.0
 	stage_elapsed = 0.0
+	highest_stage = clampi(maxi(highest_stage, stage_index + 1), 1, maxi(1, stages.size()))
 	development.set_level(level, false)
 	var stage: Dictionary = current_stage()
 	if stage.is_empty():
@@ -426,6 +428,8 @@ func get_summary() -> Dictionary:
 		"materials": materials,
 		"victories": victories,
 		"defeats": defeats,
+		"highest_stage": highest_stage,
+		"balance_version": int(balance.get("version", 0)),
 		"last_reward": last_reward.duplicate(),
 		"boss_phase_count": boss_phase_count,
 		"boss_phase_active": current_boss_phase_active,
@@ -464,25 +468,129 @@ static func status_name(value: int) -> String:
 	return "Неизвестно"
 
 
-func _register_victory() -> void:
-	var stage: Dictionary = current_stage()
-	var reward: Dictionary = stage.get("reward", {}) as Dictionary
-	var experience_gain: int = maxi(0, int(reward.get("experience", 0)))
-	var gold_gain: int = maxi(0, int(reward.get("gold", economy.get("gold_per_victory", 0))))
-	var materials_gain: int = maxi(0, int(reward.get("materials", 0)))
+static func _as_dictionary(value: Variant) -> Dictionary:
+	return value as Dictionary if value is Dictionary else {}
+
+
+func export_state() -> Dictionary:
+	return {
+		"balance_version": int(balance.get("version", 0)),
+		"stage_index": stage_index,
+		"status": status,
+		"level": level,
+		"experience": experience,
+		"gold": gold,
+		"materials": materials,
+		"victories": victories,
+		"defeats": defeats,
+		"highest_stage": highest_stage,
+		"seed_value": seed_value,
+		"last_reward": last_reward.duplicate(true),
+		"boss_phase_count": boss_phase_count,
+		"current_boss_phase_active": current_boss_phase_active,
+		"current_boss_phase_name": current_boss_phase_name,
+		"pet_attack_count": pet_attack_count,
+		"stage_elapsed": stage_elapsed,
+		"auto_skill_timer": auto_skill_timer,
+		"equipment": equipment.export_state(),
+		"development": development.export_state(),
+	}
+
+
+func import_state(snapshot: Dictionary) -> void:
+	if snapshot.is_empty():
+		return
+	stage_index = clampi(int(snapshot.get("stage_index", 0)), 0, maxi(0, stages.size() - 1))
+	var saved_status: int = clampi(int(snapshot.get("status", STATUS_BATTLE)), STATUS_BATTLE, STATUS_COMPLETE)
+	if saved_status == STATUS_COMPLETE and stage_index < stages.size() - 1:
+		saved_status = STATUS_BATTLE
+	if saved_status == STATUS_VICTORY and stage_index >= stages.size() - 1:
+		saved_status = STATUS_COMPLETE
+	level = maxi(1, int(snapshot.get("level", 1)))
+	experience = maxi(0, int(snapshot.get("experience", 0)))
+	gold = maxi(0, int(snapshot.get("gold", 0)))
+	materials = maxi(0, int(snapshot.get("materials", 0)))
+	victories = maxi(0, int(snapshot.get("victories", 0)))
+	defeats = maxi(0, int(snapshot.get("defeats", 0)))
+	highest_stage = clampi(int(snapshot.get("highest_stage", stage_index + 1)), 1, maxi(1, stages.size()))
+	highest_stage = maxi(highest_stage, stage_index + 1)
+	seed_value = int(snapshot.get("seed_value", seed_value))
+	last_reward = _as_dictionary(snapshot.get("last_reward", {})).duplicate(true)
+	var saved_boss_phase_count: int = maxi(0, int(snapshot.get("boss_phase_count", 0)))
+	var saved_phase_active: bool = bool(snapshot.get("current_boss_phase_active", false))
+	var saved_phase_name: String = str(snapshot.get("current_boss_phase_name", ""))
+	var saved_pet_attack_count: int = maxi(0, int(snapshot.get("pet_attack_count", 0)))
+	var saved_stage_elapsed: float = maxf(0.0, float(snapshot.get("stage_elapsed", 0.0)))
+	var saved_auto_skill_timer: float = maxf(0.0, float(snapshot.get("auto_skill_timer", 0.0)))
+	equipment.import_state(_as_dictionary(snapshot.get("equipment", {})))
+	development.import_state(_as_dictionary(snapshot.get("development", {})))
+	development.set_level(level, false)
+	observed_phase_counts.clear()
+	observed_pet_counts.clear()
+	_restore_stage(saved_status)
+	boss_phase_count = saved_boss_phase_count
+	current_boss_phase_active = saved_phase_active
+	current_boss_phase_name = saved_phase_name
+	pet_attack_count = saved_pet_attack_count
+	stage_elapsed = saved_stage_elapsed
+	auto_skill_timer = saved_auto_skill_timer
+
+
+func _restore_stage(saved_status: int) -> void:
+	# Бой создаётся заново из сохранённого этапа: здоровье и враги не сериализуются,
+	# зато весь долгосрочный прогресс и результат этапа возвращаются без потерь.
+	start_stage()
+	status = saved_status
+
+
+func grant_experience(amount: int) -> Dictionary:
+	var gain: int = maxi(0, amount)
 	var levels_gained: int = 0
-	experience += experience_gain
-	gold += gold_gain
-	materials += materials_gain
-	victories += 1
+	experience += gain
 	while experience >= experience_to_next():
 		experience -= experience_to_next()
 		level += 1
 		levels_gained += 1
 	development.set_level(level, false)
 	development.grant_level_rewards(levels_gained)
-	var attribute_gain: int = levels_gained * maxi(0, int(leveling.get("attribute_points_per_level", 0)))
-	var skill_gain: int = levels_gained * maxi(0, int(leveling.get("skill_points_per_level", 0)))
+	return {
+		"experience": gain,
+		"levels": levels_gained,
+		"attribute_points": levels_gained * maxi(0, int(leveling.get("attribute_points_per_level", 0))),
+		"skill_points": levels_gained * maxi(0, int(leveling.get("skill_points_per_level", 0))),
+	}
+
+
+func apply_offline_rewards(report: Dictionary) -> Dictionary:
+	var gold_gain: int = maxi(0, int(report.get("gold", 0)))
+	var materials_gain: int = maxi(0, int(report.get("materials", 0)))
+	var experience_and_currencies: Dictionary = grant_experience(maxi(0, int(report.get("experience", 0))))
+	gold += gold_gain
+	materials += materials_gain
+	return {
+		"success": true,
+		"experience": int(experience_and_currencies.get("experience", 0)),
+		"gold": gold_gain,
+		"materials": materials_gain,
+		"levels": int(experience_and_currencies.get("levels", 0)),
+		"attribute_points": int(experience_and_currencies.get("attribute_points", 0)),
+		"skill_points": int(experience_and_currencies.get("skill_points", 0)),
+	}
+
+
+func _register_victory() -> void:
+	var stage: Dictionary = current_stage()
+	var reward: Dictionary = stage.get("reward", {}) as Dictionary
+	var experience_gain: int = maxi(0, int(reward.get("experience", 0)))
+	var gold_gain: int = maxi(0, int(reward.get("gold", economy.get("gold_per_victory", 0))))
+	var materials_gain: int = maxi(0, int(reward.get("materials", 0)))
+	gold += gold_gain
+	materials += materials_gain
+	victories += 1
+	var level_result: Dictionary = grant_experience(experience_gain)
+	var levels_gained: int = int(level_result.get("levels", 0))
+	var attribute_gain: int = int(level_result.get("attribute_points", 0))
+	var skill_gain: int = int(level_result.get("skill_points", 0))
 	last_reward = {
 		"experience": experience_gain,
 		"gold": gold_gain,

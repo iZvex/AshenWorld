@@ -1,6 +1,7 @@
 extends SceneTree
 
-# Точечная проверка ТОЛЬКО компактного интерфейса и экрана экипировки.
+# Точечная проверка ТОЛЬКО компактного интерфейса, экрана экипировки
+# и рабочих настроек шестого этапа.
 # Запуск: godot --headless --path . --script tests/test_ui.gd
 # Полная сборка APK для этой проверки не требуется.
 
@@ -8,6 +9,10 @@ const MainScene = preload("res://scenes/main/main.tscn")
 const AshenStyle = preload("res://scripts/ui/ashen_style.gd")
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignState = preload("res://scripts/campaign/campaign_state.gd")
+const SaveManager = preload("res://scripts/save/save_manager.gd")
+
+const TEST_PROFILE_PATH: String = "user://test_ui_profile.json"
+const TEST_TIME: int = 1800000000
 
 var passed: int = 0
 var failed: int = 0
@@ -16,13 +21,23 @@ var failed: int = 0
 func _initialize() -> void:
 	print("Проверка компактного интерфейса и экипировки")
 	var data: Dictionary = CombatCatalog.load_balance()
+	SaveManager.new(data, TEST_PROFILE_PATH).clear_files()
 	var scene = MainScene.instantiate()
 	root.add_child(scene)
 	# В режиме --script движок вызывает _ready() только на следующем кадре,
 	# поэтому инициализируем сцену явно и отключаем автоматическую обработку.
 	scene.set_process(false)
-	scene.setup(data)
+	scene.setup(data, TEST_PROFILE_PATH, TEST_TIME)
 	_check("Сцена создана", scene != null)
+	_check("Локальный профиль подключён", scene.profile_manager != null)
+	_check("Профиль создан при первом запуске", str(scene.profile_manager.get_report().get("status", "")) == "new")
+	_check("Нижняя строка сообщает о локальном сохранении", "локальное сохранение" in scene.hint_label.text)
+	_check("Офлайн-лимит показан", "12 ч" in scene.hint_label.text)
+	_check("Ряд рабочих настроек добавлен", scene.sound_button != null and scene.particles_button != null and scene.fps_button != null)
+	_check("Настройки игрока доступны", not scene.sound_button.disabled and not scene.particles_button.disabled and not scene.fps_button.disabled)
+	_check("Звук и частицы включены по умолчанию", "ВКЛ" in scene.sound_button.text and "ВКЛ" in scene.particles_button.text)
+	_check("Частота кадров показана", "КАДРОВ/С" in scene.fps_button.text and Engine.max_fps == 60)
+	_check("Компактная строка здоровья сохранена", "ГЕРОЙ" in scene.hero_label.text and "×" in scene.separator_label.text and "ВРАГ" in scene.enemy_label.text)
 	_check("Игровой цикл подключён", scene.campaign != null)
 	if scene.campaign == null:
 		print("Итого: %d проверок пройдено, %d провалено" % [passed, failed])
@@ -114,6 +129,9 @@ func _initialize() -> void:
 	_test_equipment_ui(scene, data)
 	_test_progression_ui(scene, data)
 
+	root.remove_child(scene)
+	scene.free()
+	SaveManager.new(data, TEST_PROFILE_PATH).clear_files()
 	print("Итого: %d проверок пройдено, %d провалено" % [passed, failed])
 	quit(1 if failed > 0 else 0)
 
