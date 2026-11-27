@@ -154,13 +154,18 @@ jobs:
           ls "$dest" | head -5
 
       - name: Установка Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Установка Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # Пакет tools устарел и отсутствует в актуальном репозитории SDK,
+          # поэтому дополнительные пакеты ставим сами на следующем шаге.
+          packages: ''
+          log-accepted-android-sdk-licenses: false
 
       - name: "Android SDK: платформа и сборочные инструменты"
         run: |
