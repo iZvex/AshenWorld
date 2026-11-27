@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "combat": {
+    "attack_interval_seconds": 1.0,
+    "base_damage": 10,
+    "critical_chance": 0.05,
+    "critical_multiplier": 1.5
+  },
+  "progression": {
+    "base_experience": 100,
+    "experience_growth": 1.18
+  },
+  "economy": {
+    "gold_per_victory": 12,
+    "summon_cost": 100
+  },
+  "afk": {
+    "limit_hours": 12
+  }
+}

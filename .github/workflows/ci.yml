@@ -9,8 +9,10 @@ on:
 permissions:
   contents: read
 
+# Разделяем очереди для отправки кода и ручного запуска, чтобы ручной
+# прогон не отменялся автоматическим и наоборот.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 env:
