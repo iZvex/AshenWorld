@@ -2828,7 +2828,20 @@
           "TitleLabel": 30,
           "TowerModeButton": 18,
           "UpgradeButton": 18,
-          "WalletLabel": 18
+          "WalletLabel": 18,
+          "BattlePowerLabel": 18,
+          "QuestTitleLabel": 20,
+          "QuestSoonLabel": 18,
+          "EventsLabel": 18,
+          "QuestsLabel": 18,
+          "RatingLabel": 18,
+          "StubStripLabel": 18,
+          "QuickBattleButton": 18,
+          "QuickInventoryButton": 18,
+          "QuickSummonButton": 18,
+          "QuickProgressionButton": 18,
+          "QuickModeButton": 18,
+          "QuickSettingsButton": 18
         }
       },
       "minimum_sizes": {
@@ -2898,11 +2911,11 @@
         ],
         "EnemyHealthBar": [
           0,
-          18
+          30
         ],
         "EnemyHintLabel": [
           0,
-          28
+          24
         ],
         "EnemyLabel": [
           0,
@@ -2925,8 +2938,8 @@
           0
         ],
         "ExperienceBar": [
-          0,
-          12
+          96,
+          8
         ],
         "ExperienceDungeonButton": [
           0,
@@ -2941,7 +2954,7 @@
           50
         ],
         "GoldLabel": [
-          130,
+          100,
           0
         ],
         "GuardButton": [
@@ -2954,7 +2967,7 @@
         ],
         "HeroHealthBar": [
           0,
-          18
+          30
         ],
         "HeroLabel": [
           0,
@@ -2993,7 +3006,7 @@
           0
         ],
         "LevelLabel": [
-          90,
+          104,
           0
         ],
         "LockButton": [
@@ -3013,7 +3026,7 @@
           50
         ],
         "MaterialsLabel": [
-          115,
+          104,
           0
         ],
         "ModeButton": [
@@ -3150,7 +3163,7 @@
         ],
         "ShieldBar": [
           0,
-          6
+          8
         ],
         "Sigil": [
           56,
@@ -3247,6 +3260,262 @@
         "WalletLabel": [
           150,
           0
+        ],
+        "HealthPanel": [
+          0,
+          208
+        ],
+        "HealthBox": [
+          0,
+          0
+        ],
+        "HealthRow": [
+          0,
+          0
+        ],
+        "PortraitColumn": [
+          104,
+          0
+        ],
+        "PortraitFrame": [
+          104,
+          104
+        ],
+        "HeroPortrait": [
+          96,
+          96
+        ],
+        "BattlePowerLabel": [
+          104,
+          0
+        ],
+        "VitalsBox": [
+          270,
+          0
+        ],
+        "HeroSide": [
+          0,
+          0
+        ],
+        "EnemySide": [
+          0,
+          0
+        ],
+        "CurrencyBar": [
+          0,
+          54
+        ],
+        "CurrencyRow": [
+          0,
+          0
+        ],
+        "CoinIcon": [
+          32,
+          32
+        ],
+        "AshIcon": [
+          32,
+          32
+        ],
+        "QuestStub": [
+          0,
+          98
+        ],
+        "QuestBox": [
+          0,
+          0
+        ],
+        "QuestIcon": [
+          52,
+          52
+        ],
+        "QuestLines": [
+          0,
+          0
+        ],
+        "QuestTitleLabel": [
+          0,
+          24
+        ],
+        "StageLabel": [
+          0,
+          28
+        ],
+        "QuestSoonLabel": [
+          0,
+          20
+        ],
+        "FutureRail": [
+          72,
+          0
+        ],
+        "EventsStub": [
+          0,
+          80
+        ],
+        "QuestsStub": [
+          0,
+          80
+        ],
+        "RatingStub": [
+          0,
+          80
+        ],
+        "EventsIcon": [
+          52,
+          52
+        ],
+        "QuestsIcon": [
+          52,
+          52
+        ],
+        "RatingIcon": [
+          52,
+          52
+        ],
+        "EventsLabel": [
+          72,
+          0
+        ],
+        "QuestsLabel": [
+          72,
+          0
+        ],
+        "RatingLabel": [
+          72,
+          0
+        ],
+        "StubStrip": [
+          0,
+          52
+        ],
+        "PotionStubIcon": [
+          40,
+          40
+        ],
+        "CoinStubIcon": [
+          40,
+          40
+        ],
+        "TowerStubIcon": [
+          40,
+          40
+        ],
+        "StubStripLabel": [
+          0,
+          0
+        ],
+        "ArenaEnemies": [
+          0,
+          0
+        ],
+        "QuickRail": [
+          72,
+          0
+        ],
+        "EnemyCard1": [
+          100,
+          96
+        ],
+        "EnemyCardBox1": [
+          0,
+          0
+        ],
+        "EnemySilhouette1": [
+          76,
+          66
+        ],
+        "EnemyMiniBar1": [
+          76,
+          8
+        ],
+        "EnemyCard2": [
+          100,
+          96
+        ],
+        "EnemyCardBox2": [
+          0,
+          0
+        ],
+        "EnemySilhouette2": [
+          76,
+          66
+        ],
+        "EnemyMiniBar2": [
+          76,
+          8
+        ],
+        "EnemyCard3": [
+          100,
+          96
+        ],
+        "EnemyCardBox3": [
+          0,
+          0
+        ],
+        "EnemySilhouette3": [
+          76,
+          66
+        ],
+        "EnemyMiniBar3": [
+          76,
+          8
+        ],
+        "EnemyCard4": [
+          100,
+          96
+        ],
+        "EnemyCardBox4": [
+          0,
+          0
+        ],
+        "EnemySilhouette4": [
+          76,
+          66
+        ],
+        "EnemyMiniBar4": [
+          76,
+          8
+        ],
+        "EnemyCard5": [
+          100,
+          96
+        ],
+        "EnemyCardBox5": [
+          0,
+          0
+        ],
+        "EnemySilhouette5": [
+          76,
+          66
+        ],
+        "EnemyMiniBar5": [
+          76,
+          8
+        ],
+        "QuickBattleButton": [
+          64,
+          64
+        ],
+        "QuickInventoryButton": [
+          64,
+          64
+        ],
+        "QuickSummonButton": [
+          64,
+          64
+        ],
+        "QuickProgressionButton": [
+          64,
+          64
+        ],
+        "QuickModeButton": [
+          64,
+          64
+        ],
+        "QuickSettingsButton": [
+          64,
+          64
         ]
       },
       "spacing": {
@@ -3275,7 +3544,7 @@
           "v_separation": 4
         },
         "EnemySide": {
-          "separation": 4
+          "separation": 3
         },
         "FilterRow": {
           "separation": 6
@@ -3284,13 +3553,13 @@
           "separation": 12
         },
         "HealthBox": {
-          "separation": 6
+          "separation": 4
         },
         "HealthRow": {
-          "separation": 10
+          "separation": 8
         },
         "HeroSide": {
-          "separation": 4
+          "separation": 3
         },
         "InventoryBox": {
           "separation": 8
@@ -3300,8 +3569,8 @@
         },
         "Margin": {
           "margin_left": 14,
-          "margin_top": 14,
-          "margin_right": 14,
+          "margin_top": 8,
+          "margin_right": 96,
           "margin_bottom": 12
         },
         "ModeBox": {
@@ -3316,7 +3585,7 @@
           "v_separation": 4
         },
         "Panel": {
-          "separation": 8
+          "separation": 6
         },
         "PassiveRow": {
           "separation": 4
@@ -3357,6 +3626,58 @@
         },
         "Titles": {
           "separation": 4
+        },
+        "PortraitColumn": {
+          "separation": 4
+        },
+        "VitalsBox": {
+          "separation": 6
+        },
+        "CurrencyRow": {
+          "separation": 4
+        },
+        "QuestBox": {
+          "separation": 8
+        },
+        "QuestLines": {
+          "separation": 2
+        },
+        "FutureRail": {
+          "separation": 10
+        },
+        "EventsStub": {
+          "separation": 2
+        },
+        "QuestsStub": {
+          "separation": 2
+        },
+        "RatingStub": {
+          "separation": 2
+        },
+        "StubStrip": {
+          "separation": 6
+        },
+        "ArenaEnemies": {
+          "h_separation": 18,
+          "v_separation": 10
+        },
+        "QuickRail": {
+          "separation": 10
+        },
+        "EnemyCardBox1": {
+          "separation": 2
+        },
+        "EnemyCardBox2": {
+          "separation": 2
+        },
+        "EnemyCardBox3": {
+          "separation": 2
+        },
+        "EnemyCardBox4": {
+          "separation": 2
+        },
+        "EnemyCardBox5": {
+          "separation": 2
         }
       },
       "layout": {
@@ -3366,19 +3687,20 @@
           "SettingsRow": 2,
           "ModeTopRow": 2,
           "ModeSwitchRow": 2,
-          "DungeonRow": 2
+          "DungeonRow": 2,
+          "ArenaEnemies": 3
         },
-        "background_texture": "res://assets/ui/background_fantasy.png",
+        "background_texture": "res://assets/ui/background_sketch.png",
         "dim_overlay_color_rgba": [
+          0.018,
+          0.012,
           0.035,
-          0.025,
-          0.06,
-          0.48
+          0.28
         ],
         "background_modulate_rgba": [
-          0.62,
-          0.57,
-          0.7,
+          0.84,
+          0.78,
+          0.9,
           1.0
         ]
       },
@@ -3460,6 +3782,62 @@
             "refresh_progression": false,
             "refresh_modes": false
           }
+        }
+      },
+      "hud": {
+        "portrait_texture": "res://assets/ui/hero_portrait.png",
+        "enemy_texture": "res://assets/ui/icons/enemy_wraith.svg",
+        "enemy_cards": 5,
+        "stub_text": "СКОРО",
+        "quick_rail": {
+          "battle": {
+            "button": "QuickBattleButton",
+            "icon": "res://assets/ui/icons/sword.svg",
+            "label": "БОЙ"
+          },
+          "inventory": {
+            "button": "QuickInventoryButton",
+            "icon": "res://assets/ui/icons/bag.svg",
+            "label": "ИНВЕНТАРЬ"
+          },
+          "summon": {
+            "button": "QuickSummonButton",
+            "icon": "res://assets/ui/icons/star.svg",
+            "label": "ПРИЗЫВ"
+          },
+          "progression": {
+            "button": "QuickProgressionButton",
+            "icon": "res://assets/ui/icons/runes.svg",
+            "label": "ПРОГРЕССИЯ"
+          },
+          "mode": {
+            "button": "QuickModeButton",
+            "icon": "res://assets/ui/icons/tower.svg",
+            "label": "РЕЖИМЫ"
+          },
+          "settings": {
+            "button": "QuickSettingsButton",
+            "icon": "res://assets/ui/icons/gear.svg",
+            "label": "НАСТРОЙКИ"
+          }
+        },
+        "stub_icons": {
+          "QuestIcon": "res://assets/ui/icons/quest.svg",
+          "CoinIcon": "res://assets/ui/icons/coin.svg",
+          "AshIcon": "res://assets/ui/icons/ash.svg",
+          "EventsIcon": "res://assets/ui/icons/gift.svg",
+          "QuestsIcon": "res://assets/ui/icons/scroll.svg",
+          "RatingIcon": "res://assets/ui/icons/trophy.svg",
+          "PotionStubIcon": "res://assets/ui/icons/potion.svg",
+          "CoinStubIcon": "res://assets/ui/icons/coin.svg",
+          "TowerStubIcon": "res://assets/ui/icons/tower.svg"
+        },
+        "stub_labels": {
+          "QuestSoonLabel": "СКОРО",
+          "EventsLabel": "СОБЫТИЯ · СКОРО",
+          "QuestsLabel": "ЗАДАНИЯ · СКОРО",
+          "RatingLabel": "РЕЙТИНГ · СКОРО",
+          "StubStripLabel": "ЛАВКА · ЗЕЛЬЯ · СКОРО"
         }
       }
     }

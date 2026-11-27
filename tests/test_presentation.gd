@@ -47,7 +47,14 @@ func _test_balance(data: Dictionary) -> void:
 	_check("Читаемые шрифты заданы централизованно", int(fonts.get("default", 0)) >= 20 and node_sizes.size() >= 80)
 	_check("Размеры панелей заданы централизованно", minimum_sizes.size() >= 90 and int(grid_columns.get("BottomTabs", 0)) == 3)
 	_check("Шесть разделов нижнего меню заданы в балансе", tabs.size() == 6 and (navigation.get("tab_order", []) as Array).size() == 6)
-	_check("Игровой фон задан в балансе", str(layout.get("background_texture", "")).ends_with("background_fantasy.png"))
+	_check("Оригинальный фон наброска задан в балансе", str(layout.get("background_texture", "")).ends_with("background_sketch.png"))
+	var hud: Dictionary = interface.get("hud", {}) as Dictionary
+	var quick_rail: Dictionary = hud.get("quick_rail", {}) as Dictionary
+	var stub_icons: Dictionary = hud.get("stub_icons", {}) as Dictionary
+	var stub_labels: Dictionary = hud.get("stub_labels", {}) as Dictionary
+	_check("Конфигурация HUD наброска централизована", quick_rail.size() == 6 and stub_icons.size() >= 9 and stub_labels.size() >= 5 and str(hud.get("stub_text", "")) == "СКОРО")
+	_check("Портрет и силуэты врагов заданы локальными ресурсами", str(hud.get("portrait_texture", "")).ends_with("hero_portrait.png") and str(hud.get("enemy_texture", "")).ends_with("enemy_wraith.svg") and int(hud.get("enemy_cards", 0)) == 5)
+	_check("Шкалы здоровья укрупнены централизованно", int((minimum_sizes.get("HeroHealthBar", [0, 0]) as Array)[1]) >= 26 and int((minimum_sizes.get("EnemyHealthBar", [0, 0]) as Array)[1]) >= 26)
 	_check("Версия баланса восьмого этапа", int(data.get("version", 0)) == 8)
 	_check("Раздел presentation добавлен", not section.is_empty())
 	_check("Частота обновления интерфейса ограничена", PresentationCatalog.ui_refresh_seconds(data) <= 0.2)
@@ -144,7 +151,7 @@ func _test_scene(data: Dictionary) -> void:
 	_check("Перерисовка выполняется по интервалу из баланса", "Этап" in scene.stage_label.text and "КАДРЫ" in scene.hint_label.text)
 	scene._process(1.0)
 	_check("Замер частоты кадров не отрицательный", scene.measured_fps >= 0.0)
-	_check("Компактная строка здоровья сохранена", "ГЕРОЙ" in scene.hero_label.text and "×" in scene.separator_label.text and "ВРАГ" in scene.enemy_label.text)
+	_check("Портретный HUD сохранён при упрощённых эффектах", scene.hero_portrait.texture != null and "ГЕРОЙ" in scene.hero_label.text and "ВРАГ" in scene.enemy_label.text and not scene.separator_label.visible)
 
 	root.remove_child(scene)
 	scene.free()

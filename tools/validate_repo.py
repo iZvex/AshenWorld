@@ -610,7 +610,7 @@ notes.append(
     f"частиц {int(ambient.get('amount', 0)) if isinstance(ambient, dict) else 0}"
 )
 
-# --- 5.5. Игровое нижнее меню и читаемые шрифты ----------------------------
+# --- 5.5. HUD по наброску, нижнее меню и читаемые шрифты -------------------
 interface = presentation.get("interface", {})
 if not isinstance(interface, dict):
     err("data/balance.json: presentation.interface должен быть объектом")
@@ -632,16 +632,25 @@ if int(effect_pool.get("skill_font_size", 0)) < 18:
 minimum_sizes = interface.get("minimum_sizes", {})
 if not isinstance(minimum_sizes, dict) or len(minimum_sizes) < 90:
     err("data/balance.json: размеры панелей и кнопок должны быть централизованы")
+    minimum_sizes = {}
+for bar_name in ("HeroHealthBar", "EnemyHealthBar"):
+    value = minimum_sizes.get(bar_name, []) if isinstance(minimum_sizes, dict) else []
+    if not isinstance(value, list) or len(value) < 2 or int(value[1]) < 26:
+        err(f"data/balance.json: {bar_name} должен быть крупной шкалой не ниже 26 пикселей")
 spacing = interface.get("spacing", {})
 if not isinstance(spacing, dict) or len(spacing) < 30:
     err("data/balance.json: отступы интерфейса должны быть централизованы")
+    spacing = {}
+margin_spec = spacing.get("Margin", {}) if isinstance(spacing, dict) else {}
+if not isinstance(margin_spec, dict) or int(margin_spec.get("margin_right", 0)) < 90:
+    err("data/balance.json: справа должен быть зарезервирован отступ под быстрые иконки")
 layout = interface.get("layout", {})
 if not isinstance(layout, dict):
     err("data/balance.json: presentation.interface.layout должен быть объектом")
     layout = {}
 grid_columns = layout.get("grid_columns", {})
-if not isinstance(grid_columns, dict) or int(grid_columns.get("BottomTabs", 0)) != 3:
-    err("data/balance.json: нижнее меню должно содержать три колонки")
+if not isinstance(grid_columns, dict) or int(grid_columns.get("BottomTabs", 0)) != 3 or int(grid_columns.get("ArenaEnemies", 0)) != 3:
+    err("data/balance.json: нижнее меню и арена должны содержать по три колонки")
 navigation = interface.get("navigation", {})
 if not isinstance(navigation, dict):
     err("data/balance.json: presentation.interface.navigation должен быть объектом")
@@ -657,31 +666,97 @@ else:
     for tab_id, spec in tabs.items():
         if not isinstance(spec, dict) or any(key not in spec for key in ("button", "panel", "label", "section_title", "panel_title_node")):
             err(f"data/balance.json: неполное описание раздела {tab_id}")
-if str(layout.get("background_texture", "")) != "res://assets/ui/background_fantasy.png":
-    err("data/balance.json: игровой фон должен быть задан через presentation.interface")
-background_png = ROOT / "assets/ui/background_fantasy.png"
-if not background_png.is_file() or not (ROOT / "assets/ui/background_fantasy.png.import").is_file():
-    err("Ассеты игрового фона и его файл импорта должны присутствовать в репозитории")
-for token in ["background_fantasy.png", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle"]:
+
+hud = interface.get("hud", {})
+if not isinstance(hud, dict):
+    err("data/balance.json: presentation.interface.hud должен быть объектом")
+    hud = {}
+expected_background = "res://assets/ui/background_sketch.png"
+if str(layout.get("background_texture", "")) != expected_background:
+    err("data/balance.json: новый оригинальный фон должен быть задан через presentation.interface")
+for rel, label in [
+    ("assets/ui/background_sketch.png", "игрового фона"),
+    ("assets/ui/hero_portrait.png", "портрета героя"),
+]:
+    if not (ROOT / rel).is_file() or not (ROOT / (rel + ".import")).is_file():
+        err(f"Ассеты {label} и их файлы импорта должны присутствовать в репозитории")
+quick_rail = hud.get("quick_rail", {})
+if not isinstance(quick_rail, dict) or set(quick_rail) != expected_tabs:
+    err("data/balance.json: правая панель должна содержать ровно шесть быстрых иконок реальных разделов")
+else:
+    for tab_id, spec in quick_rail.items():
+        if not isinstance(spec, dict) or any(key not in spec for key in ("button", "icon", "label")):
+            err(f"data/balance.json: неполное описание быстрой иконки {tab_id}")
+            continue
+        icon_rel = str(spec["icon"]).removeprefix("res://")
+        if not (ROOT / icon_rel).is_file() or not (ROOT / (icon_rel + ".import")).is_file():
+            err(f"Иконка быстрого раздела {tab_id} и её файл импорта отсутствуют")
+stub_icons = hud.get("stub_icons", {})
+if not isinstance(stub_icons, dict) or len(stub_icons) < 9:
+    err("data/balance.json: должны быть описаны локальные иконки некликабельных заглушек")
+else:
+    for node_name, icon_path in stub_icons.items():
+        icon_rel = str(icon_path).removeprefix("res://")
+        if not str(icon_path).startswith("res://assets/ui/icons/"):
+            err(f"data/balance.json: иконка {node_name} должна быть локальным ресурсом")
+        elif not (ROOT / icon_rel).is_file() or not (ROOT / (icon_rel + ".import")).is_file():
+            err(f"Иконка заглушки {node_name} и её файл импорта отсутствуют")
+stub_labels = hud.get("stub_labels", {})
+if not isinstance(stub_labels, dict) or len(stub_labels) < 5 or any("СКОРО" not in str(text) for text in stub_labels.values()):
+    err("data/balance.json: все нереализованные элементы должны быть помечены СКОРО")
+if str(hud.get("stub_text", "")) != "СКОРО":
+    err("data/balance.json: общая подпись заглушек должна быть СКОРО")
+if str(hud.get("portrait_texture", "")) != "res://assets/ui/hero_portrait.png":
+    err("data/balance.json: портрет героя должен быть локальным оригинальным ассетом")
+if str(hud.get("enemy_texture", "")) != "res://assets/ui/icons/enemy_wraith.svg" or int(hud.get("enemy_cards", 0)) != 5:
+    err("data/balance.json: силуэты врагов арены должны быть описаны централизованно")
+
+for token in ["background_sketch.png", "hero_portrait.png", "HealthPanel", "HeroPortrait", "HeroHealthBar", "EnemyHealthBar", "QuickRail", "FutureRail", "ArenaEnemies", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle"]:
     if token not in scene_src:
-        err(f"scenes/main/main.tscn: отсутствует узел или ресурс игрового меню ({token})")
-for token in ["PresentationCatalog.interface_config", "AshenStyle.build_theme(interface_config)", "_apply_interface_config", "_on_tab_pressed", "_select_tab"]:
+        err(f"scenes/main/main.tscn: отсутствует узел или ресурс игрового HUD ({token})")
+for forbidden in ["MiniMap", "Minimap", "Joystick", "VirtualJoystick", "MapFrame"]:
+    if re.search(r'\[node name="[^"]*' + forbidden, scene_src, flags=re.I):
+        err(f"scenes/main/main.tscn: мини-карта или джойстик не должны присутствовать ({forbidden})")
+
+def scene_section(start_marker: str, end_marker: str) -> str:
+    first = scene_src.find(start_marker)
+    second = scene_src.find(end_marker, first + 1) if first >= 0 else -1
+    return scene_src[first:second] if first >= 0 and second > first else ""
+
+for start_marker, end_marker, label in [
+    ('[node name="QuestStub"', '[node name="FutureRail"', "задания"),
+    ('[node name="FutureRail"', '[node name="StubStrip"', "будущих разделов"),
+    ('[node name="StubStrip"', '[node name="Margin"', "декоративных заглушек"),
+    ('[node name="ArenaEnemies"', '[node name="HealthPanel"', "арены"),
+]:
+    section = scene_section(start_marker, end_marker)
+    if not section or 'type="Button"' in section or 'type="TextureButton"' in section:
+        err(f"scenes/main/main.tscn: секция {label} должна быть некликабельным декором без кнопок")
+quick_start = scene_src.find('[node name="QuickRail"')
+quick_section = scene_src[quick_start:] if quick_start >= 0 else ""
+if quick_section.count('type="Button"') != 6:
+    err("scenes/main/main.tscn: правая быстрая панель должна содержать ровно шесть настоящих кнопок")
+if scene_src.count("СКОРО") < 5:
+    err("scenes/main/main.tscn: нереализованные элементы должны быть явно помечены СКОРО")
+for token in ["PresentationCatalog.interface_config", "AshenStyle.build_theme(interface_config)", "_apply_interface_config", "_apply_hud_config", "_setup_quick_navigation", "_on_quick_pressed", "_refresh_arena_enemies", "_on_tab_pressed", "_select_tab"]:
     if token not in main_src:
-        err(f"scripts/main/main.gd: отсутствует подключение нижнего меню ({token})")
+        err(f"scripts/main/main.gd: отсутствует подключение игрового HUD ({token})")
 presentation_catalog = (ROOT / "scripts/ui/presentation_catalog.gd").read_text(encoding="utf-8") if (ROOT / "scripts/ui/presentation_catalog.gd").is_file() else ""
-if "static func interface_config" not in presentation_catalog:
-    err("scripts/ui/presentation_catalog.gd: отсутствует чтение параметров интерфейса")
+if "static func interface_config" not in presentation_catalog or '"hud": _dict(data, "hud")' not in presentation_catalog:
+    err("scripts/ui/presentation_catalog.gd: отсутствует чтение параметров интерфейса или HUD")
 ui_doc = (ROOT / "docs/ui.md").read_text(encoding="utf-8") if (ROOT / "docs/ui.md").is_file() else ""
-for token in ["нижнее меню", "presentation.interface", "БОЙ", "ИНВЕНТАРЬ", "ПРИЗЫВ", "НАСТРОЙКИ"]:
+for token in ["нижнее меню", "presentation.interface", "портрет", "быстрая", "СКОРО", "мини-карт", "джойстик", "БОЙ", "ИНВЕНТАРЬ", "ПРИЗЫВ", "НАСТРОЙКИ"]:
     if token not in ui_doc:
         err(f"docs/ui.md: отсутствует описание игрового интерфейса ({token})")
 ui_tests = (ROOT / "tests/test_ui.gd").read_text(encoding="utf-8") if (ROOT / "tests/test_ui.gd").is_file() else ""
-if "_test_bottom_navigation" not in ui_tests:
-    err("tests/test_ui.gd: отсутствуют сценарии нижнего меню")
+for token in ["_test_bottom_navigation", "_test_sketch_hud", "Мини-карта и джойстик отсутствуют"]:
+    if token not in ui_tests:
+        err(f"tests/test_ui.gd: отсутствует сценарий игрового HUD ({token})")
 if 'presentation["interface"]' not in ci_src:
     err(".github/workflows/ci.yml: отсутствует проверка параметров presentation.interface в APK")
 notes.append(
     f"Интерфейс: разделов {len(tabs) if isinstance(tabs, dict) else 0}, "
+    f"быстрых иконок {len(quick_rail) if isinstance(quick_rail, dict) else 0}, "
     f"шрифт {int(fonts.get('default', 0))}, колонок {int(grid_columns.get('BottomTabs', 0)) if isinstance(grid_columns, dict) else 0}"
 )
 

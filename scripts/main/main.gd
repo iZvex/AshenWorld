@@ -1,10 +1,8 @@
 extends Control
 
-# Компактный экран кампании, экипировки, прогрессии, сохранений и трёх режимов:
-# здоровье героя и противника в одной строке, 30 этапов, Башня испытаний,
-# Подземелья ресурсов, награды, Алтарь призыва, инвентарь, характеристики,
-# навыки и питомцы. Восьмой этап добавляет процедурные звуки, пул эффектов,
-# упрощённый режим и нижнее игровое меню с крупными подписями. Все кнопки связаны с состоянием.
+# Портретный HUD в духе наброска: оригинальный фон, портрет героя, крупные шкалы,
+# правая быстрая навигация и некликабельные заглушки будущих разделов. Реальная логика
+# кампании, экипировки, прогрессии, сохранений, режимов, звука и эффектов сохранена.
 
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignState = preload("res://scripts/campaign/campaign_state.gd")
@@ -121,6 +119,22 @@ var settings_hint_label: Label
 var bottom_tabs: GridContainer
 var background: TextureRect
 var dim_overlay: ColorRect
+var hero_portrait: TextureRect
+var portrait_frame: PanelContainer
+var portrait_column: VBoxContainer
+var vitals_box: VBoxContainer
+var battle_power_label: Label
+var currency_bar: PanelContainer
+var currency_row: HBoxContainer
+var quest_stub: PanelContainer
+var future_rail: VBoxContainer
+var quick_rail: VBoxContainer
+var arena_enemies: GridContainer
+var stub_strip: HBoxContainer
+var enemy_cards: Array = []
+var quick_buttons: Dictionary = {}
+var quick_nav: Dictionary = {}
+var hud_config: Dictionary = {}
 var interface_config: Dictionary = {}
 var navigation_config: Dictionary = {}
 var tab_info: Dictionary = {}
@@ -171,6 +185,8 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 	interface_config = PresentationCatalog.interface_config(balance)
 	var navigation_value: Variant = interface_config.get("navigation", {})
 	navigation_config = navigation_value as Dictionary if navigation_value is Dictionary else {}
+	var hud_value: Variant = interface_config.get("hud", {})
+	hud_config = hud_value as Dictionary if hud_value is Dictionary else {}
 	_bind_nodes()
 	theme = AshenStyle.build_theme(interface_config)
 	_apply_interface_config()
@@ -308,6 +324,71 @@ func _apply_interface_config() -> void:
 		background.modulate = _color_from_array(layout.get("background_modulate_rgba", []), background.modulate)
 	if dim_overlay != null:
 		dim_overlay.color = _color_from_array(layout.get("dim_overlay_color_rgba", []), dim_overlay.color)
+	_apply_hud_config()
+
+
+func _apply_hud_config() -> void:
+	var quick_value: Variant = hud_config.get("quick_rail", {})
+	quick_nav = quick_value as Dictionary if quick_value is Dictionary else {}
+	var portrait_path: String = str(hud_config.get("portrait_texture", ""))
+	if hero_portrait != null and portrait_path != "" and ResourceLoader.exists(portrait_path):
+		hero_portrait.texture = load(portrait_path)
+	var icon_value: Variant = hud_config.get("stub_icons", {})
+	if icon_value is Dictionary:
+		for raw_name in (icon_value as Dictionary).keys():
+			var icon_node: TextureRect = find_child(str(raw_name), true, false) as TextureRect
+			var icon_path: String = str((icon_value as Dictionary)[raw_name])
+			if icon_node != null and icon_path != "" and ResourceLoader.exists(icon_path):
+				icon_node.texture = load(icon_path)
+	var label_value: Variant = hud_config.get("stub_labels", {})
+	if label_value is Dictionary:
+		for raw_name in (label_value as Dictionary).keys():
+			var label_node: Label = find_child(str(raw_name), true, false) as Label
+			if label_node != null:
+				label_node.text = str((label_value as Dictionary)[raw_name])
+	for raw_id in quick_nav.keys():
+		var tab_id: String = str(raw_id)
+		var entry_value: Variant = quick_nav.get(tab_id, {})
+		if not entry_value is Dictionary:
+			continue
+		var entry: Dictionary = entry_value as Dictionary
+		var button: Button = find_child(str(entry.get("button", "")), true, false) as Button
+		if button == null:
+			continue
+		var icon_path: String = str(entry.get("icon", ""))
+		if icon_path != "" and ResourceLoader.exists(icon_path):
+			button.icon = load(icon_path)
+		button.expand_icon = true
+		button.text = ""
+		button.tooltip_text = str(entry.get("label", tab_id.to_upper()))
+		button.add_theme_stylebox_override("normal", AshenStyle.quick_icon_style(false))
+	enemy_cards.clear()
+	var enemy_texture_path: String = str(hud_config.get("enemy_texture", ""))
+	var count: int = clampi(int(hud_config.get("enemy_cards", 5)), 1, 8)
+	for index in range(1, count + 1):
+		var card: Control = find_child("EnemyCard%d" % index, true, false) as Control
+		if card == null:
+			continue
+		enemy_cards.append(card)
+		card.add_theme_stylebox_override("panel", AshenStyle.enemy_card_style())
+		var silhouette: TextureRect = find_child("EnemySilhouette%d" % index, true, false) as TextureRect
+		if silhouette != null and enemy_texture_path != "" and ResourceLoader.exists(enemy_texture_path):
+			silhouette.texture = load(enemy_texture_path)
+			silhouette.modulate = Color(0.92, 0.78, 0.9, 0.9)
+		var mini_bar: ProgressBar = find_child("EnemyMiniBar%d" % index, true, false) as ProgressBar
+		if mini_bar != null:
+			mini_bar.add_theme_stylebox_override("background", AshenStyle.bar_background())
+			mini_bar.add_theme_stylebox_override("fill", AshenStyle.bar_fill(AshenStyle.CRIMSON))
+	for raw_name in ["QuestStub", "FutureRail", "StubStrip", "ArenaEnemies"]:
+		var decor: Control = find_child(str(raw_name), true, false) as Control
+		if decor != null:
+			decor.mouse_filter = 2
+	if arena_enemies != null:
+		var layout_value: Variant = interface_config.get("layout", {})
+		if layout_value is Dictionary:
+			var columns_value: Variant = (layout_value as Dictionary).get("grid_columns", {})
+			if columns_value is Dictionary:
+				arena_enemies.columns = clampi(int((columns_value as Dictionary).get("ArenaEnemies", 3)), 1, 6)
 
 
 func _bind_nodes() -> void:
@@ -342,6 +423,18 @@ func _bind_nodes() -> void:
 	bottom_tabs = _find("BottomTabs") as GridContainer
 	background = _find("Background") as TextureRect
 	dim_overlay = _find("DimOverlay") as ColorRect
+	hero_portrait = _find("HeroPortrait") as TextureRect
+	portrait_frame = _find("PortraitFrame") as PanelContainer
+	portrait_column = _find("PortraitColumn") as VBoxContainer
+	vitals_box = _find("VitalsBox") as VBoxContainer
+	battle_power_label = _find("BattlePowerLabel") as Label
+	currency_bar = _find("CurrencyBar") as PanelContainer
+	currency_row = _find("CurrencyRow") as HBoxContainer
+	quest_stub = _find("QuestStub") as PanelContainer
+	future_rail = _find("FutureRail") as VBoxContainer
+	quick_rail = _find("QuickRail") as VBoxContainer
+	arena_enemies = _find("ArenaEnemies") as GridContainer
+	stub_strip = _find("StubStrip") as HBoxContainer
 	equipment_panel = inventory_panel
 	progression_panel = _find("ProgressionPanel") as PanelContainer
 	mode_panel = _find("ModePanel") as PanelContainer
@@ -424,7 +517,11 @@ func _load_data() -> Dictionary:
 func _apply_styles() -> void:
 	header_frame.add_theme_stylebox_override("panel", AshenStyle.header_style())
 	bottom_bar.add_theme_stylebox_override("panel", AshenStyle.bottom_bar_style())
-	for panel in [health_panel, battle_panel, inventory_panel, summon_panel, progression_panel, mode_panel, settings_panel, log_card]:
+	health_panel.add_theme_stylebox_override("panel", AshenStyle.hud_panel_style())
+	currency_bar.add_theme_stylebox_override("panel", AshenStyle.muted_panel_style())
+	quest_stub.add_theme_stylebox_override("panel", AshenStyle.muted_panel_style())
+	portrait_frame.add_theme_stylebox_override("panel", AshenStyle.portrait_frame_style())
+	for panel in [battle_panel, inventory_panel, summon_panel, progression_panel, mode_panel, settings_panel, log_card]:
 		panel.add_theme_stylebox_override("panel", AshenStyle.content_panel_style())
 	action_button.add_theme_stylebox_override("normal", AshenStyle.action_button_style())
 	for bar in [hero_health_bar, enemy_health_bar, shield_bar, experience_bar]:
@@ -438,6 +535,15 @@ func _apply_styles() -> void:
 	for label in [battle_hint_label, settings_info_label, settings_hint_label, summon_hint_label]:
 		label.add_theme_color_override("font_color", AshenStyle.RUNE)
 	performance_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	battle_power_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	for raw_name in ["QuestTitleLabel", "QuestSoonLabel", "EventsLabel", "QuestsLabel", "RatingLabel", "StubStripLabel"]:
+		var decor_label: Label = find_child(str(raw_name), true, false) as Label
+		if decor_label != null:
+			decor_label.add_theme_color_override("font_color", AshenStyle.EMBER if str(raw_name).ends_with("SoonLabel") or str(raw_name) == "StubStripLabel" else AshenStyle.GOLD)
+	for raw_name in ["EventsIcon", "QuestsIcon", "RatingIcon", "PotionStubIcon", "CoinStubIcon", "TowerStubIcon"]:
+		var decor_icon: TextureRect = find_child(str(raw_name), true, false) as TextureRect
+		if decor_icon != null:
+			decor_icon.modulate = Color(0.72, 0.62, 0.72, 0.78)
 	summon_wallet_label.add_theme_color_override("font_color", AshenStyle.MUTED)
 	title_label.add_theme_color_override("font_color", AshenStyle.GOLD)
 	stage_label.add_theme_color_override("font_color", AshenStyle.PARCHMENT)
@@ -625,6 +731,7 @@ func _update_view() -> void:
 	var battle = campaign.system
 	stage_label.text = str(summary["mode_progress"])
 	level_label.text = "УР. %d" % int(summary["level"])
+	battle_power_label.text = "БМ %.0f" % float(summary["equipment_power"])
 	experience_bar.max_value = float(summary["experience_to_next"])
 	experience_bar.value = float(summary["experience"])
 	gold_label.text = "ЗОЛОТО %d" % int(summary["gold"])
@@ -715,6 +822,26 @@ func _update_view() -> void:
 		]
 		performance_label.text = "КАДРЫ %s · ЦЕЛЬ %d" % [fps_text, int(profile_manager.settings().get("target_fps", 60))]
 	_refresh_settings_ui()
+	_refresh_arena_enemies()
+
+
+func _refresh_arena_enemies() -> void:
+	if campaign == null or enemy_cards.is_empty():
+		return
+	var stage: Dictionary = campaign.current_stage()
+	var enemies_value: Variant = stage.get("enemies", [])
+	var count: int = 0
+	if enemies_value is Array:
+		for entry_value in enemies_value as Array:
+			if entry_value is Dictionary:
+				count += maxi(0, int((entry_value as Dictionary).get("count", 1)))
+			else:
+				count += 1
+	count = clampi(count, 1, enemy_cards.size())
+	for index in range(enemy_cards.size()):
+		var card: Control = enemy_cards[index] as Control
+		if card != null:
+			card.visible = index < count
 
 
 func _on_summon_type_pressed() -> void:
@@ -1006,8 +1133,25 @@ func _setup_navigation() -> void:
 		if title_node != null:
 			title_node.text = str(entry.get("panel_title", ""))
 		button.pressed.connect(_on_tab_pressed.bind(tab_id))
+	_setup_quick_navigation()
 	active_tab = default_tab
 	_select_tab(default_tab, false)
+
+
+func _setup_quick_navigation() -> void:
+	quick_buttons.clear()
+	for raw_id in tab_order:
+		var tab_id: String = str(raw_id)
+		var entry_value: Variant = quick_nav.get(tab_id, {})
+		if not entry_value is Dictionary:
+			continue
+		var entry: Dictionary = entry_value as Dictionary
+		var button: Button = find_child(str(entry.get("button", "")), true, false) as Button
+		if button == null:
+			continue
+		quick_buttons[tab_id] = button
+		button.pressed.connect(_on_quick_pressed.bind(tab_id))
+
 
 func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 	var source_id: String = tab_id
@@ -1033,6 +1177,14 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 		button.text = hide_label if active and key_id != default_tab else str(entry.get("label", key_id.to_upper()))
 		button.add_theme_stylebox_override("normal", AshenStyle.active_tab_style() if active else AshenStyle.inactive_tab_style())
 		button.add_theme_color_override("font_color", AshenStyle.BACKGROUND if active else AshenStyle.PARCHMENT)
+	for key in quick_buttons.keys():
+		var quick_button: Button = quick_buttons[key] as Button
+		if quick_button == null:
+			continue
+		var quick_active: bool = str(key) == active_tab
+		quick_button.add_theme_stylebox_override("normal", AshenStyle.quick_icon_style(quick_active))
+		quick_button.add_theme_stylebox_override("hover", AshenStyle.quick_icon_style(true))
+		quick_button.add_theme_stylebox_override("pressed", AshenStyle.quick_icon_style(true))
 	var current: Dictionary = {}
 	var current_value: Variant = tab_info.get(active_tab, {})
 	if current_value is Dictionary:
@@ -1042,8 +1194,12 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 	progression_visible = bool(current.get("refresh_progression", false))
 	mode_visible = bool(current.get("refresh_modes", false))
 	_clear_force_dismantle()
-	if with_sound and tabs.has(source_id):
-		var source_button: Button = tabs[source_id] as Button
+	if with_sound:
+		var source_button: Button = null
+		if tabs.has(source_id):
+			source_button = tabs[source_id] as Button
+		if source_button == null and quick_buttons.has(source_id):
+			source_button = quick_buttons[source_id] as Button
 		if source_button != null:
 			_pulse_button(source_button)
 	if equipment_visible:
@@ -1057,6 +1213,11 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 
 func _on_tab_pressed(tab_id: String, with_sound: bool = true) -> void:
 	_select_tab(tab_id, with_sound)
+
+
+func _on_quick_pressed(tab_id: String) -> void:
+	_on_tab_pressed(tab_id, true)
+
 
 func _populate_modes() -> void:
 	mode_buttons.clear()

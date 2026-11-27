@@ -1,10 +1,10 @@
-[gd_scene load_steps=6 format=3]
-
+[gd_scene load_steps=7 format=3]
 [ext_resource type="Script" path="res://scripts/main/main.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/ui/background_fantasy.png" id="2"]
-[ext_resource type="Texture2D" path="res://assets/ui/divider.svg" id="3"]
-[ext_resource type="Texture2D" path="res://assets/ui/sigil.svg" id="4"]
-[ext_resource type="Texture2D" path="res://assets/ui/ember.svg" id="5"]
+[ext_resource type="Texture2D" path="res://assets/ui/background_sketch.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/ui/hero_portrait.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/divider.svg" id="4"]
+[ext_resource type="Texture2D" path="res://assets/ui/sigil.svg" id="5"]
+[ext_resource type="Texture2D" path="res://assets/ui/ember.svg" id="6"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -26,7 +26,7 @@ mouse_filter = 2
 modulate = Color(0.62, 0.57, 0.7, 1)
 texture = ExtResource("2")
 expand_mode = 1
-stretch_mode = 0
+stretch_mode = 6
 
 [node name="DimOverlay" type="ColorRect" parent="."]
 layout_mode = 1
@@ -43,7 +43,7 @@ position = Vector2(360, 720)
 emitting = true
 amount = 12
 lifetime = 4.0
-texture = ExtResource("5")
+texture = ExtResource("6")
 direction = Vector2(0, -1)
 spread = 28.0
 gravity = Vector2(0, -14)
@@ -53,6 +53,476 @@ scale_amount_min = 0.3
 scale_amount_max = 0.9
 color = Color(0.878, 0.541, 0.235, 0.7)
 
+[node name="ArenaEnemies" type="GridContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 26.0
+offset_top = 390.0
+offset_right = 520.0
+offset_bottom = 600.0
+columns = 3
+mouse_filter = 2
+
+[node name="EnemyCard1" type="PanelContainer" parent="ArenaEnemies"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="EnemyCardBox1" type="VBoxContainer" parent="ArenaEnemies/EnemyCard1"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="EnemySilhouette1" type="TextureRect" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyMiniBar1" type="ProgressBar" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="EnemyCard2" type="PanelContainer" parent="ArenaEnemies"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="EnemyCardBox2" type="VBoxContainer" parent="ArenaEnemies/EnemyCard2"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="EnemySilhouette2" type="TextureRect" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyMiniBar2" type="ProgressBar" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="EnemyCard3" type="PanelContainer" parent="ArenaEnemies"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="EnemyCardBox3" type="VBoxContainer" parent="ArenaEnemies/EnemyCard3"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="EnemySilhouette3" type="TextureRect" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyMiniBar3" type="ProgressBar" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="EnemyCard4" type="PanelContainer" parent="ArenaEnemies"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="EnemyCardBox4" type="VBoxContainer" parent="ArenaEnemies/EnemyCard4"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="EnemySilhouette4" type="TextureRect" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyMiniBar4" type="ProgressBar" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="EnemyCard5" type="PanelContainer" parent="ArenaEnemies"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="EnemyCardBox5" type="VBoxContainer" parent="ArenaEnemies/EnemyCard5"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="EnemySilhouette5" type="TextureRect" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyMiniBar5" type="ProgressBar" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="HealthPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 408.0
+offset_bottom = 220.0
+mouse_filter = 2
+
+[node name="HealthBox" type="VBoxContainer" parent="HealthPanel"]
+layout_mode = 2
+
+[node name="HealthRow" type="HBoxContainer" parent="HealthPanel/HealthBox"]
+layout_mode = 2
+
+[node name="PortraitColumn" type="VBoxContainer" parent="HealthPanel/HealthBox/HealthRow"]
+layout_mode = 2
+size_flags_vertical = 4
+alignment = 1
+mouse_filter = 2
+
+[node name="PortraitFrame" type="PanelContainer" parent="HealthPanel/HealthBox/HealthRow/PortraitColumn"]
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+
+[node name="HeroPortrait" type="TextureRect" parent="HealthPanel/HealthBox/HealthRow/PortraitColumn/PortraitFrame"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LevelLabel" type="Label" parent="HealthPanel/HealthBox/HealthRow/PortraitColumn"]
+layout_mode = 2
+text = "УР. 1"
+horizontal_alignment = 1
+
+[node name="BattlePowerLabel" type="Label" parent="HealthPanel/HealthBox/HealthRow/PortraitColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+text = "БМ 0"
+horizontal_alignment = 1
+
+[node name="ExperienceBar" type="ProgressBar" parent="HealthPanel/HealthBox/HealthRow/PortraitColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 0.0
+show_percentage = false
+
+[node name="VitalsBox" type="VBoxContainer" parent="HealthPanel/HealthBox/HealthRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="HeroSide" type="VBoxContainer" parent="HealthPanel/HealthBox/HealthRow/VitalsBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HeroLabel" type="Label" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/HeroSide"]
+layout_mode = 2
+text = "ГЕРОЙ 120/120"
+
+[node name="HeroHealthBar" type="ProgressBar" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/HeroSide"]
+layout_mode = 2
+max_value = 120.0
+value = 120.0
+show_percentage = false
+
+[node name="ShieldBar" type="ProgressBar" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/HeroSide"]
+layout_mode = 2
+max_value = 120.0
+value = 0.0
+show_percentage = false
+
+[node name="EnemySide" type="VBoxContainer" parent="HealthPanel/HealthBox/HealthRow/VitalsBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EnemyLabel" type="Label" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/EnemySide"]
+layout_mode = 2
+text = "ВРАГ 45/45"
+horizontal_alignment = 2
+
+[node name="EnemyHealthBar" type="ProgressBar" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/EnemySide"]
+layout_mode = 2
+max_value = 45.0
+value = 45.0
+show_percentage = false
+
+[node name="EnemyHintLabel" type="Label" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/EnemySide"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 2
+
+[node name="SeparatorLabel" type="Label" parent="HealthPanel/HealthBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+visible = false
+
+[node name="CurrencyBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -298.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 66.0
+mouse_filter = 2
+
+[node name="CurrencyRow" type="HBoxContainer" parent="CurrencyBar"]
+layout_mode = 2
+size_flags_vertical = 4
+alignment = 1
+mouse_filter = 2
+
+[node name="CoinIcon" type="TextureRect" parent="CurrencyBar/CurrencyRow"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AshIcon" type="TextureRect" parent="CurrencyBar/CurrencyRow"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GoldLabel" type="Label" parent="CurrencyBar/CurrencyRow"]
+layout_mode = 2
+text = "ЗОЛОТО 0"
+horizontal_alignment = 1
+
+[node name="MaterialsLabel" type="Label" parent="CurrencyBar/CurrencyRow"]
+layout_mode = 2
+text = "ПЕПЕЛ 0"
+horizontal_alignment = 1
+
+[node name="QuestStub" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 12.0
+offset_top = 228.0
+offset_right = 382.0
+offset_bottom = 326.0
+mouse_filter = 2
+
+[node name="QuestBox" type="HBoxContainer" parent="QuestStub"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="QuestIcon" type="TextureRect" parent="QuestStub/QuestBox"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="QuestLines" type="VBoxContainer" parent="QuestStub/QuestBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="QuestTitleLabel" type="Label" parent="QuestStub/QuestBox/QuestLines"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+text = "ПУТЬ К НЕКРОПОЛЮ"
+autowrap_mode = 0
+clip_text = true
+
+[node name="StageLabel" type="Label" parent="QuestStub/QuestBox/QuestLines"]
+layout_mode = 2
+text = "Пепельные земли · Этап 1/30"
+autowrap_mode = 0
+clip_text = true
+
+[node name="StageNotice" type="Label" parent="QuestStub/QuestBox/QuestLines"]
+layout_mode = 2
+text = "ОБЫЧНЫЙ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
+visible = false
+
+[node name="QuestSoonLabel" type="Label" parent="QuestStub/QuestBox/QuestLines"]
+layout_mode = 2
+mouse_filter = 2
+text = "СКОРО"
+
+[node name="FutureRail" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -84.0
+offset_top = 82.0
+offset_right = -10.0
+offset_bottom = 432.0
+alignment = 1
+mouse_filter = 2
+
+[node name="EventsStub" type="VBoxContainer" parent="FutureRail"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+mouse_filter = 2
+
+[node name="EventsIcon" type="TextureRect" parent="FutureRail/EventsStub"]
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EventsLabel" type="Label" parent="FutureRail/EventsStub"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+text = "СОБЫТИЯ · СКОРО"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="QuestsStub" type="VBoxContainer" parent="FutureRail"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+mouse_filter = 2
+
+[node name="QuestsIcon" type="TextureRect" parent="FutureRail/QuestsStub"]
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="QuestsLabel" type="Label" parent="FutureRail/QuestsStub"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+text = "ЗАДАНИЯ · СКОРО"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="RatingStub" type="VBoxContainer" parent="FutureRail"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+mouse_filter = 2
+
+[node name="RatingIcon" type="TextureRect" parent="FutureRail/RatingStub"]
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RatingLabel" type="Label" parent="FutureRail/RatingStub"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+text = "РЕЙТИНГ · СКОРО"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="StubStrip" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 20.0
+offset_top = 332.0
+offset_right = 400.0
+offset_bottom = 384.0
+alignment = 1
+mouse_filter = 2
+
+[node name="PotionStubIcon" type="TextureRect" parent="StubStrip"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinStubIcon" type="TextureRect" parent="StubStrip"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TowerStubIcon" type="TextureRect" parent="StubStrip"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StubStripLabel" type="Label" parent="StubStrip"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+text = "ЛАВКА · ЗЕЛЬЯ · СКОРО"
+autowrap_mode = 2
+
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -60,6 +530,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+anchor_top = 0.48
 
 [node name="Panel" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
@@ -68,6 +539,7 @@ size_flags_vertical = 3
 [node name="HeaderFrame" type="PanelContainer" parent="Margin/Panel"]
 layout_mode = 2
 size_flags_vertical = 0
+visible = false
 
 [node name="Header" type="HBoxContainer" parent="Margin/Panel/HeaderFrame"]
 layout_mode = 2
@@ -77,7 +549,7 @@ size_flags_vertical = 4
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
-texture = ExtResource("4")
+texture = ExtResource("5")
 expand_mode = 1
 stretch_mode = 4
 
@@ -90,111 +562,26 @@ size_flags_vertical = 4
 layout_mode = 2
 text = "ASHEN WORLD"
 
-[node name="StageLabel" type="Label" parent="Margin/Panel/HeaderFrame/Header/Titles"]
-layout_mode = 2
-text = "Пепельные земли · Этап 1/30"
-autowrap_mode = 2
-
 [node name="StatusRow" type="HBoxContainer" parent="Margin/Panel"]
 layout_mode = 2
 size_flags_vertical = 0
-
-[node name="LevelLabel" type="Label" parent="Margin/Panel/StatusRow"]
-layout_mode = 2
-text = "УР. 1"
-
-[node name="ExperienceBar" type="ProgressBar" parent="Margin/Panel/StatusRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-max_value = 100.0
-value = 0.0
-show_percentage = false
-
-[node name="GoldLabel" type="Label" parent="Margin/Panel/StatusRow"]
-layout_mode = 2
-text = "ЗОЛОТО 0"
-horizontal_alignment = 2
-
-[node name="MaterialsLabel" type="Label" parent="Margin/Panel/StatusRow"]
-layout_mode = 2
-text = "ПЕПЕЛ 0"
-horizontal_alignment = 2
-
-[node name="HealthPanel" type="PanelContainer" parent="Margin/Panel"]
-layout_mode = 2
-size_flags_vertical = 0
-
-[node name="HealthBox" type="VBoxContainer" parent="Margin/Panel/HealthPanel"]
-layout_mode = 2
-
-[node name="HealthRow" type="HBoxContainer" parent="Margin/Panel/HealthPanel/HealthBox"]
-layout_mode = 2
-
-[node name="HeroSide" type="VBoxContainer" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="HeroLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide"]
-layout_mode = 2
-text = "ГЕРОЙ 120/120"
-
-[node name="HeroHealthBar" type="ProgressBar" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide"]
-layout_mode = 2
-max_value = 120.0
-value = 120.0
-show_percentage = false
-
-[node name="ShieldBar" type="ProgressBar" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide"]
-layout_mode = 2
-max_value = 120.0
-value = 0.0
-show_percentage = false
-
-[node name="SeparatorLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow"]
-layout_mode = 2
-text = "×"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="EnemySide" type="VBoxContainer" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="EnemyLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide"]
-layout_mode = 2
-text = "ВРАГ 45/45"
-horizontal_alignment = 2
-
-[node name="EnemyHealthBar" type="ProgressBar" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide"]
-layout_mode = 2
-max_value = 45.0
-value = 45.0
-show_percentage = false
-
-[node name="EnemyHintLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 2
-
-[node name="StageNotice" type="Label" parent="Margin/Panel/HealthPanel/HealthBox"]
-layout_mode = 2
-text = "ОБЫЧНЫЙ"
-horizontal_alignment = 1
+visible = false
 
 [node name="SectionTitle" type="Label" parent="Margin/Panel"]
 layout_mode = 2
 size_flags_vertical = 0
 text = "СРАЖЕНИЕ"
 horizontal_alignment = 1
+visible = false
 
 [node name="Divider" type="TextureRect" parent="Margin/Panel"]
 layout_mode = 2
 size_flags_vertical = 0
 mouse_filter = 2
-texture = ExtResource("3")
+texture = ExtResource("4")
 expand_mode = 1
 stretch_mode = 1
+visible = false
 
 [node name="ContentArea" type="VBoxContainer" parent="Margin/Panel"]
 layout_mode = 2
@@ -773,3 +1160,76 @@ text = "РЕЖИМЫ"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "НАСТРОЙКИ"
+
+[node name="QuickRail" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 0.37
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -82.0
+offset_top = 0.0
+offset_right = -10.0
+offset_bottom = -190.0
+alignment = 1
+mouse_filter = 0
+
+[node name="QuickBattleButton" type="Button" parent="QuickRail"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_filter = 0
+text = ""
+tooltip_text = "БОЙ"
+expand_icon = true
+icon_alignment = 1
+
+[node name="QuickInventoryButton" type="Button" parent="QuickRail"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_filter = 0
+text = ""
+tooltip_text = "ИНВЕНТАРЬ"
+expand_icon = true
+icon_alignment = 1
+
+[node name="QuickSummonButton" type="Button" parent="QuickRail"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_filter = 0
+text = ""
+tooltip_text = "ПРИЗЫВ"
+expand_icon = true
+icon_alignment = 1
+
+[node name="QuickProgressionButton" type="Button" parent="QuickRail"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_filter = 0
+text = ""
+tooltip_text = "ПРОГРЕССИЯ"
+expand_icon = true
+icon_alignment = 1
+
+[node name="QuickModeButton" type="Button" parent="QuickRail"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_filter = 0
+text = ""
+tooltip_text = "РЕЖИМЫ"
+expand_icon = true
+icon_alignment = 1
+
+[node name="QuickSettingsButton" type="Button" parent="QuickRail"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_filter = 0
+text = ""
+tooltip_text = "НАСТРОЙКИ"
+expand_icon = true
+icon_alignment = 1

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bwq7a3qotbe0j"
-path="res://.godot/imported/background_fantasy.png-05f4b65c893e99c64aaf1e659c7976c0.ctex"
+uid="uid://d1i2e68f7n8l1"
+path="res://.godot/imported/shield.svg-2d4e7b8e35b3fd9498447690130db254.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/background_fantasy.png"
-dest_files=["res://.godot/imported/background_fantasy.png-05f4b65c893e99c64aaf1e659c7976c0.ctex"]
+source_file="res://assets/ui/icons/shield.svg"
+dest_files=["res://.godot/imported/shield.svg-2d4e7b8e35b3fd9498447690130db254.ctex"]
 
 [params]
 
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

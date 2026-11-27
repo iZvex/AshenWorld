@@ -271,15 +271,29 @@ jobs:
               assert presentation["effect_pool"]["skill_font_size"] >= 18
               assert len(presentation["audio"]["sounds"]) == 8
               interface = presentation["interface"]
+              hud = interface["hud"]
+              names = archive.namelist()
               assert interface["fonts"]["default"] >= 20
               assert min(interface["fonts"]["node_sizes"].values()) >= 18
               assert len(interface["navigation"]["tabs"]) == 6
               assert len(interface["navigation"]["tab_order"]) == 6
               assert interface["layout"]["grid_columns"]["BottomTabs"] == 3
-              assert interface["layout"]["background_texture"] == "res://assets/ui/background_fantasy.png"
-              assert any(name.endswith("presentation_catalog.gdc") for name in archive.namelist())
-              assert any(name.endswith("test_presentation.gdc") for name in archive.namelist())
-          print("APK содержит баланс v8, игровое меню, офлайн-настройки и скрипты полировки")
+              assert interface["layout"]["grid_columns"]["ArenaEnemies"] == 3
+              assert interface["layout"]["background_texture"] == "res://assets/ui/background_sketch.png"
+              assert min(interface["minimum_sizes"]["HeroHealthBar"][1], interface["minimum_sizes"]["EnemyHealthBar"][1]) >= 26
+              assert len(hud["quick_rail"]) == 6
+              assert len(hud["stub_icons"]) >= 9
+              assert len(hud["stub_labels"]) >= 5 and hud["stub_text"] == "СКОРО"
+              assert hud["portrait_texture"] == "res://assets/ui/hero_portrait.png"
+              assert hud["enemy_texture"] == "res://assets/ui/icons/enemy_wraith.svg"
+              assert any("background_sketch" in name and name.endswith(".ctex") for name in names)
+              assert any("hero_portrait" in name and name.endswith(".ctex") for name in names)
+              assert any("enemy_wraith.svg" in name and name.endswith(".ctex") for name in names)
+              assert sum(name.endswith(".ctex") for name in names) >= 20
+              assert any(name.endswith("presentation_catalog.gdc") for name in names)
+              assert any(name.endswith("test_presentation.gdc") for name in names)
+              assert any(name.endswith("test_ui.gdc") for name in names)
+          print("APK содержит баланс v8, HUD наброска, шесть разделов, офлайн-настройки и скрипты полировки")
           PY
           sdk_path="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
           aapt_bin=$(find "$sdk_path/build-tools" -type f -name aapt | sort | tail -1)

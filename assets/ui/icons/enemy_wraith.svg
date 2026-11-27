@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs><linearGradient id="cloak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B2744"/><stop offset="1" stop-color="#100A17"/></linearGradient></defs>
+<ellipse cx="64" cy="116" rx="31" ry="7" fill="#09060D" opacity="0.65"/>
+<path d="M64 18 C42 18 33 36 35 56 L26 104 Q42 94 50 110 L64 99 L78 110 Q86 94 102 104 L93 56 C95 36 86 18 64 18 Z" fill="url(#cloak)" stroke="#8A5D8F" stroke-width="4"/>
+<path d="M64 20 C48 20 42 36 44 53 Q64 45 84 53 C86 36 80 20 64 20 Z" fill="#17101F" stroke="#A63D40" stroke-width="3"/>
+<path d="M50 52 L59 49 L57 56 Z M69 49 L78 52 L71 56 Z" fill="#E08A3C"/>
+<path d="M38 60 L18 86 L31 89 L24 106 M90 60 L110 86 L97 89 L104 106" fill="none" stroke="#3B2744" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M64 47 V87 M53 71 L75 71" stroke="#B49AC6" stroke-width="3" opacity="0.55"/>
+</svg>

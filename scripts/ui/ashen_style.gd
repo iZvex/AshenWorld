@@ -56,7 +56,7 @@ static func header_style() -> StyleBoxFlat:
 
 
 static func bottom_bar_style() -> StyleBoxFlat:
-	var box: StyleBoxFlat = ornate_panel_style(Color("#100C19"), Color("#8A6B3D"))
+	var box: StyleBoxFlat = hud_panel_style()
 	box.set_corner_radius_all(12)
 	box.content_margin_top = 6
 	box.content_margin_bottom = 6
@@ -64,7 +64,71 @@ static func bottom_bar_style() -> StyleBoxFlat:
 
 
 static func content_panel_style() -> StyleBoxFlat:
-	return ornate_panel_style(Color("#14101C"), PANEL_BORDER)
+	return ornate_panel_style(Color(0.055, 0.04, 0.085, 0.88), Color("#8A6B3D"))
+
+
+static func hud_panel_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = ornate_panel_style(Color(0.03, 0.022, 0.05, 0.84), Color("#8A6B3D"))
+	box.set_corner_radius_all(12)
+	box.content_margin_left = 8
+	box.content_margin_right = 8
+	box.content_margin_top = 7
+	box.content_margin_bottom = 7
+	box.shadow_size = 8
+	return box
+
+
+static func muted_panel_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = ornate_panel_style(Color(0.035, 0.028, 0.05, 0.72), PANEL_BORDER)
+	box.set_corner_radius_all(10)
+	box.content_margin_left = 6
+	box.content_margin_right = 6
+	box.content_margin_top = 5
+	box.content_margin_bottom = 5
+	return box
+
+
+static func circle_button_style(background: Color = Color("#1B1020"), border: Color = GOLD) -> StyleBoxFlat:
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = background
+	box.set_border_width_all(3)
+	box.border_color = border
+	box.set_corner_radius_all(999)
+	box.content_margin_left = 0
+	box.content_margin_right = 0
+	box.content_margin_top = 0
+	box.content_margin_bottom = 0
+	box.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
+	box.shadow_size = 10
+	return box
+
+
+static func portrait_frame_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = circle_button_style(Color(0.0, 0.0, 0.0, 0.0), GOLD)
+	box.set_border_width_all(4)
+	box.shadow_size = 6
+	return box
+
+
+static func quick_icon_style(active: bool) -> StyleBoxFlat:
+	var background: Color = Color("#3B2418") if active else Color("#181120")
+	var border: Color = GOLD if active else Color("#6E5538")
+	var box: StyleBoxFlat = circle_button_style(background, border)
+	box.set_border_width_all(4 if active else 2)
+	box.shadow_size = 12 if active else 6
+	return box
+
+
+static func enemy_card_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = muted_panel_style()
+	box.bg_color = Color(0.035, 0.022, 0.055, 0.55)
+	box.border_color = Color(0.55, 0.28, 0.35, 0.7)
+	box.set_corner_radius_all(16)
+	box.content_margin_left = 4
+	box.content_margin_right = 4
+	box.content_margin_top = 4
+	box.content_margin_bottom = 4
+	return box
 
 
 static func active_tab_style() -> StyleBoxFlat:
@@ -127,7 +191,7 @@ static func build_theme(config: Dictionary = {}) -> Theme:
 	theme.set_color("font_color", "Button", PARCHMENT)
 	theme.set_color("font_hover_color", "Button", GOLD)
 	theme.set_color("font_disabled_color", "Button", MUTED)
-	theme.set_stylebox("panel", "PanelContainer", compact_panel_style())
+	theme.set_stylebox("panel", "PanelContainer", hud_panel_style())
 	theme.set_stylebox("normal", "Button", button_style(Color("#241A30"), EMBER))
 	theme.set_stylebox("hover", "Button", button_style(Color("#33203A"), GOLD))
 	theme.set_stylebox("pressed", "Button", button_style(Color("#4A2718"), GOLD))
