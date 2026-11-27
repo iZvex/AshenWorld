@@ -226,8 +226,15 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
 text = "ПРОГРЕССИЯ"
 
+[node name="ModeButton" type="Button" parent="Margin/Panel/MenuRow"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "РЕЖИМЫ"
+
 [node name="EquipmentPowerLabel" type="Label" parent="Margin/Panel/MenuRow"]
-custom_minimum_size = Vector2(170, 0)
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "СИЛА 0"
@@ -586,6 +593,93 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 10
 text = "Характеристики и бонусы питомца — со следующего этапа; навыки и помощь питомца — сразу"
+autowrap_mode = 2
+
+[node name="ModePanel" type="PanelContainer" parent="Margin/Panel"]
+visible = false
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="ModeBox" type="VBoxContainer" parent="Margin/Panel/ModePanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ModeTopRow" type="HBoxContainer" parent="Margin/Panel/ModePanel/ModeBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="ModeStatusLabel" type="Label" parent="Margin/Panel/ModePanel/ModeBox/ModeTopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "ОСНОВНАЯ КАМПАНИЯ"
+
+[node name="ModeStatsLabel" type="Label" parent="Margin/Panel/ModePanel/ModeBox/ModeTopRow"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Лучший ярус 1"
+horizontal_alignment = 2
+
+[node name="ModeSwitchRow" type="HBoxContainer" parent="Margin/Panel/ModePanel/ModeBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="CampaignModeButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/ModeSwitchRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "КАМПАНИЯ"
+
+[node name="TowerModeButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/ModeSwitchRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "БАШНЯ"
+
+[node name="DungeonModeButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/ModeSwitchRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "ПОДЗЕМЕЛЬЯ"
+
+[node name="DungeonRow" type="HBoxContainer" parent="Margin/Panel/ModePanel/ModeBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="GoldDungeonButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/DungeonRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "ЗОЛОТО"
+
+[node name="MaterialsDungeonButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/DungeonRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "ПЕПЕЛ"
+
+[node name="ExperienceDungeonButton" type="Button" parent="Margin/Panel/ModePanel/ModeBox/DungeonRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "ОПЫТ"
+
+[node name="ModeHintLabel" type="Label" parent="Margin/Panel/ModePanel/ModeBox"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Тридцать этапов, тридцать ярусов и три подземелья"
 autowrap_mode = 2
 
 [node name="SkillRow" type="HBoxContainer" parent="Margin/Panel"]

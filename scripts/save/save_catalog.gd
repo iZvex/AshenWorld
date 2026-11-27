@@ -1,8 +1,9 @@
 extends RefCounted
 
-# Единые правила шестого этапа: настройки локального профиля, лимит AFK,
-# эффективность по последнему достигнутому этапу и формула офлайн-наград.
-# Здесь же находятся подписи для интерфейса, чтобы не дублировать их в main.gd.
+# Единые правила шестого и седьмого этапов: настройки локального профиля,
+# лимит AFK, эффективность по последнему достигнутому этапу и формула
+# офлайн-наград. Здесь же находятся подписи для интерфейса, чтобы не
+# дублировать их в main.gd.
 
 const DEFAULT_LIMIT_HOURS: float = 12.0
 const DEFAULT_TICK_SECONDS: int = 300
@@ -12,7 +13,7 @@ const DEFAULT_ACTIVE_EFFICIENCY: float = 1.0
 const DEFAULT_STAGE_EFFICIENCY: float = 0.1
 const DEFAULT_MAX_STAGE_MULTIPLIER: float = 1.5
 const DEFAULT_AUTOSAVE_SECONDS: float = 15.0
-const DEFAULT_FORMAT_VERSION: int = 6
+const DEFAULT_FORMAT_VERSION: int = 7
 const DEFAULT_MAX_PROFILE_BYTES: int = 1048576
 
 

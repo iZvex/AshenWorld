@@ -1,17 +1,19 @@
 extends RefCounted
 
 # Локальный профиль ASHEN WORLD: JSON в user://, контрольная сумма, версия
-# формата, миграция, резервная копия и атомарная замена основного файла.
-# Никаких сетевых зависимостей и секретов: профиль целиком офлайн.
+# формата, миграция v6→v7, состояние режимов, резервная копия и атомарная
+# замена основного файла. Никаких сетевых зависимостей и секретов: профиль
+# целиком офлайн.
 
 const SaveCatalog = preload("res://scripts/save/save_catalog.gd")
+const ModeCatalog = preload("res://scripts/campaign/mode_catalog.gd")
 
 const FORMAT_LABEL: String = "ashenworld-profile"
 const FNV_OFFSET: int = 2166136261
 const FNV_PRIME: int = 16777619
 
 var balance: Dictionary = {}
-var format_version: int = 6
+var format_version: int = 7
 var profile_path: String = "user://ashenworld_profile.json"
 var temp_path: String = "user://ashenworld_profile.tmp"
 var backup_path: String = "user://ashenworld_profile.bak"
@@ -149,10 +151,15 @@ func normalize_payload(payload: Dictionary, source_version: int, saved_at: int) 
 	result["profile"] = profile
 	result.erase("settings")
 	result["highest_stage"] = maxi(1, int(result.get("highest_stage", 1)))
-	result["balance_version"] = int(result.get("balance_version", balance.get("version", 0)))
-	result["profile_version"] = format_version
+	result["modes"] = ModeCatalog.state_from_snapshot(result, balance, int(result.get("highest_stage", 1)))
+	result.erase("active_mode")
+	result.erase("mode_index")
 	if source_version < format_version:
+		result["balance_version"] = int(balance.get("version", 0))
 		result["migrated_from"] = source_version
+	else:
+		result["balance_version"] = int(result.get("balance_version", balance.get("version", 0)))
+	result["profile_version"] = format_version
 	return result
 
 

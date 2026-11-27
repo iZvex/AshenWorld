@@ -11,7 +11,7 @@ var balance: Dictionary = {}
 var manager
 var campaign
 var now_override: int = -1
-var format_version: int = 6
+var format_version: int = 7
 var autosave_interval: float = 15.0
 var autosave_timer: float = 0.0
 var profile: Dictionary = {}

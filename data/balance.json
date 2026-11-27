@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "combat": {
     "attack_interval_seconds": 1.0,
     "base_damage": 10,
@@ -34,6 +34,7 @@
   "enemies": {
     "ash_walker": {
       "name": "Пепельный бродяга",
+      "category": "обычный",
       "max_health": 45,
       "attack": 7,
       "defense": 2,
@@ -41,17 +42,107 @@
     },
     "cinder_hound": {
       "name": "Угольная гончая",
+      "category": "обычный",
       "max_health": 38,
       "attack": 10,
       "defense": 1,
       "crit_chance": 0.0
     },
+    "ash_moth": {
+      "name": "Пепельная моль",
+      "category": "обычный",
+      "max_health": 42,
+      "attack": 8,
+      "defense": 2,
+      "crit_chance": 0.03
+    },
+    "soot_archer": {
+      "name": "Сажевый лучник",
+      "category": "обычный",
+      "max_health": 48,
+      "attack": 11,
+      "defense": 2,
+      "crit_chance": 0.05
+    },
+    "ember_wolf": {
+      "name": "Огненный волк",
+      "category": "обычный",
+      "max_health": 58,
+      "attack": 12,
+      "defense": 3,
+      "crit_chance": 0.02
+    },
+    "spark_spider": {
+      "name": "Искристый паук",
+      "category": "обычный",
+      "max_health": 52,
+      "attack": 10,
+      "defense": 3,
+      "crit_chance": 0.04
+    },
+    "charred_berserker": {
+      "name": "Обугленный берсерк",
+      "category": "обычный",
+      "max_health": 65,
+      "attack": 14,
+      "defense": 3,
+      "crit_chance": 0.03
+    },
+    "ash_wraith": {
+      "name": "Зольный призрак",
+      "category": "обычный",
+      "max_health": 55,
+      "attack": 13,
+      "defense": 2,
+      "crit_chance": 0.06
+    },
+    "ash_brute": {
+      "name": "Пепельный громила",
+      "category": "элита",
+      "max_health": 95,
+      "attack": 15,
+      "defense": 6,
+      "crit_chance": 0.03
+    },
+    "cinder_warden": {
+      "name": "Угольный надзиратель",
+      "category": "элита",
+      "max_health": 110,
+      "attack": 17,
+      "defense": 7,
+      "crit_chance": 0.05
+    },
+    "ember_shaman": {
+      "name": "Пламенный шаман",
+      "category": "элита",
+      "max_health": 100,
+      "attack": 19,
+      "defense": 5,
+      "crit_chance": 0.08
+    },
     "ruin_guard": {
       "name": "Страж руин",
+      "category": "босс",
       "max_health": 90,
       "attack": 12,
       "defense": 6,
       "crit_chance": 0.0
+    },
+    "ash_lord": {
+      "name": "Владыка пепла",
+      "category": "босс",
+      "max_health": 140,
+      "attack": 20,
+      "defense": 9,
+      "crit_chance": 0.08
+    },
+    "abyss_warden": {
+      "name": "Хранитель бездны",
+      "category": "босс",
+      "max_health": 190,
+      "attack": 26,
+      "defense": 12,
+      "crit_chance": 0.1
     }
   },
   "skills": {
@@ -183,6 +274,55 @@
   },
   "campaign": {
     "region": "Пепельные земли",
+    "chapters": [
+      {
+        "name": "Праховые тропы",
+        "start_stage": 1,
+        "end_stage": 6
+      },
+      {
+        "name": "Гнилые топи",
+        "start_stage": 7,
+        "end_stage": 12
+      },
+      {
+        "name": "Пылающие пустоши",
+        "start_stage": 13,
+        "end_stage": 18
+      },
+      {
+        "name": "Мёртвые горы",
+        "start_stage": 19,
+        "end_stage": 24
+      },
+      {
+        "name": "Кромка бездны",
+        "start_stage": 25,
+        "end_stage": 30
+      }
+    ],
+    "generation": {
+      "health_per_chapter": 0.35,
+      "health_per_stage": 0.06,
+      "attack_per_chapter": 0.2,
+      "attack_per_stage": 0.04,
+      "defense_per_chapter": 0.1,
+      "boss_health_multiplier": 1.25,
+      "boss_attack_multiplier": 1.15,
+      "elite_health_multiplier": 1.15,
+      "reward_experience_growth": 1.12,
+      "reward_gold_growth": 1.1,
+      "reward_materials_growth": 1.09,
+      "boss_every": 5,
+      "elite_stages": [
+        4,
+        8,
+        12,
+        16,
+        21,
+        26
+      ]
+    },
     "boss_phase_threshold": 0.5,
     "boss_phase_attack_multiplier": 1.3,
     "boss_phase_name": "Ярость пепла",
@@ -200,7 +340,9 @@
           "experience": 45,
           "gold": 12,
           "materials": 5
-        }
+        },
+        "chapter": "Праховые тропы",
+        "region": "Пепельные земли"
       },
       {
         "name": "Старые костры",
@@ -221,7 +363,9 @@
           "experience": 70,
           "gold": 20,
           "materials": 8
-        }
+        },
+        "chapter": "Праховые тропы",
+        "region": "Пепельные земли"
       },
       {
         "name": "Врата стража",
@@ -240,7 +384,9 @@
           "experience": 130,
           "gold": 45,
           "materials": 14
-        }
+        },
+        "chapter": "Праховые тропы",
+        "region": "Пепельные земли"
       },
       {
         "name": "Засада в пепле",
@@ -268,7 +414,9 @@
           "experience": 150,
           "gold": 55,
           "materials": 16
-        }
+        },
+        "chapter": "Праховые тропы",
+        "region": "Пепельные земли"
       },
       {
         "name": "Сердце пожарища",
@@ -290,6 +438,668 @@
           "experience": 220,
           "gold": 90,
           "materials": 25
+        },
+        "chapter": "Праховые тропы",
+        "region": "Пепельные земли"
+      },
+      {
+        "name": "Пепельный перевал",
+        "kind": "обычный",
+        "chapter": "Праховые тропы",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_moth",
+            "count": 1,
+            "health_scale": 1.3,
+            "attack_scale": 1.2,
+            "defense_scale": 1.0
+          },
+          {
+            "id": "soot_archer",
+            "count": 1,
+            "health_scale": 1.17,
+            "attack_scale": 1.14,
+            "defense_scale": 1.0
+          }
+        ],
+        "reward": {
+          "experience": 246,
+          "gold": 99,
+          "materials": 27
+        }
+      },
+      {
+        "name": "Гнилая гать",
+        "kind": "обычный",
+        "chapter": "Гнилые топи",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ember_wolf",
+            "count": 1,
+            "health_scale": 1.35,
+            "attack_scale": 1.2,
+            "defense_scale": 1.1
+          },
+          {
+            "id": "spark_spider",
+            "count": 1,
+            "health_scale": 1.215,
+            "attack_scale": 1.14,
+            "defense_scale": 1.1
+          }
+        ],
+        "reward": {
+          "experience": 276,
+          "gold": 109,
+          "materials": 30
+        }
+      },
+      {
+        "name": "Логово пиявок",
+        "kind": "элита",
+        "chapter": "Гнилые топи",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "cinder_warden",
+            "count": 1,
+            "health_scale": 1.621,
+            "attack_scale": 1.24,
+            "defense_scale": 1.1
+          },
+          {
+            "id": "ash_wraith",
+            "count": 1,
+            "health_scale": 1.269,
+            "attack_scale": 1.178,
+            "defense_scale": 1.1
+          }
+        ],
+        "reward": {
+          "experience": 309,
+          "gold": 120,
+          "materials": 32
+        }
+      },
+      {
+        "name": "Болотный алтарь",
+        "kind": "обычный",
+        "chapter": "Гнилые топи",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_walker",
+            "count": 1,
+            "health_scale": 1.47,
+            "attack_scale": 1.28,
+            "defense_scale": 1.1
+          },
+          {
+            "id": "cinder_hound",
+            "count": 1,
+            "health_scale": 1.323,
+            "attack_scale": 1.216,
+            "defense_scale": 1.1
+          }
+        ],
+        "reward": {
+          "experience": 346,
+          "gold": 132,
+          "materials": 35
+        }
+      },
+      {
+        "name": "Трясина теней",
+        "kind": "босс",
+        "chapter": "Гнилые топи",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_lord",
+            "count": 1,
+            "name": "Повелитель углей",
+            "boss": true,
+            "health_scale": 1.913,
+            "attack_scale": 1.518,
+            "defense_scale": 1.1,
+            "phase_attack_multiplier": 1.25,
+            "phase_threshold": 0.55
+          }
+        ],
+        "reward": {
+          "experience": 388,
+          "gold": 145,
+          "materials": 38
+        }
+      },
+      {
+        "name": "Древний шлюз",
+        "kind": "обычный",
+        "chapter": "Гнилые топи",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ember_wolf",
+            "count": 1,
+            "health_scale": 1.59,
+            "attack_scale": 1.36,
+            "defense_scale": 1.1
+          },
+          {
+            "id": "spark_spider",
+            "count": 1,
+            "health_scale": 1.431,
+            "attack_scale": 1.292,
+            "defense_scale": 1.1
+          }
+        ],
+        "reward": {
+          "experience": 434,
+          "gold": 159,
+          "materials": 42
+        }
+      },
+      {
+        "name": "Пепельный туман",
+        "kind": "элита",
+        "chapter": "Гнилые топи",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ember_shaman",
+            "count": 1,
+            "health_scale": 1.897,
+            "attack_scale": 1.4,
+            "defense_scale": 1.1
+          },
+          {
+            "id": "ash_wraith",
+            "count": 1,
+            "health_scale": 1.485,
+            "attack_scale": 1.33,
+            "defense_scale": 1.1
+          }
+        ],
+        "reward": {
+          "experience": 486,
+          "gold": 175,
+          "materials": 46
+        }
+      },
+      {
+        "name": "Стеклянный пепел",
+        "kind": "обычный",
+        "chapter": "Пылающие пустоши",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_walker",
+            "count": 1,
+            "health_scale": 1.7,
+            "attack_scale": 1.4,
+            "defense_scale": 1.2
+          },
+          {
+            "id": "cinder_hound",
+            "count": 1,
+            "health_scale": 1.53,
+            "attack_scale": 1.33,
+            "defense_scale": 1.2
+          }
+        ],
+        "reward": {
+          "experience": 545,
+          "gold": 193,
+          "materials": 50
+        }
+      },
+      {
+        "name": "Огненный вихрь",
+        "kind": "обычный",
+        "chapter": "Пылающие пустоши",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_moth",
+            "count": 1,
+            "health_scale": 1.76,
+            "attack_scale": 1.44,
+            "defense_scale": 1.2
+          },
+          {
+            "id": "soot_archer",
+            "count": 1,
+            "health_scale": 1.584,
+            "attack_scale": 1.368,
+            "defense_scale": 1.2
+          }
+        ],
+        "reward": {
+          "experience": 610,
+          "gold": 212,
+          "materials": 54
+        }
+      },
+      {
+        "name": "Кузница углей",
+        "kind": "босс",
+        "chapter": "Пылающие пустоши",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "abyss_warden",
+            "count": 1,
+            "name": "Страж кратера",
+            "boss": true,
+            "health_scale": 2.275,
+            "attack_scale": 1.702,
+            "defense_scale": 1.2,
+            "phase_attack_multiplier": 1.25,
+            "phase_threshold": 0.55
+          }
+        ],
+        "reward": {
+          "experience": 683,
+          "gold": 233,
+          "materials": 59
+        }
+      },
+      {
+        "name": "Красный караван",
+        "kind": "элита",
+        "chapter": "Пылающие пустоши",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_brute",
+            "count": 1,
+            "health_scale": 2.162,
+            "attack_scale": 1.52,
+            "defense_scale": 1.2
+          },
+          {
+            "id": "ash_wraith",
+            "count": 1,
+            "health_scale": 1.692,
+            "attack_scale": 1.444,
+            "defense_scale": 1.2
+          }
+        ],
+        "reward": {
+          "experience": 765,
+          "gold": 257,
+          "materials": 65
+        }
+      },
+      {
+        "name": "Кратер клятвы",
+        "kind": "обычный",
+        "chapter": "Пылающие пустоши",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_walker",
+            "count": 1,
+            "health_scale": 1.94,
+            "attack_scale": 1.56,
+            "defense_scale": 1.2
+          },
+          {
+            "id": "cinder_hound",
+            "count": 1,
+            "health_scale": 1.746,
+            "attack_scale": 1.482,
+            "defense_scale": 1.2
+          }
+        ],
+        "reward": {
+          "experience": 857,
+          "gold": 282,
+          "materials": 70
+        }
+      },
+      {
+        "name": "Выжженный тракт",
+        "kind": "обычный",
+        "chapter": "Пылающие пустоши",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_moth",
+            "count": 1,
+            "health_scale": 2.0,
+            "attack_scale": 1.6,
+            "defense_scale": 1.2
+          },
+          {
+            "id": "soot_archer",
+            "count": 1,
+            "health_scale": 1.8,
+            "attack_scale": 1.52,
+            "defense_scale": 1.2
+          }
+        ],
+        "reward": {
+          "experience": 960,
+          "gold": 311,
+          "materials": 77
+        }
+      },
+      {
+        "name": "Обвал памяти",
+        "kind": "обычный",
+        "chapter": "Мёртвые горы",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ember_wolf",
+            "count": 1,
+            "health_scale": 2.05,
+            "attack_scale": 1.6,
+            "defense_scale": 1.3
+          },
+          {
+            "id": "spark_spider",
+            "count": 1,
+            "health_scale": 1.845,
+            "attack_scale": 1.52,
+            "defense_scale": 1.3
+          }
+        ],
+        "reward": {
+          "experience": 1075,
+          "gold": 342,
+          "materials": 84
+        }
+      },
+      {
+        "name": "Ледяной шлак",
+        "kind": "босс",
+        "chapter": "Мёртвые горы",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ruin_guard",
+            "count": 1,
+            "name": "Каменный владыка",
+            "boss": true,
+            "health_scale": 2.637,
+            "attack_scale": 1.886,
+            "defense_scale": 1.3,
+            "phase_attack_multiplier": 1.25,
+            "phase_threshold": 0.55
+          }
+        ],
+        "reward": {
+          "experience": 1204,
+          "gold": 376,
+          "materials": 91
+        }
+      },
+      {
+        "name": "Базальтовая крепость",
+        "kind": "элита",
+        "chapter": "Мёртвые горы",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "cinder_warden",
+            "count": 1,
+            "health_scale": 2.495,
+            "attack_scale": 1.68,
+            "defense_scale": 1.3
+          },
+          {
+            "id": "cinder_hound",
+            "count": 1,
+            "health_scale": 1.953,
+            "attack_scale": 1.596,
+            "defense_scale": 1.3
+          }
+        ],
+        "reward": {
+          "experience": 1349,
+          "gold": 414,
+          "materials": 99
+        }
+      },
+      {
+        "name": "Тихая вершина",
+        "kind": "обычный",
+        "chapter": "Мёртвые горы",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_moth",
+            "count": 1,
+            "health_scale": 2.23,
+            "attack_scale": 1.72,
+            "defense_scale": 1.3
+          },
+          {
+            "id": "soot_archer",
+            "count": 1,
+            "health_scale": 2.007,
+            "attack_scale": 1.634,
+            "defense_scale": 1.3
+          }
+        ],
+        "reward": {
+          "experience": 1511,
+          "gold": 455,
+          "materials": 108
+        }
+      },
+      {
+        "name": "Горный некрополь",
+        "kind": "обычный",
+        "chapter": "Мёртвые горы",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ember_wolf",
+            "count": 1,
+            "health_scale": 2.29,
+            "attack_scale": 1.76,
+            "defense_scale": 1.3
+          },
+          {
+            "id": "spark_spider",
+            "count": 1,
+            "health_scale": 2.061,
+            "attack_scale": 1.672,
+            "defense_scale": 1.3
+          }
+        ],
+        "reward": {
+          "experience": 1692,
+          "gold": 500,
+          "materials": 118
+        }
+      },
+      {
+        "name": "Перевал духов",
+        "kind": "обычный",
+        "chapter": "Мёртвые горы",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "charred_berserker",
+            "count": 1,
+            "health_scale": 2.35,
+            "attack_scale": 1.8,
+            "defense_scale": 1.3
+          },
+          {
+            "id": "ash_wraith",
+            "count": 1,
+            "health_scale": 2.115,
+            "attack_scale": 1.71,
+            "defense_scale": 1.3
+          }
+        ],
+        "reward": {
+          "experience": 1895,
+          "gold": 550,
+          "materials": 129
+        }
+      },
+      {
+        "name": "Разлом света",
+        "kind": "босс",
+        "chapter": "Кромка бездны",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_lord",
+            "count": 1,
+            "name": "Пепельный архонт",
+            "boss": true,
+            "health_scale": 3.0,
+            "attack_scale": 2.07,
+            "defense_scale": 1.4,
+            "phase_attack_multiplier": 1.25,
+            "phase_threshold": 0.55
+          }
+        ],
+        "reward": {
+          "experience": 2122,
+          "gold": 605,
+          "materials": 140
+        }
+      },
+      {
+        "name": "Пепельный хор",
+        "kind": "элита",
+        "chapter": "Кромка бездны",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ember_shaman",
+            "count": 1,
+            "health_scale": 2.829,
+            "attack_scale": 1.84,
+            "defense_scale": 1.4
+          },
+          {
+            "id": "soot_archer",
+            "count": 1,
+            "health_scale": 2.214,
+            "attack_scale": 1.748,
+            "defense_scale": 1.4
+          }
+        ],
+        "reward": {
+          "experience": 2377,
+          "gold": 666,
+          "materials": 153
+        }
+      },
+      {
+        "name": "Чёрный прилив",
+        "kind": "обычный",
+        "chapter": "Кромка бездны",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ember_wolf",
+            "count": 1,
+            "health_scale": 2.52,
+            "attack_scale": 1.88,
+            "defense_scale": 1.4
+          },
+          {
+            "id": "spark_spider",
+            "count": 1,
+            "health_scale": 2.268,
+            "attack_scale": 1.786,
+            "defense_scale": 1.4
+          }
+        ],
+        "reward": {
+          "experience": 2662,
+          "gold": 733,
+          "materials": 166
+        }
+      },
+      {
+        "name": "Последний дозор",
+        "kind": "обычный",
+        "chapter": "Кромка бездны",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "charred_berserker",
+            "count": 1,
+            "health_scale": 2.58,
+            "attack_scale": 1.92,
+            "defense_scale": 1.4
+          },
+          {
+            "id": "ash_wraith",
+            "count": 1,
+            "health_scale": 2.322,
+            "attack_scale": 1.824,
+            "defense_scale": 1.4
+          }
+        ],
+        "reward": {
+          "experience": 2982,
+          "gold": 806,
+          "materials": 181
+        }
+      },
+      {
+        "name": "Трон бездны",
+        "kind": "обычный",
+        "chapter": "Кромка бездны",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "ash_walker",
+            "count": 1,
+            "health_scale": 2.64,
+            "attack_scale": 1.96,
+            "defense_scale": 1.4
+          },
+          {
+            "id": "cinder_hound",
+            "count": 1,
+            "health_scale": 2.376,
+            "attack_scale": 1.862,
+            "defense_scale": 1.4
+          }
+        ],
+        "reward": {
+          "experience": 3339,
+          "gold": 886,
+          "materials": 198
+        }
+      },
+      {
+        "name": "Сердце бездны",
+        "kind": "босс",
+        "chapter": "Кромка бездны",
+        "region": "Пепельные земли",
+        "enemies": [
+          {
+            "id": "abyss_warden",
+            "count": 1,
+            "name": "Хранитель бездны",
+            "boss": true,
+            "health_scale": 3.375,
+            "attack_scale": 2.3,
+            "defense_scale": 1.4,
+            "phase_attack_multiplier": 1.25,
+            "phase_threshold": 0.55
+          }
+        ],
+        "reward": {
+          "experience": 3740,
+          "gold": 975,
+          "materials": 216
         }
       }
     ]
@@ -581,7 +1391,7 @@
     "min_seconds": 300,
     "afk_efficiency": 0.35,
     "active_efficiency": 1.0,
-    "stage_efficiency_per_stage": 0.1,
+    "stage_efficiency_per_stage": 0.02,
     "max_stage_multiplier": 1.5,
     "rewards_per_tick": {
       "experience": 8,
@@ -772,7 +1582,32 @@
       105.0,
       135.0,
       165.0,
-      210.0
+      210.0,
+      215.0,
+      225.0,
+      235.0,
+      245.0,
+      255.0,
+      265.0,
+      275.0,
+      285.0,
+      295.0,
+      305.0,
+      315.0,
+      325.0,
+      335.0,
+      345.0,
+      355.0,
+      365.0,
+      380.0,
+      395.0,
+      410.0,
+      425.0,
+      440.0,
+      455.0,
+      470.0,
+      485.0,
+      500.0
     ],
     "tolerance": 0.45,
     "power_weights": {
@@ -791,10 +1626,11 @@
     "auto_battle": {
       "max_skill_share": 0.5,
       "min_stage_duration_seconds": 8
-    }
+    },
+    "stage_target_growth": 1.035
   },
   "save": {
-    "format_version": 6,
+    "format_version": 7,
     "profile_path": "user://ashenworld_profile.json",
     "temp_suffix": ".tmp",
     "backup_suffix": ".bak",
@@ -810,5 +1646,981 @@
       60,
       90
     ]
+  },
+  "modes": {
+    "list": [
+      {
+        "id": "campaign",
+        "name": "Основная кампания",
+        "short": "КАМПАНИЯ",
+        "region": "Пепельные земли",
+        "description": "Тридцать этапов Пепельных земель: обычные враги, элита и боссы. Открыта с первого этапа.",
+        "unlock_stage": 1,
+        "progress_label": "Этап {current}/{total}",
+        "action_next": "ДАЛЬШЕ · ЭТАП {next}",
+        "action_restart": "НОВЫЙ ПОХОД"
+      },
+      {
+        "id": "tower",
+        "name": "Башня испытаний",
+        "short": "БАШНЯ",
+        "region": "Башня испытаний",
+        "description": "Тридцать ярусов с нарастающей силой врагов. Каждый пятый ярус завершается боссом.",
+        "unlock_stage": 5,
+        "progress_label": "Ярус {current}/{total}",
+        "action_next": "ВЫШЕ · ЯРУС {next}",
+        "action_restart": "НОВЫЙ ЗАХОД"
+      },
+      {
+        "id": "dungeon",
+        "name": "Подземелья ресурсов",
+        "short": "ПОДЗЕМЕЛЬЯ",
+        "region": "Подземелья ресурсов",
+        "description": "Три повторяемых подземелья за золото, пепел и опыт. Вход списывает ресурсы сразу.",
+        "unlock_stage": 8,
+        "progress_label": "{name} · бой {current}",
+        "action_next": "ПОВТОРИТЬ ПОДЗЕМЕЛЬЕ",
+        "action_restart": "НОВЫЙ ЗАХОД"
+      }
+    ],
+    "defeat_action": "ПОВТОРИТЬ БОЙ",
+    "tower": {
+      "generation": {
+        "health_per_floor": 0.09,
+        "health_per_wave": 0.05,
+        "attack_per_floor": 0.06,
+        "attack_per_wave": 0.03,
+        "defense_per_floor": 0.03,
+        "boss_health_multiplier": 1.2,
+        "boss_attack_multiplier": 1.1,
+        "boss_every": 5,
+        "elite_every": 3,
+        "experience_base": 40,
+        "experience_per_floor": 8,
+        "gold_base": 10,
+        "gold_per_floor": 3,
+        "materials_base": 4,
+        "materials_per_floor": 2,
+        "boss_experience_multiplier": 1.8,
+        "boss_gold_multiplier": 2.0,
+        "boss_materials_multiplier": 2.0
+      },
+      "pools": {
+        "обычный": [
+          "ash_walker",
+          "cinder_hound",
+          "ash_moth",
+          "soot_archer",
+          "ember_wolf",
+          "spark_spider",
+          "charred_berserker",
+          "ash_wraith"
+        ],
+        "элита": [
+          "ash_brute",
+          "cinder_warden",
+          "ember_shaman"
+        ],
+        "босс": [
+          "ruin_guard",
+          "ash_lord",
+          "abyss_warden"
+        ]
+      },
+      "floors": [
+        {
+          "name": "Ярус 1 · Праховые тропы",
+          "kind": "обычный",
+          "chapter": "Праховые тропы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ash_walker",
+              "count": 1,
+              "health_scale": 1.0,
+              "attack_scale": 1.0,
+              "defense_scale": 1.0
+            },
+            {
+              "id": "cinder_hound",
+              "count": 1,
+              "health_scale": 1.05,
+              "attack_scale": 1.03,
+              "defense_scale": 1.0
+            }
+          ],
+          "reward": {
+            "experience": 40,
+            "gold": 10,
+            "materials": 4
+          }
+        },
+        {
+          "name": "Ярус 2 · Праховые тропы",
+          "kind": "обычный",
+          "chapter": "Праховые тропы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "cinder_hound",
+              "count": 1,
+              "health_scale": 1.09,
+              "attack_scale": 1.06,
+              "defense_scale": 1.03
+            },
+            {
+              "id": "ash_moth",
+              "count": 1,
+              "health_scale": 1.14,
+              "attack_scale": 1.09,
+              "defense_scale": 1.03
+            }
+          ],
+          "reward": {
+            "experience": 48,
+            "gold": 13,
+            "materials": 6
+          }
+        },
+        {
+          "name": "Ярус 3 · Праховые тропы",
+          "kind": "элита",
+          "chapter": "Праховые тропы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ember_shaman",
+              "count": 1,
+              "health_scale": 1.18,
+              "attack_scale": 1.12,
+              "defense_scale": 1.06
+            },
+            {
+              "id": "ash_brute",
+              "count": 1,
+              "health_scale": 1.23,
+              "attack_scale": 1.15,
+              "defense_scale": 1.06
+            }
+          ],
+          "reward": {
+            "experience": 56,
+            "gold": 16,
+            "materials": 8
+          }
+        },
+        {
+          "name": "Ярус 4 · Праховые тропы",
+          "kind": "обычный",
+          "chapter": "Праховые тропы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "soot_archer",
+              "count": 1,
+              "health_scale": 1.27,
+              "attack_scale": 1.18,
+              "defense_scale": 1.09
+            },
+            {
+              "id": "ember_wolf",
+              "count": 1,
+              "health_scale": 1.32,
+              "attack_scale": 1.21,
+              "defense_scale": 1.09
+            }
+          ],
+          "reward": {
+            "experience": 64,
+            "gold": 19,
+            "materials": 10
+          }
+        },
+        {
+          "name": "Ярус 5 · Праховые тропы",
+          "kind": "босс",
+          "chapter": "Праховые тропы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ash_lord",
+              "count": 1,
+              "health_scale": 1.632,
+              "attack_scale": 1.364,
+              "defense_scale": 1.12,
+              "boss": true,
+              "name": "Страж яруса 5",
+              "phase_attack_multiplier": 1.25,
+              "phase_threshold": 0.55
+            }
+          ],
+          "reward": {
+            "experience": 129,
+            "gold": 44,
+            "materials": 24
+          }
+        },
+        {
+          "name": "Ярус 6 · Праховые тропы",
+          "kind": "элита",
+          "chapter": "Праховые тропы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ember_shaman",
+              "count": 1,
+              "health_scale": 1.45,
+              "attack_scale": 1.3,
+              "defense_scale": 1.15
+            },
+            {
+              "id": "ash_brute",
+              "count": 1,
+              "health_scale": 1.5,
+              "attack_scale": 1.33,
+              "defense_scale": 1.15
+            }
+          ],
+          "reward": {
+            "experience": 80,
+            "gold": 25,
+            "materials": 14
+          }
+        },
+        {
+          "name": "Ярус 7 · Гнилые топи",
+          "kind": "обычный",
+          "chapter": "Гнилые топи",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "charred_berserker",
+              "count": 1,
+              "health_scale": 1.54,
+              "attack_scale": 1.36,
+              "defense_scale": 1.18
+            },
+            {
+              "id": "ash_wraith",
+              "count": 1,
+              "health_scale": 1.59,
+              "attack_scale": 1.39,
+              "defense_scale": 1.18
+            }
+          ],
+          "reward": {
+            "experience": 88,
+            "gold": 28,
+            "materials": 16
+          }
+        },
+        {
+          "name": "Ярус 8 · Гнилые топи",
+          "kind": "обычный",
+          "chapter": "Гнилые топи",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ash_wraith",
+              "count": 1,
+              "health_scale": 1.63,
+              "attack_scale": 1.42,
+              "defense_scale": 1.21
+            },
+            {
+              "id": "ash_walker",
+              "count": 1,
+              "health_scale": 1.68,
+              "attack_scale": 1.45,
+              "defense_scale": 1.21
+            }
+          ],
+          "reward": {
+            "experience": 96,
+            "gold": 31,
+            "materials": 18
+          }
+        },
+        {
+          "name": "Ярус 9 · Гнилые топи",
+          "kind": "элита",
+          "chapter": "Гнилые топи",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ember_shaman",
+              "count": 1,
+              "health_scale": 1.72,
+              "attack_scale": 1.48,
+              "defense_scale": 1.24
+            },
+            {
+              "id": "ash_brute",
+              "count": 1,
+              "health_scale": 1.77,
+              "attack_scale": 1.51,
+              "defense_scale": 1.24
+            }
+          ],
+          "reward": {
+            "experience": 104,
+            "gold": 34,
+            "materials": 20
+          }
+        },
+        {
+          "name": "Ярус 10 · Гнилые топи",
+          "kind": "босс",
+          "chapter": "Гнилые топи",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ruin_guard",
+              "count": 1,
+              "health_scale": 2.172,
+              "attack_scale": 1.694,
+              "defense_scale": 1.27,
+              "boss": true,
+              "name": "Страж яруса 10",
+              "phase_attack_multiplier": 1.25,
+              "phase_threshold": 0.55
+            }
+          ],
+          "reward": {
+            "experience": 201,
+            "gold": 74,
+            "materials": 44
+          }
+        },
+        {
+          "name": "Ярус 11 · Гнилые топи",
+          "kind": "обычный",
+          "chapter": "Гнилые топи",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ash_moth",
+              "count": 1,
+              "health_scale": 1.9,
+              "attack_scale": 1.6,
+              "defense_scale": 1.3
+            },
+            {
+              "id": "soot_archer",
+              "count": 1,
+              "health_scale": 1.95,
+              "attack_scale": 1.63,
+              "defense_scale": 1.3
+            }
+          ],
+          "reward": {
+            "experience": 120,
+            "gold": 40,
+            "materials": 24
+          }
+        },
+        {
+          "name": "Ярус 12 · Гнилые топи",
+          "kind": "элита",
+          "chapter": "Гнилые топи",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ember_shaman",
+              "count": 1,
+              "health_scale": 1.99,
+              "attack_scale": 1.66,
+              "defense_scale": 1.33
+            },
+            {
+              "id": "ash_brute",
+              "count": 1,
+              "health_scale": 2.04,
+              "attack_scale": 1.69,
+              "defense_scale": 1.33
+            }
+          ],
+          "reward": {
+            "experience": 128,
+            "gold": 43,
+            "materials": 26
+          }
+        },
+        {
+          "name": "Ярус 13 · Пылающие пустоши",
+          "kind": "обычный",
+          "chapter": "Пылающие пустоши",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ember_wolf",
+              "count": 1,
+              "health_scale": 2.08,
+              "attack_scale": 1.72,
+              "defense_scale": 1.36
+            },
+            {
+              "id": "spark_spider",
+              "count": 1,
+              "health_scale": 2.13,
+              "attack_scale": 1.75,
+              "defense_scale": 1.36
+            }
+          ],
+          "reward": {
+            "experience": 136,
+            "gold": 46,
+            "materials": 28
+          }
+        },
+        {
+          "name": "Ярус 14 · Пылающие пустоши",
+          "kind": "обычный",
+          "chapter": "Пылающие пустоши",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "spark_spider",
+              "count": 1,
+              "health_scale": 2.17,
+              "attack_scale": 1.78,
+              "defense_scale": 1.39
+            },
+            {
+              "id": "charred_berserker",
+              "count": 1,
+              "health_scale": 2.22,
+              "attack_scale": 1.81,
+              "defense_scale": 1.39
+            }
+          ],
+          "reward": {
+            "experience": 144,
+            "gold": 49,
+            "materials": 30
+          }
+        },
+        {
+          "name": "Ярус 15 · Пылающие пустоши",
+          "kind": "босс",
+          "chapter": "Пылающие пустоши",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "abyss_warden",
+              "count": 1,
+              "health_scale": 2.712,
+              "attack_scale": 2.024,
+              "defense_scale": 1.42,
+              "boss": true,
+              "name": "Страж яруса 15",
+              "phase_attack_multiplier": 1.25,
+              "phase_threshold": 0.55
+            }
+          ],
+          "reward": {
+            "experience": 273,
+            "gold": 104,
+            "materials": 64
+          }
+        },
+        {
+          "name": "Ярус 16 · Пылающие пустоши",
+          "kind": "обычный",
+          "chapter": "Пылающие пустоши",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ash_wraith",
+              "count": 1,
+              "health_scale": 2.35,
+              "attack_scale": 1.9,
+              "defense_scale": 1.45
+            },
+            {
+              "id": "ash_walker",
+              "count": 1,
+              "health_scale": 2.4,
+              "attack_scale": 1.93,
+              "defense_scale": 1.45
+            }
+          ],
+          "reward": {
+            "experience": 160,
+            "gold": 55,
+            "materials": 34
+          }
+        },
+        {
+          "name": "Ярус 17 · Пылающие пустоши",
+          "kind": "обычный",
+          "chapter": "Пылающие пустоши",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ash_walker",
+              "count": 1,
+              "health_scale": 2.44,
+              "attack_scale": 1.96,
+              "defense_scale": 1.48
+            },
+            {
+              "id": "cinder_hound",
+              "count": 1,
+              "health_scale": 2.49,
+              "attack_scale": 1.99,
+              "defense_scale": 1.48
+            }
+          ],
+          "reward": {
+            "experience": 168,
+            "gold": 58,
+            "materials": 36
+          }
+        },
+        {
+          "name": "Ярус 18 · Пылающие пустоши",
+          "kind": "элита",
+          "chapter": "Пылающие пустоши",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ember_shaman",
+              "count": 1,
+              "health_scale": 2.53,
+              "attack_scale": 2.02,
+              "defense_scale": 1.51
+            },
+            {
+              "id": "ash_brute",
+              "count": 1,
+              "health_scale": 2.58,
+              "attack_scale": 2.05,
+              "defense_scale": 1.51
+            }
+          ],
+          "reward": {
+            "experience": 176,
+            "gold": 61,
+            "materials": 38
+          }
+        },
+        {
+          "name": "Ярус 19 · Мёртвые горы",
+          "kind": "обычный",
+          "chapter": "Мёртвые горы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ash_moth",
+              "count": 1,
+              "health_scale": 2.62,
+              "attack_scale": 2.08,
+              "defense_scale": 1.54
+            },
+            {
+              "id": "soot_archer",
+              "count": 1,
+              "health_scale": 2.67,
+              "attack_scale": 2.11,
+              "defense_scale": 1.54
+            }
+          ],
+          "reward": {
+            "experience": 184,
+            "gold": 64,
+            "materials": 40
+          }
+        },
+        {
+          "name": "Ярус 20 · Мёртвые горы",
+          "kind": "босс",
+          "chapter": "Мёртвые горы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ash_lord",
+              "count": 1,
+              "health_scale": 3.252,
+              "attack_scale": 2.354,
+              "defense_scale": 1.57,
+              "boss": true,
+              "name": "Страж яруса 20",
+              "phase_attack_multiplier": 1.25,
+              "phase_threshold": 0.55
+            }
+          ],
+          "reward": {
+            "experience": 345,
+            "gold": 134,
+            "materials": 84
+          }
+        },
+        {
+          "name": "Ярус 21 · Мёртвые горы",
+          "kind": "элита",
+          "chapter": "Мёртвые горы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ember_shaman",
+              "count": 1,
+              "health_scale": 2.8,
+              "attack_scale": 2.2,
+              "defense_scale": 1.6
+            },
+            {
+              "id": "ash_brute",
+              "count": 1,
+              "health_scale": 2.85,
+              "attack_scale": 2.23,
+              "defense_scale": 1.6
+            }
+          ],
+          "reward": {
+            "experience": 200,
+            "gold": 70,
+            "materials": 44
+          }
+        },
+        {
+          "name": "Ярус 22 · Мёртвые горы",
+          "kind": "обычный",
+          "chapter": "Мёртвые горы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "spark_spider",
+              "count": 1,
+              "health_scale": 2.89,
+              "attack_scale": 2.26,
+              "defense_scale": 1.63
+            },
+            {
+              "id": "charred_berserker",
+              "count": 1,
+              "health_scale": 2.94,
+              "attack_scale": 2.29,
+              "defense_scale": 1.63
+            }
+          ],
+          "reward": {
+            "experience": 208,
+            "gold": 73,
+            "materials": 46
+          }
+        },
+        {
+          "name": "Ярус 23 · Мёртвые горы",
+          "kind": "обычный",
+          "chapter": "Мёртвые горы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "charred_berserker",
+              "count": 1,
+              "health_scale": 2.98,
+              "attack_scale": 2.32,
+              "defense_scale": 1.66
+            },
+            {
+              "id": "ash_wraith",
+              "count": 1,
+              "health_scale": 3.03,
+              "attack_scale": 2.35,
+              "defense_scale": 1.66
+            }
+          ],
+          "reward": {
+            "experience": 216,
+            "gold": 76,
+            "materials": 48
+          }
+        },
+        {
+          "name": "Ярус 24 · Мёртвые горы",
+          "kind": "элита",
+          "chapter": "Мёртвые горы",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ember_shaman",
+              "count": 1,
+              "health_scale": 3.07,
+              "attack_scale": 2.38,
+              "defense_scale": 1.69
+            },
+            {
+              "id": "ash_brute",
+              "count": 1,
+              "health_scale": 3.12,
+              "attack_scale": 2.41,
+              "defense_scale": 1.69
+            }
+          ],
+          "reward": {
+            "experience": 224,
+            "gold": 79,
+            "materials": 50
+          }
+        },
+        {
+          "name": "Ярус 25 · Кромка бездны",
+          "kind": "босс",
+          "chapter": "Кромка бездны",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ruin_guard",
+              "count": 1,
+              "health_scale": 3.792,
+              "attack_scale": 2.684,
+              "defense_scale": 1.72,
+              "boss": true,
+              "name": "Страж яруса 25",
+              "phase_attack_multiplier": 1.25,
+              "phase_threshold": 0.55
+            }
+          ],
+          "reward": {
+            "experience": 417,
+            "gold": 164,
+            "materials": 104
+          }
+        },
+        {
+          "name": "Ярус 26 · Кромка бездны",
+          "kind": "обычный",
+          "chapter": "Кромка бездны",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "cinder_hound",
+              "count": 1,
+              "health_scale": 3.25,
+              "attack_scale": 2.5,
+              "defense_scale": 1.75
+            },
+            {
+              "id": "ash_moth",
+              "count": 1,
+              "health_scale": 3.3,
+              "attack_scale": 2.53,
+              "defense_scale": 1.75
+            }
+          ],
+          "reward": {
+            "experience": 240,
+            "gold": 85,
+            "materials": 54
+          }
+        },
+        {
+          "name": "Ярус 27 · Кромка бездны",
+          "kind": "элита",
+          "chapter": "Кромка бездны",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ember_shaman",
+              "count": 1,
+              "health_scale": 3.34,
+              "attack_scale": 2.56,
+              "defense_scale": 1.78
+            },
+            {
+              "id": "ash_brute",
+              "count": 1,
+              "health_scale": 3.39,
+              "attack_scale": 2.59,
+              "defense_scale": 1.78
+            }
+          ],
+          "reward": {
+            "experience": 248,
+            "gold": 88,
+            "materials": 56
+          }
+        },
+        {
+          "name": "Ярус 28 · Кромка бездны",
+          "kind": "обычный",
+          "chapter": "Кромка бездны",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "soot_archer",
+              "count": 1,
+              "health_scale": 3.43,
+              "attack_scale": 2.62,
+              "defense_scale": 1.81
+            },
+            {
+              "id": "ember_wolf",
+              "count": 1,
+              "health_scale": 3.48,
+              "attack_scale": 2.65,
+              "defense_scale": 1.81
+            }
+          ],
+          "reward": {
+            "experience": 256,
+            "gold": 91,
+            "materials": 58
+          }
+        },
+        {
+          "name": "Ярус 29 · Кромка бездны",
+          "kind": "обычный",
+          "chapter": "Кромка бездны",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "ember_wolf",
+              "count": 1,
+              "health_scale": 3.52,
+              "attack_scale": 2.68,
+              "defense_scale": 1.84
+            },
+            {
+              "id": "spark_spider",
+              "count": 1,
+              "health_scale": 3.57,
+              "attack_scale": 2.71,
+              "defense_scale": 1.84
+            }
+          ],
+          "reward": {
+            "experience": 264,
+            "gold": 94,
+            "materials": 60
+          }
+        },
+        {
+          "name": "Ярус 30 · Кромка бездны",
+          "kind": "босс",
+          "chapter": "Кромка бездны",
+          "region": "Башня испытаний",
+          "enemies": [
+            {
+              "id": "abyss_warden",
+              "count": 1,
+              "health_scale": 4.332,
+              "attack_scale": 3.014,
+              "defense_scale": 1.87,
+              "boss": true,
+              "name": "Страж яруса 30",
+              "phase_attack_multiplier": 1.25,
+              "phase_threshold": 0.55
+            }
+          ],
+          "reward": {
+            "experience": 489,
+            "gold": 194,
+            "materials": 124
+          }
+        }
+      ]
+    },
+    "dungeon": {
+      "runs": [
+        {
+          "id": "gold",
+          "name": "Золотой шлак",
+          "short": "ЗОЛОТО",
+          "description": "Больше золота за победу.",
+          "unlock_stage": 8,
+          "entry_cost": {
+            "gold": 20,
+            "materials": 0
+          },
+          "reward": {
+            "experience": 30,
+            "gold": 90,
+            "materials": 5
+          },
+          "enemies": [
+            {
+              "id": "ash_brute",
+              "count": 1,
+              "health_scale": 1.25,
+              "attack_scale": 1.15,
+              "defense_scale": 1.1
+            },
+            {
+              "id": "ash_walker",
+              "count": 2,
+              "health_scale": 1.1,
+              "attack_scale": 1.05,
+              "defense_scale": 1.0
+            }
+          ]
+        },
+        {
+          "id": "materials",
+          "name": "Пепельная жила",
+          "short": "ПЕПЕЛ",
+          "description": "Больше пепла за победу.",
+          "unlock_stage": 12,
+          "entry_cost": {
+            "gold": 10,
+            "materials": 10
+          },
+          "reward": {
+            "experience": 40,
+            "gold": 15,
+            "materials": 60
+          },
+          "enemies": [
+            {
+              "id": "cinder_warden",
+              "count": 1,
+              "health_scale": 1.35,
+              "attack_scale": 1.2,
+              "defense_scale": 1.1
+            },
+            {
+              "id": "cinder_hound",
+              "count": 2,
+              "health_scale": 1.15,
+              "attack_scale": 1.1,
+              "defense_scale": 1.0
+            }
+          ]
+        },
+        {
+          "id": "experience",
+          "name": "Опытный очаг",
+          "short": "ОПЫТ",
+          "description": "Больше опыта за победу.",
+          "unlock_stage": 18,
+          "entry_cost": {
+            "gold": 25,
+            "materials": 5
+          },
+          "reward": {
+            "experience": 180,
+            "gold": 20,
+            "materials": 10
+          },
+          "enemies": [
+            {
+              "id": "ember_shaman",
+              "count": 1,
+              "health_scale": 1.45,
+              "attack_scale": 1.25,
+              "defense_scale": 1.15
+            },
+            {
+              "id": "ash_wraith",
+              "count": 2,
+              "health_scale": 1.2,
+              "attack_scale": 1.15,
+              "defense_scale": 1.05
+            }
+          ]
+        }
+      ]
+    }
   }
 }

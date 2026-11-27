@@ -1,12 +1,13 @@
 extends RefCounted
 
 # Состояние игрового цикла: этапы, победы, опыт, валюта, экипировка
-# и прогрессия пятого этапа. Шестой этап добавляет экспорт и импорт
-# долгосрочного состояния, поэтому прогресс живёт между запусками.
+# и прогрессия. Шестой этап добавил экспорт и импорт долгосрочного состояния,
+# седьмой — 30 этапов, три режима и миграцию их состояния.
 
 const CombatSystem = preload("res://scripts/combat/combat_system.gd")
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignCatalog = preload("res://scripts/campaign/campaign_catalog.gd")
+const ModeCatalog = preload("res://scripts/campaign/mode_catalog.gd")
 const EquipmentState = preload("res://scripts/equipment/equipment_state.gd")
 const ProgressionCatalog = preload("res://scripts/progression/progression_catalog.gd")
 const ProgressionState = preload("res://scripts/progression/progression_state.gd")
@@ -23,6 +24,8 @@ var stages: Array = []
 var leveling: Dictionary = {}
 var economy: Dictionary = {}
 var campaign: Dictionary = {}
+var mode_state: Dictionary = {}
+var active_mode_id: String = "campaign"
 var equipment
 var development
 var stage_index: int = 0
@@ -53,6 +56,8 @@ func _init(data: Dictionary, initial_seed: int = 12345) -> void:
 	leveling = data.get("progression", {}) as Dictionary
 	economy = data.get("economy", {}) as Dictionary
 	campaign = CampaignCatalog.campaign(data)
+	mode_state = ModeCatalog.default_state(balance)
+	active_mode_id = str(mode_state.get("active_mode", "campaign"))
 	seed_value = initial_seed
 	equipment = EquipmentState.new(data, seed_value + 777)
 	development = ProgressionState.new(data, level)
@@ -82,7 +87,7 @@ func start_stage() -> void:
 		enemies,
 		development.get_effective_skill_map(),
 		CombatCatalog.combat_balance(balance),
-		seed_value + stage_index * 101,
+		seed_value + active_index() * 118 + active_mode_id.length() * 131,
 		development.get_pet_combat_data(),
 	)
 	var battle_id: int = int(system.get_instance_id())
@@ -124,11 +129,24 @@ func get_cooldown_remaining(skill_id: String) -> float:
 
 
 func next_stage() -> bool:
-	if status != STATUS_VICTORY or stage_index >= stages.size() - 1:
+	if status != STATUS_VICTORY:
 		return false
-	stage_index += 1
-	start_stage()
-	return true
+	if active_mode_id == "campaign":
+		if stage_index >= stages.size() - 1:
+			return false
+		stage_index += 1
+		start_stage()
+		return true
+	if active_mode_id == "tower":
+		var next_floor: int = active_index() + 1
+		if next_floor >= mode_count():
+			return false
+		mode_state["tower_floor"] = next_floor
+		start_stage()
+		return true
+	if active_mode_id == "dungeon":
+		return repeat_dungeon()
+	return false
 
 
 func retry_stage() -> bool:
@@ -139,7 +157,7 @@ func retry_stage() -> bool:
 
 
 func restart_campaign() -> bool:
-	if status != STATUS_COMPLETE:
+	if status != STATUS_COMPLETE or active_mode_id != "campaign":
 		return false
 	stage_index = 0
 	level = 1
@@ -157,16 +175,74 @@ func restart_campaign() -> bool:
 	stage_elapsed = 0.0
 	equipment.reset()
 	development.reset()
+	active_mode_id = "campaign"
+	mode_state["active_mode"] = "campaign"
+	var wins_value: Variant = mode_state.get("mode_victories", {})
+	var wins: Dictionary = wins_value as Dictionary if wins_value is Dictionary else {}
+	wins["campaign"] = 0
+	mode_state["mode_victories"] = wins
 	start_stage()
 	return true
 
 
 func current_stage() -> Dictionary:
-	return CampaignCatalog.stage_at(balance, stage_index)
+	return ModeCatalog.stage_at(balance, active_mode_id, active_index(), mode_state)
+
+
+func campaign_stage_number() -> int:
+	return stage_index + 1
 
 
 func stage_number() -> int:
-	return stage_index + 1
+	return campaign_stage_number()
+
+
+func active_index() -> int:
+	if active_mode_id == "campaign":
+		return stage_index
+	if active_mode_id == "tower":
+		return clampi(int(mode_state.get("tower_floor", 0)), 0, maxi(0, mode_count() - 1))
+	return 0
+
+
+func mode_number() -> int:
+	return active_index() + 1
+
+
+func mode_count() -> int:
+	return maxi(1, ModeCatalog.stage_count(balance, active_mode_id))
+
+
+func mode_id() -> String:
+	return active_mode_id
+
+
+func mode_state_view() -> Dictionary:
+	return mode_state.duplicate(true)
+
+
+func mode_is_unlocked(mode_id_value: String) -> bool:
+	return ModeCatalog.is_mode_unlocked(balance, mode_id_value, highest_stage)
+
+
+func dungeon_block_reason(dungeon_id: String) -> String:
+	return ModeCatalog.dungeon_block_reason(balance, dungeon_id, highest_stage, gold, materials)
+
+
+func mode_status_key() -> String:
+	return ModeCatalog.status_key(status)
+
+
+func mode_status_name(value: int) -> String:
+	if value == STATUS_COMPLETE:
+		match active_mode_id:
+			"tower":
+				return "Башня пройдена"
+			"dungeon":
+				return "Подземелье пройдено"
+			_:
+				return "Кампания пройдена"
+	return status_name(value)
 
 
 func stage_count() -> int:
@@ -399,7 +475,7 @@ func get_pet_view(pet_id: String) -> Dictionary:
 
 
 func get_balance_report() -> Dictionary:
-	return ProgressionCatalog.balance_report(balance, hero_data(), stage_number())
+	return ProgressionCatalog.balance_report(balance, hero_data(), campaign_stage_number())
 
 
 func get_auto_battle_report() -> Dictionary:
@@ -412,15 +488,19 @@ func get_summary() -> Dictionary:
 	var development_summary: Dictionary = development.get_summary()
 	var balance_report: Dictionary = get_balance_report()
 	var auto_battle_report: Dictionary = get_auto_battle_report()
+	var mode_name_value: String = ModeCatalog.mode_name(balance, active_mode_id)
+	var mode_short_value: String = ModeCatalog.mode_short(balance, active_mode_id)
+	var dungeon_id_value: String = str(mode_state.get("dungeon_id", ""))
 	return {
 		"stage": stage_number(),
 		"stages": stage_count(),
 		"stage_name": str(stage.get("name", "")),
-		"region": str(campaign.get("region", "")),
+		"region": str(stage.get("region", campaign.get("region", ""))),
+		"chapter": str(stage.get("chapter", "")),
 		"kind": CampaignCatalog.stage_kind(stage),
 		"boss": CampaignCatalog.stage_is_boss(stage),
 		"status": status,
-		"status_name": status_name(status),
+		"status_name": mode_status_name(status),
 		"level": level,
 		"experience": experience,
 		"experience_to_next": experience_to_next(),
@@ -452,6 +532,19 @@ func get_summary() -> Dictionary:
 		"auto_battle_status": str(auto_battle_report.get("status", "")),
 		"stage_duration": float(auto_battle_report.get("stage_duration", 0.0)),
 		"min_stage_duration": float(auto_battle_report.get("min_stage_duration", 0.0)),
+		"mode_id": active_mode_id,
+		"mode_name": mode_name_value,
+		"mode_short": mode_short_value,
+		"mode_region": ModeCatalog.mode_region(balance, active_mode_id),
+		"mode_description": ModeCatalog.mode_description(balance, active_mode_id),
+		"mode_stage": mode_number(),
+		"mode_count": mode_count(),
+		"mode_status_key": mode_status_key(),
+		"mode_progress": ModeCatalog.progress_text(balance, active_mode_id, mode_state, mode_number(), mode_count()),
+		"mode_stats": ModeCatalog.mode_stats_text(balance, mode_state),
+		"mode_state": mode_state_view(),
+		"dungeon_id": dungeon_id_value,
+		"dungeon_name": ModeCatalog.dungeon_name(balance, dungeon_id_value),
 	}
 
 
@@ -494,6 +587,7 @@ func export_state() -> Dictionary:
 		"auto_skill_timer": auto_skill_timer,
 		"equipment": equipment.export_state(),
 		"development": development.export_state(),
+		"modes": mode_state.duplicate(true),
 	}
 
 
@@ -502,10 +596,6 @@ func import_state(snapshot: Dictionary) -> void:
 		return
 	stage_index = clampi(int(snapshot.get("stage_index", 0)), 0, maxi(0, stages.size() - 1))
 	var saved_status: int = clampi(int(snapshot.get("status", STATUS_BATTLE)), STATUS_BATTLE, STATUS_COMPLETE)
-	if saved_status == STATUS_COMPLETE and stage_index < stages.size() - 1:
-		saved_status = STATUS_BATTLE
-	if saved_status == STATUS_VICTORY and stage_index >= stages.size() - 1:
-		saved_status = STATUS_COMPLETE
 	level = maxi(1, int(snapshot.get("level", 1)))
 	experience = maxi(0, int(snapshot.get("experience", 0)))
 	gold = maxi(0, int(snapshot.get("gold", 0)))
@@ -514,6 +604,19 @@ func import_state(snapshot: Dictionary) -> void:
 	defeats = maxi(0, int(snapshot.get("defeats", 0)))
 	highest_stage = clampi(int(snapshot.get("highest_stage", stage_index + 1)), 1, maxi(1, stages.size()))
 	highest_stage = maxi(highest_stage, stage_index + 1)
+	mode_state = ModeCatalog.state_from_snapshot(snapshot, balance, highest_stage)
+	active_mode_id = str(mode_state.get("active_mode", "campaign"))
+	if saved_status == STATUS_COMPLETE:
+		if active_mode_id == "campaign" and stage_index < stages.size() - 1:
+			saved_status = STATUS_BATTLE
+		elif active_mode_id == "tower" and active_index() < mode_count() - 1:
+			saved_status = STATUS_BATTLE
+		elif active_mode_id == "dungeon":
+			saved_status = STATUS_BATTLE
+	elif saved_status == STATUS_VICTORY and active_mode_id == "campaign" and stage_index >= stages.size() - 1:
+		saved_status = STATUS_COMPLETE
+	elif saved_status == STATUS_VICTORY and active_mode_id == "tower" and active_index() >= mode_count() - 1:
+		saved_status = STATUS_COMPLETE
 	seed_value = int(snapshot.get("seed_value", seed_value))
 	last_reward = _as_dictionary(snapshot.get("last_reward", {})).duplicate(true)
 	var saved_boss_phase_count: int = maxi(0, int(snapshot.get("boss_phase_count", 0)))
@@ -541,6 +644,64 @@ func _restore_stage(saved_status: int) -> void:
 	# зато весь долгосрочный прогресс и результат этапа возвращаются без потерь.
 	start_stage()
 	status = saved_status
+
+
+func select_mode(mode_id_value: String) -> Dictionary:
+	if not ModeCatalog.mode_ids(balance).has(mode_id_value):
+		return {"success": false, "reason": "Неизвестный режим"}
+	var reason: String = ModeCatalog.mode_unlock_reason(balance, mode_id_value, highest_stage)
+	if reason != "":
+		return {"success": false, "reason": reason}
+	if mode_id_value == "dungeon":
+		return select_dungeon(str(mode_state.get("dungeon_id", ModeCatalog.first_dungeon_id(balance))))
+	active_mode_id = mode_id_value
+	mode_state["active_mode"] = mode_id_value
+	start_stage()
+	return {"success": true, "reason": "", "mode_id": active_mode_id, "mode_name": ModeCatalog.mode_name(balance, active_mode_id)}
+
+
+func select_dungeon(dungeon_id: String) -> Dictionary:
+	var reason: String = dungeon_block_reason(dungeon_id)
+	if reason != "":
+		return {"success": false, "reason": reason}
+	var cost: Dictionary = ModeCatalog.dungeon_entry_cost(balance, dungeon_id)
+	var gold_cost: int = maxi(0, int(cost.get("gold", 0)))
+	var materials_cost: int = maxi(0, int(cost.get("materials", 0)))
+	gold -= gold_cost
+	materials -= materials_cost
+	mode_state["dungeon_id"] = dungeon_id
+	mode_state["dungeon_runs"] = int(mode_state.get("dungeon_runs", 0)) + 1
+	mode_state["active_mode"] = "dungeon"
+	active_mode_id = "dungeon"
+	start_stage()
+	return {
+		"success": true,
+		"reason": "",
+		"dungeon_id": dungeon_id,
+		"dungeon_name": ModeCatalog.dungeon_name(balance, dungeon_id),
+		"gold": gold_cost,
+		"materials": materials_cost,
+	}
+
+
+func repeat_dungeon() -> bool:
+	if active_mode_id != "dungeon" or status != STATUS_VICTORY:
+		return false
+	var dungeon_id: String = str(mode_state.get("dungeon_id", ModeCatalog.first_dungeon_id(balance)))
+	var result: Dictionary = select_dungeon(dungeon_id)
+	return bool(result.get("success", false))
+
+
+func restart_mode() -> bool:
+	if status != STATUS_COMPLETE:
+		return false
+	if active_mode_id == "tower":
+		mode_state["tower_floor"] = 0
+		start_stage()
+		return true
+	if active_mode_id == "dungeon":
+		return repeat_dungeon()
+	return false
 
 
 func grant_experience(amount: int) -> Dictionary:
@@ -587,6 +748,12 @@ func _register_victory() -> void:
 	gold += gold_gain
 	materials += materials_gain
 	victories += 1
+	var wins_value: Variant = mode_state.get("mode_victories", {})
+	var wins: Dictionary = wins_value as Dictionary if wins_value is Dictionary else {}
+	wins[active_mode_id] = int(wins.get(active_mode_id, 0)) + 1
+	mode_state["mode_victories"] = wins
+	if active_mode_id == "tower":
+		mode_state["highest_tower_floor"] = clampi(maxi(int(mode_state.get("highest_tower_floor", 1)), active_index() + 1), 1, mode_count())
 	var level_result: Dictionary = grant_experience(experience_gain)
 	var levels_gained: int = int(level_result.get("levels", 0))
 	var attribute_gain: int = int(level_result.get("attribute_points", 0))
@@ -599,8 +766,10 @@ func _register_victory() -> void:
 		"attribute_points": attribute_gain,
 		"skill_points": skill_gain,
 	}
-	if stage_index >= stages.size() - 1:
-		status = STATUS_COMPLETE
+	if active_mode_id == "campaign":
+		status = STATUS_COMPLETE if stage_index >= stages.size() - 1 else STATUS_VICTORY
+	elif active_mode_id == "tower":
+		status = STATUS_COMPLETE if active_index() >= mode_count() - 1 else STATUS_VICTORY
 	else:
 		status = STATUS_VICTORY
 

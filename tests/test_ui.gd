@@ -1,7 +1,7 @@
 extends SceneTree
 
-# Точечная проверка ТОЛЬКО компактного интерфейса, экрана экипировки
-# и рабочих настроек шестого этапа.
+# Точечная проверка компактного интерфейса, экрана экипировки, трёх режимов
+# и рабочих настроек седьмого этапа.
 # Запуск: godot --headless --path . --script tests/test_ui.gd
 # Полная сборка APK для этой проверки не требуется.
 
@@ -9,6 +9,7 @@ const MainScene = preload("res://scenes/main/main.tscn")
 const AshenStyle = preload("res://scripts/ui/ashen_style.gd")
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignState = preload("res://scripts/campaign/campaign_state.gd")
+const ModeCatalog = preload("res://scripts/campaign/mode_catalog.gd")
 const SaveManager = preload("res://scripts/save/save_manager.gd")
 
 const TEST_PROFILE_PATH: String = "user://test_ui_profile.json"
@@ -65,6 +66,17 @@ func _initialize() -> void:
 		"Margin/Panel/HealthPanel/HealthBox/HealthRow",
 		"Margin/Panel/MenuRow/EquipmentButton",
 		"Margin/Panel/MenuRow/ProgressionButton",
+		"Margin/Panel/MenuRow/ModeButton",
+		"Margin/Panel/ModePanel",
+		"Margin/Panel/ModePanel/ModeBox/ModeTopRow/ModeStatusLabel",
+		"Margin/Panel/ModePanel/ModeBox/ModeTopRow/ModeStatsLabel",
+		"Margin/Panel/ModePanel/ModeBox/ModeSwitchRow/CampaignModeButton",
+		"Margin/Panel/ModePanel/ModeBox/ModeSwitchRow/TowerModeButton",
+		"Margin/Panel/ModePanel/ModeBox/ModeSwitchRow/DungeonModeButton",
+		"Margin/Panel/ModePanel/ModeBox/DungeonRow/GoldDungeonButton",
+		"Margin/Panel/ModePanel/ModeBox/DungeonRow/MaterialsDungeonButton",
+		"Margin/Panel/ModePanel/ModeBox/DungeonRow/ExperienceDungeonButton",
+		"Margin/Panel/ModePanel/ModeBox/ModeHintLabel",
 		"Margin/Panel/MenuRow/EquipmentPowerLabel",
 		"Margin/Panel/ProgressionPanel",
 		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow/ProgressionWalletLabel",
@@ -128,6 +140,7 @@ func _initialize() -> void:
 	_test_stage_transition(scene)
 	_test_equipment_ui(scene, data)
 	_test_progression_ui(scene, data)
+	_test_modes_ui(scene, data)
 
 	root.remove_child(scene)
 	scene.free()
@@ -149,6 +162,8 @@ func _test_compact_layout(scene) -> void:
 	_check("Панель экипировки скрыта по умолчанию", not scene.equipment_panel.visible)
 	_check("Панель прогрессии компактная", scene.progression_panel.custom_minimum_size.y <= 460.0)
 	_check("Панель прогрессии скрыта по умолчанию", not scene.progression_panel.visible)
+	_check("Панель режимов компактная", scene.mode_panel.custom_minimum_size.y <= 280.0)
+	_check("Панель режимов скрыта по умолчанию", not scene.mode_panel.visible)
 	_check("Старых крупных карточек нет", scene.get_node_or_null("Margin/Panel/EnemyCard") == null and scene.get_node_or_null("Margin/Panel/HeroCard") == null)
 	_check("Старой строки баланса нет", scene.get_node_or_null("Margin/Panel/BalanceLabel") == null)
 
@@ -163,9 +178,56 @@ func _test_health_row(scene) -> void:
 	_check("Шкалы здоровья без процентов", not scene.hero_health_bar.show_percentage and not scene.enemy_health_bar.show_percentage)
 	_check("Шкалы инициализированы", scene.hero_health_bar.max_value > 0.0 and scene.enemy_health_bar.max_value > 0.0)
 	_check("Щит имеет отдельную тонкую шкалу", scene.shield_bar.custom_minimum_size.y <= 8.0 and scene.shield_bar.max_value > 0.0)
-	_check("Этап показан в заголовке", "Этап 1/5" in scene.stage_label.text)
+	_check("Этап показан в заголовке", "Пепельные земли" in scene.stage_label.text and "Этап 1/30" in scene.stage_label.text)
 	_check("Уровень, золото и пепел в одной строке", "УР." in scene.level_label.text and "ЗОЛОТО" in scene.gold_label.text and "ПЕПЕЛ" in scene.materials_label.text)
 	_check("Лог заполнен сразу", not scene.battle_log.text.is_empty())
+
+
+func _test_modes_ui(scene, data: Dictionary) -> void:
+	_check("Кнопка режимов подключена", scene.mode_button != null)
+	_check("Три кнопки режимов и три подземелья", scene.mode_buttons.size() == 3 and scene.dungeon_buttons.size() == 3)
+	scene.campaign.highest_stage = 1
+	scene.campaign.gold = 0
+	scene.campaign.materials = 0
+	scene.mode_button.emit_signal("pressed")
+	_check("Панель режимов открылась", scene.mode_panel.visible)
+	_check("Панель прогрессии скрыта при открытии режимов", not scene.progression_panel.visible)
+	_check("Кнопка режимов изменила подпись", "СКРЫТЬ" in scene.mode_button.text)
+	var campaign_button: Button = scene.mode_buttons["campaign"] as Button
+	var tower_button: Button = scene.mode_buttons["tower"] as Button
+	var dungeon_button: Button = scene.mode_buttons["dungeon"] as Button
+	_check("Кампания доступна с первого этапа", not campaign_button.disabled)
+	_check("Башня закрыта до пятого этапа", tower_button.disabled and "ЭТАП 5" in tower_button.text)
+	_check("Подземелья закрыты до восьмого этапа", dungeon_button.disabled and "ЭТАП 8" in dungeon_button.text)
+
+	scene.campaign.highest_stage = 8
+	scene.campaign.gold = 100
+	scene.campaign.materials = 100
+	scene._refresh_mode_ui()
+	_check("Башня открыта на восьмом этапе", not tower_button.disabled)
+	_check("Режим подземелий открыт на восьмом этапе", not dungeon_button.disabled)
+	_check("Золотое подземелье доступно", not (scene.dungeon_buttons["gold"] as Button).disabled)
+	_check("Пепельное подземелье закрыто до двенадцатого этапа", (scene.dungeon_buttons["materials"] as Button).disabled)
+	_check("Подземелье опыта закрыто до восемнадцатого этапа", (scene.dungeon_buttons["experience"] as Button).disabled)
+	_check("Подсказка объясняет блокировки", "Откроется на этапе" in scene.mode_hint_label.text)
+
+	tower_button.emit_signal("pressed")
+	_check("Башня выбрана работающей кнопкой", scene.campaign.mode_id() == "tower")
+	_check("Заголовок показывает ярус башни", "Ярус 1/30" in scene.stage_label.text)
+	_check("Статус режимов обновлён", "Башня" in scene.mode_status_label.text)
+	var gold_before: int = scene.campaign.gold
+	var materials_before: int = scene.campaign.materials
+	var cost: Dictionary = ModeCatalog.dungeon_entry_cost(data, "gold")
+	(scene.dungeon_buttons["gold"] as Button).emit_signal("pressed")
+	_check("Золотое подземелье выбрано работающей кнопкой", scene.campaign.mode_id() == "dungeon")
+	_check("Цена входа списана из баланса", scene.campaign.gold == gold_before - int(cost.get("gold", 0)) and scene.campaign.materials == materials_before - int(cost.get("materials", 0)))
+	_check("Заголовок показывает подземелье", "ЗОЛОТО" in scene.stage_label.text and "бой 1" in scene.stage_label.text)
+	_check("Заход в подземелье учтён", int(scene.campaign.mode_state_view().get("dungeon_runs", 0)) == 1)
+	_check("Компактная строка здоровья сохранена при смене режимов", "ГЕРОЙ" in scene.hero_label.text and "×" in scene.separator_label.text and "ВРАГ" in scene.enemy_label.text)
+	campaign_button.emit_signal("pressed")
+	_check("Возврат в кампанию работает", scene.campaign.mode_id() == "campaign")
+	scene.mode_button.emit_signal("pressed")
+	_check("Панель режимов закрылась", not scene.mode_panel.visible)
 
 
 func _test_battle_controls(scene) -> void:
@@ -199,7 +261,7 @@ func _test_stage_transition(scene) -> void:
 	_check("Опыт обновился", scene.experience_bar.value > 0.0)
 	scene.action_button.emit_signal("pressed")
 	_check("Переход на второй этап выполнен", scene.campaign.stage_number() == 2)
-	_check("Заголовок показывает второй этап", "Этап 2/5" in scene.stage_label.text)
+	_check("Заголовок показывает второй этап", "Этап 2/30" in scene.stage_label.text)
 	_check("Кнопка перехода снова скрыта", not scene.action_button.visible)
 	_check("Герой восстановлен", is_equal_approx(scene.campaign.system.hero.health, scene.campaign.system.hero.max_health))
 	_check("Второй этап завершён", _win_stage(scene))

@@ -1,11 +1,12 @@
 extends SceneTree
 
-# Точечная проверка ТОЛЬКО шестого этапа: формула AFK, безопасная запись,
-# резервная копия, миграция формата и восстановление кампании после перезапуска.
+# Точечная проверка седьмого этапа: формула AFK, безопасная запись,
+# резервная копия, миграция v6→v7, режимы и восстановление после перезапуска.
 # Запуск: godot --headless --path . --script tests/test_saves.gd
 
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignState = preload("res://scripts/campaign/campaign_state.gd")
+const ModeCatalog = preload("res://scripts/campaign/mode_catalog.gd")
 const SaveCatalog = preload("res://scripts/save/save_catalog.gd")
 const SaveManager = preload("res://scripts/save/save_manager.gd")
 const MainScene = preload("res://scenes/main/main.tscn")
@@ -22,13 +23,14 @@ var failed: int = 0
 
 
 func _initialize() -> void:
-	print("Проверка сохранений и офлайн-наград шестого этапа")
+	print("Проверка сохранений, миграции и офлайн-наград седьмого этапа")
 	var data: Dictionary = CombatCatalog.load_balance()
 	_cleanup_all(data)
 	_test_config(data)
 	_test_offline_formula(data)
 	_test_safe_files(data)
 	_test_migration(data)
+	_test_v6_to_v7_migration(data)
 	_test_campaign_snapshot(data)
 	_test_restart_with_offline(data)
 	_test_settings_controls(data)
@@ -67,9 +69,9 @@ func _corrupt(path: String, text: String) -> void:
 
 
 func _test_config(data: Dictionary) -> void:
-	_check("Версия баланса шестого этапа", int(data.get("version", 0)) == 6)
+	_check("Версия баланса седьмого этапа", int(data.get("version", 0)) == 7)
 	_check("Лимит AFK равен двенадцати часам", SaveCatalog.limit_hours(data) == 12 and SaveCatalog.limit_seconds(data) == 43200)
-	_check("Версия формата сохранения шестая", SaveCatalog.format_version(data) == 6)
+	_check("Версия формата сохранения седьмая", SaveCatalog.format_version(data) == 7)
 	_check("Интервал автосохранения положителен", SaveCatalog.autosave_interval_seconds(data) > 0.0)
 	_check("Предел размера профиля положителен", SaveCatalog.max_profile_bytes(data) > 0)
 	_check("Путь профиля локальный", SaveCatalog.profile_path(data).begins_with("user://"))
@@ -122,7 +124,7 @@ func _test_safe_files(data: Dictionary) -> void:
 	var loaded_payload: Dictionary = _dict(loaded.get("payload", {}))
 	_check("Профиль загружен", str(loaded.get("status", "")) == "loaded" and str(loaded_payload.get("marker", "")) == "первый")
 	_check("Метка времени сохранена", int(loaded.get("saved_at", 0)) == TEST_TIME)
-	_check("Версия формата добавлена при загрузке", int(loaded_payload.get("profile_version", 0)) == 6)
+	_check("Версия формата добавлена при загрузке", int(loaded_payload.get("profile_version", 0)) == 7)
 	_check("Настройки профиля добавлены", _dict(_dict(loaded_payload.get("profile", {})).get("settings", {})).has("sound_enabled"))
 
 	var second: Dictionary = manager.save_profile({"marker": "второй", "number": 8}, TEST_TIME + 60)
@@ -173,10 +175,44 @@ func _test_migration(data: Dictionary) -> void:
 	var profile: Dictionary = _dict(payload.get("profile", {}))
 	_check("Старый профиль обновлён", str(loaded.get("status", "")) == "migrated" and int(payload.get("migrated_from", 0)) == 5)
 	_check("Данные старого профиля сохранены", str(payload.get("marker", "")) == "старый" and int(payload.get("highest_stage", 0)) == 3)
-	_check("Версия формата повышена", int(payload.get("profile_version", 0)) == 6)
+	_check("Версия формата повышена", int(payload.get("profile_version", 0)) == 7)
 	_check("Состояние AFK создано при миграции", int(profile.get("last_offline_claim_at", 0)) == TEST_TIME - 1000)
 	_check("Настройки перенесены", not bool(_dict(profile.get("settings", {})).get("sound_enabled", true)))
 	_check("Недостающие настройки дополнены", int(_dict(profile.get("settings", {})).get("target_fps", 0)) == 60)
+	manager.clear_files()
+
+
+func _test_v6_to_v7_migration(data: Dictionary) -> void:
+	var manager = SaveManager.new(data, MIGRATION_PATH)
+	manager.clear_files()
+	var old_payload: Dictionary = {
+		"balance_version": 6,
+		"stage_index": 4,
+		"status": CampaignState.STATUS_COMPLETE,
+		"highest_stage": 5,
+		"level": 4,
+		"experience": 33,
+		"gold": 321,
+		"materials": 44,
+		"victories": 5,
+		"profile": {"settings": {"sound_enabled": false}},
+		"profile_version": 6,
+	}
+	var envelope: Dictionary = SaveManager.build_envelope(old_payload, TEST_TIME - 1000, 6)
+	_check("Профиль шестого этапа записан для миграции", SaveManager.store_envelope(envelope, MIGRATION_PATH))
+	var loaded: Dictionary = manager.load_profile()
+	var payload: Dictionary = _dict(loaded.get("payload", {}))
+	var modes: Dictionary = _dict(payload.get("modes", {}))
+	_check("Профиль v6 обновлён до v7", str(loaded.get("status", "")) == "migrated" and int(payload.get("migrated_from", 0)) == 6)
+	_check("Версия профиля и баланса повышена", int(payload.get("profile_version", 0)) == 7 and int(payload.get("balance_version", 0)) == 7)
+	_check("Прогресс кампании сохранён при миграции", int(payload.get("stage_index", -1)) == 4 and int(payload.get("highest_stage", 0)) == 5 and int(payload.get("gold", 0)) == 321)
+	_check("Состояние трёх режимов создано", modes.size() >= 6 and str(modes.get("active_mode", "")) == "campaign")
+	_check("Победы режимов обнулены", _dict(modes.get("mode_victories", {})).size() == 3)
+	_check("Настройки перенесены", not bool(_dict(_dict(payload.get("profile", {})).get("settings", {})).get("sound_enabled", true)))
+	var state = CampaignState.new(data)
+	state.import_state(payload)
+	_check("Старое завершение не обрывает кампанию из 30 этапов", state.status == CampaignState.STATUS_BATTLE and state.stage_number() == 5)
+	_check("Активный режим после миграции — кампания", state.mode_id() == "campaign")
 	manager.clear_files()
 
 
@@ -209,7 +245,7 @@ func _test_campaign_snapshot(data: Dictionary) -> void:
 		state.equipment.equip(first_id)
 		state.equipment.upgrade(first_id)
 	var snapshot: Dictionary = state.export_state()
-	_check("Снимок содержит версию баланса", int(snapshot.get("balance_version", 0)) == 6)
+	_check("Снимок содержит версию баланса", int(snapshot.get("balance_version", 0)) == 7)
 	_check("Снимок содержит экипировку и развитие", _dict(snapshot.get("equipment", {})).size() > 0 and _dict(snapshot.get("development", {})).size() > 0)
 	_check("Состояние генератора предметов сохранено", str(_dict(snapshot.get("equipment", {})).get("rng_state", "")) != "")
 
@@ -242,6 +278,25 @@ func _test_campaign_snapshot(data: Dictionary) -> void:
 	_check("Офлайн-золото начислено", restored.gold == gold_before + int(offline.get("gold", 0)))
 	_check("Офлайн-пепел начислен", restored.materials == materials_before + int(offline.get("materials", 0)))
 	_check("Офлайн-опыт учтён", int(applied.get("experience", 0)) == int(offline.get("experience", 0)) and restored.level >= 3)
+
+	var mode_state = CampaignState.new(data, 777)
+	mode_state.highest_stage = 20
+	mode_state.gold = 500
+	mode_state.materials = 500
+	_check("Башня открыта на двадцатом этапе", bool(mode_state.select_mode("tower").get("success", false)))
+	mode_state.mode_state["tower_floor"] = 9
+	mode_state.mode_state["highest_tower_floor"] = 10
+	mode_state.mode_state["dungeon_id"] = "experience"
+	mode_state.mode_state["dungeon_runs"] = 3
+	var wins: Dictionary = mode_state.mode_state.get("mode_victories", {}) as Dictionary
+	wins["tower"] = 7
+	var mode_snapshot: Dictionary = mode_state.export_state()
+	var mode_restored = CampaignState.new(data, 999)
+	mode_restored.import_state(mode_snapshot)
+	_check("Активный режим восстановлен", mode_restored.mode_id() == "tower")
+	_check("Ярус башни восстановлен", int(mode_restored.mode_state.get("tower_floor", -1)) == 9 and mode_restored.mode_number() == 10)
+	_check("Выбранное подземелье восстановлено", str(mode_restored.mode_state.get("dungeon_id", "")) == "experience")
+	_check("Счётчики режимов восстановлены", int(mode_restored.mode_state.get("dungeon_runs", 0)) == 3 and int(_dict(mode_restored.mode_state.get("mode_victories", {})).get("tower", 0)) == 7)
 
 	var restart_state = CampaignState.new(data, 123)
 	restart_state.stage_index = 4

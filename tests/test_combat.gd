@@ -19,8 +19,15 @@ func _initialize() -> void:
 	_check("Файл баланса загружен", not data.is_empty())
 	var balance: Dictionary = CombatCatalog.combat_balance(data)
 	_check("Настройки боя загружены", not balance.is_empty())
-	var enemies: Array = CombatCatalog.enemy_list(data)
-	_check("Противники загружены", enemies.size() >= 3)
+	var all_enemies: Array = CombatCatalog.enemy_list(data)
+	_check("Каталог содержит четырнадцать противников", all_enemies.size() == 14)
+	var enemies: Array = []
+	for entry in all_enemies:
+		if entry is Dictionary and str((entry as Dictionary).get("category", "")) == "обычный":
+			enemies.append(entry)
+		if enemies.size() == 3:
+			break
+	_check("Обычные противники загружены", enemies.size() == 3)
 	var skills: Dictionary = CombatCatalog.skill_map(data)
 	_check("Навыки загружены", skills.size() >= 2)
 

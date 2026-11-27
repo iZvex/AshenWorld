@@ -101,7 +101,7 @@ jobs:
         if: needs.detect.outputs.has_project == 'true'
         run: |
           set -euo pipefail
-          for test_script in tests/test_combat.gd tests/test_campaign.gd tests/test_equipment.gd tests/test_progression.gd tests/test_saves.gd tests/test_ui.gd; do
+          for test_script in tests/test_combat.gd tests/test_campaign.gd tests/test_equipment.gd tests/test_progression.gd tests/test_saves.gd tests/test_modes.gd tests/test_ui.gd; do
             name="$(basename "$test_script")"
             log="/tmp/${name}.log"
             echo "::group::$name"

@@ -7,7 +7,7 @@
 Проверяет только то, что можно проверить без движка:
   * целостность спецификации README.md;
   * синтаксис описаний сборок и файлов данных;
-  * целостность данных кампании, экипировки, прогрессии, сохранений и AFK;
+  * целостность данных кампании, режимов, экипировки, прогрессии, сохранений и AFK;
   * конфликтные маркеры и переводы строк в скриптах GDScript;
   * базовую структуру project.godot, когда он появится.
 """
@@ -98,8 +98,10 @@ if balance_file.is_file():
         balance = {}
         err(f"data/balance.json: некорректные данные кампании: {exc}")
     if isinstance(balance, dict):
-        if int(balance.get("version", 0)) < 6:
-            err("data/balance.json: для сохранений и AFK ожидается версия баланса не ниже 6")
+        if int(balance.get("version", 0)) != 7:
+            err("data/balance.json: для контента MVP ожидается версия баланса 7")
+        if len(balance) != 18:
+            err(f"data/balance.json: ожидается 18 разделов, найдено {len(balance)}")
         campaign = balance.get("campaign", {})
         stages = campaign.get("stages", []) if isinstance(campaign, dict) else []
         enemies = balance.get("enemies", {}) if isinstance(balance.get("enemies", {}), dict) else {}
@@ -134,7 +136,49 @@ if balance_file.is_file():
                 err(f"data/balance.json: у этапа {number} нет положительных наград")
         if bosses == 0:
             err("data/balance.json: в кампании должен быть хотя бы один босс")
-        notes.append(f"Кампания: этапов {len(stages)}, боссовых волн {bosses}")
+        if len(stages) != 30:
+            err(f"data/balance.json: MVP требует ровно 30 этапов, найдено {len(stages)}")
+        if not isinstance(campaign, dict) or str(campaign.get("region", "")) != "Пепельные земли":
+            err("data/balance.json: в MVP один регион — Пепельные земли")
+        chapters = campaign.get("chapters", []) if isinstance(campaign, dict) else []
+        if not isinstance(chapters, list) or len(chapters) != 5:
+            err("data/balance.json: 30 этапов должны быть разделены на пять глав")
+            chapters = []
+        chapter_names = {str(ch.get("name", "")) for ch in chapters if isinstance(ch, dict)}
+        for number, stage in enumerate(stages, start=1):
+            if not isinstance(stage, dict):
+                continue
+            if str(stage.get("region", "")) != "Пепельные земли":
+                err(f"data/balance.json: этап {number} относится к другому региону")
+            if str(stage.get("chapter", "")) not in chapter_names:
+                err(f"data/balance.json: у этапа {number} неизвестная глава")
+        categories: dict[str, int] = {}
+        for enemy in enemies.values():
+            if isinstance(enemy, dict):
+                category = str(enemy.get("category", ""))
+                categories[category] = categories.get(category, 0) + 1
+        if categories.get("обычный", 0) != 8 or categories.get("элита", 0) != 3 or categories.get("босс", 0) != 3:
+            err("data/balance.json: MVP требует 8 обычных противников, 3 элиты и 3 босса")
+        boss_stages = sum(1 for stage in stages if isinstance(stage, dict) and str(stage.get("kind", "")) == "босс")
+        elite_stages = sum(1 for stage in stages if isinstance(stage, dict) and str(stage.get("kind", "")) == "элита")
+        if boss_stages != 7 or elite_stages != 6:
+            err("data/balance.json: ожидается 7 боссовых и 6 элитных этапов кампании")
+        previous_rewards = (0, 0, 0)
+        for number, stage in enumerate(stages, start=1):
+            if not isinstance(stage, dict):
+                continue
+            reward = stage.get("reward", {})
+            if not isinstance(reward, dict):
+                continue
+            current_rewards = (
+                int(reward.get("experience", 0)),
+                int(reward.get("gold", 0)),
+                int(reward.get("materials", 0)),
+            )
+            if any(current_rewards[i] < previous_rewards[i] for i in range(3)):
+                err(f"data/balance.json: награда этапа {number} меньше предыдущей")
+            previous_rewards = current_rewards
+        notes.append(f"Кампания: этапов {len(stages)}, глав {len(chapters)}, боссовых этапов {boss_stages}, врагов {len(enemies)}")
 
 # --- 5. Данные экипировки --------------------------------------------------
 if isinstance(balance, dict):
@@ -314,8 +358,8 @@ if max_afk_efficiency >= active_efficiency:
 afk_rewards = afk.get("rewards_per_tick", {})
 if not isinstance(afk_rewards, dict) or any(float(value) <= 0.0 for value in afk_rewards.values()):
     err("data/balance.json: награды AFK за интервал должны быть положительными")
-if int(save.get("format_version", 0)) < 6:
-    err("data/balance.json: версия формата сохранения должна быть не ниже 6")
+if int(save.get("format_version", 0)) != 7:
+    err("data/balance.json: после изменения структуры данных ожидается версия формата сохранения 7")
 if float(save.get("autosave_interval_seconds", 0)) <= 0.0:
     err("data/balance.json: интервал автосохранения должен быть положительным")
 if int(save.get("max_profile_bytes", 0)) <= 0:
@@ -357,6 +401,129 @@ notes.append(
     f"AFK {float(afk.get('limit_hours', 0)):g} ч, автосохранение "
     f"{float(save.get('autosave_interval_seconds', 0)):g} с"
 )
+
+# --- 5.3. Контент и режимы седьмого этапа ----------------------------------
+modes = balance.get("modes", {})
+if not isinstance(modes, dict):
+    err("data/balance.json: раздел modes должен быть объектом")
+    modes = {}
+mode_list = modes.get("list", [])
+if not isinstance(mode_list, list) or len(mode_list) != 3:
+    err("data/balance.json: MVP требует ровно три игровых режима")
+    mode_list = []
+mode_ids = [str(mode.get("id", "")) for mode in mode_list if isinstance(mode, dict)]
+if mode_ids != ["campaign", "tower", "dungeon"]:
+    err("data/balance.json: ожидаются режимы campaign, tower и dungeon")
+mode_unlocks = {
+    str(mode.get("id", "")): int(mode.get("unlock_stage", 0))
+    for mode in mode_list if isinstance(mode, dict)
+}
+if mode_unlocks.get("campaign", 0) != 1 or mode_unlocks.get("tower", 0) != 5 or mode_unlocks.get("dungeon", 0) != 8:
+    err("data/balance.json: режимы должны открываться на этапах 1, 5 и 8")
+for mode in mode_list:
+    if not isinstance(mode, dict):
+        continue
+    mode_id = str(mode.get("id", ""))
+    for key in ("name", "short", "region", "description", "progress_label", "action_next", "action_restart"):
+        if not str(mode.get(key, "")):
+            err(f"data/balance.json: у режима {mode_id} нет подписи {key}")
+if not str(modes.get("defeat_action", "")):
+    err("data/balance.json: у режимов нет подписи действия после поражения")
+
+tower = modes.get("tower", {})
+if not isinstance(tower, dict):
+    err("data/balance.json: раздел modes.tower должен быть объектом")
+    tower = {}
+tower_floors = tower.get("floors", [])
+if not isinstance(tower_floors, list) or len(tower_floors) != 30:
+    err("data/balance.json: Башня испытаний должна содержать 30 ярусов")
+    tower_floors = []
+tower_names: set[str] = set()
+for number, floor in enumerate(tower_floors, start=1):
+    if not isinstance(floor, dict):
+        err(f"data/balance.json: ярус {number} должен быть объектом")
+        continue
+    floor_name = str(floor.get("name", ""))
+    if not floor_name or floor_name in tower_names:
+        err(f"data/balance.json: у яруса {number} отсутствует уникальное название")
+    tower_names.add(floor_name)
+    waves = floor.get("enemies", [])
+    if not isinstance(waves, list) or not waves:
+        err(f"data/balance.json: у яруса {number} нет противников")
+        waves = []
+    for wave in waves:
+        if not isinstance(wave, dict) or str(wave.get("id", "")) not in enemies:
+            err(f"data/balance.json: ярус {number} ссылается на неизвестного противника")
+    reward = floor.get("reward", {})
+    if not isinstance(reward, dict) or any(int(reward.get(key, 0)) <= 0 for key in ("experience", "gold", "materials")):
+        err(f"data/balance.json: у яруса {number} нет положительных наград")
+    if number % 5 == 0 and str(floor.get("kind", "")) != "босс":
+        err(f"data/balance.json: ярус {number} должен завершаться боссом")
+
+dungeon = modes.get("dungeon", {})
+if not isinstance(dungeon, dict):
+    err("data/balance.json: раздел modes.dungeon должен быть объектом")
+    dungeon = {}
+dungeon_runs = dungeon.get("runs", [])
+if not isinstance(dungeon_runs, list) or len(dungeon_runs) != 3:
+    err("data/balance.json: должно быть ровно три подземелья ресурсов")
+    dungeon_runs = []
+run_ids: set[str] = set()
+unlock_stages = []
+for run in dungeon_runs:
+    if not isinstance(run, dict):
+        err("data/balance.json: подземелье должно быть объектом")
+        continue
+    run_id = str(run.get("id", ""))
+    if not run_id or run_id in run_ids:
+        err("data/balance.json: у подземелья отсутствует уникальный идентификатор")
+    run_ids.add(run_id)
+    unlock_stages.append(int(run.get("unlock_stage", 0)))
+    cost = run.get("entry_cost", {})
+    reward = run.get("reward", {})
+    if not isinstance(cost, dict) or int(cost.get("gold", -1)) < 0 or int(cost.get("materials", -1)) < 0:
+        err(f"data/balance.json: у подземелья {run_id} некорректная цена входа")
+    if not isinstance(reward, dict) or any(int(reward.get(key, 0)) <= 0 for key in ("experience", "gold", "materials")):
+        err(f"data/balance.json: у подземелья {run_id} нет положительных наград")
+    waves = run.get("enemies", [])
+    if not isinstance(waves, list) or not waves:
+        err(f"data/balance.json: у подземелья {run_id} нет противников")
+        waves = []
+    for wave in waves:
+        if not isinstance(wave, dict) or str(wave.get("id", "")) not in enemies:
+            err(f"data/balance.json: подземелье {run_id} ссылается на неизвестного противника")
+if sorted(unlock_stages) != [8, 12, 18] or len(set(unlock_stages)) != 3:
+    err("data/balance.json: подземелья должны открываться на этапах 8, 12 и 18")
+
+stage_files = [
+    "scripts/campaign/mode_catalog.gd",
+    "tests/test_modes.gd",
+    "docs/campaign.md",
+    "docs/saves.md",
+]
+for rel in stage_files:
+    if not (ROOT / rel).is_file():
+        err(f"Седьмой этап: отсутствует {rel}")
+main_src = (ROOT / "scripts/main/main.gd").read_text(encoding="utf-8") if (ROOT / "scripts/main/main.gd").is_file() else ""
+for token in ["ModeCatalog", "_on_mode_toggle_pressed", "_refresh_mode_ui", "_on_dungeon_button_pressed", "вход в подземелье"]:
+    if token not in main_src:
+        err(f"scripts/main/main.gd: отсутствует подключение режимов ({token})")
+scene_src = (ROOT / "scenes/main/main.tscn").read_text(encoding="utf-8") if (ROOT / "scenes/main/main.tscn").is_file() else ""
+for token in ["ModeButton", "ModePanel", "CampaignModeButton", "TowerModeButton", "DungeonModeButton", "GoldDungeonButton", "MaterialsDungeonButton", "ExperienceDungeonButton"]:
+    if token not in scene_src:
+        err(f"scenes/main/main.tscn: отсутствует рабочая кнопка/панель режима {token}")
+save_src = (ROOT / "scripts/save/save_manager.gd").read_text(encoding="utf-8")
+for token in ["ModeCatalog.state_from_snapshot", 'result["modes"]']:
+    if token not in save_src:
+        err(f"scripts/save/save_manager.gd: отсутствует миграция режимов ({token})")
+campaign_src = (ROOT / "scripts/campaign/campaign_state.gd").read_text(encoding="utf-8")
+for token in ["ModeCatalog.stage_at", "ModeCatalog.state_from_snapshot", "select_mode", "select_dungeon"]:
+    if token not in campaign_src:
+        err(f"scripts/campaign/campaign_state.gd: отсутствует поддержка режимов ({token})")
+ci_src = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8") if (ROOT / ".github/workflows/ci.yml").is_file() else ""
+if "tests/test_modes.gd" not in ci_src:
+    err(".github/workflows/ci.yml: отсутствует точечная проверка режимов")
+notes.append(f"Режимы: {len(mode_list)}, ярусов {len(tower_floors)}, подземелий {len(dungeon_runs)}")
 
 # --- 6. Скрипты GDScript ---------------------------------------------------
 gd_paths = files("*.gd")

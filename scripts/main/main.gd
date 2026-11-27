@@ -1,11 +1,13 @@
 extends Control
 
-# Компактный экран кампании, экипировки, прогрессии и сохранений: здоровье
-# героя и противника в одной строке, этапы, награды, Алтарь призыва,
-# инвентарь, характеристики, навыки и питомцы. Все кнопки связаны с состоянием.
+# Компактный экран кампании, экипировки, прогрессии, сохранений и трёх режимов:
+# здоровье героя и противника в одной строке, 30 этапов, Башня испытаний,
+# Подземелья ресурсов, награды, Алтарь призыва, инвентарь, характеристики,
+# навыки и питомцы. Все кнопки связаны с состоянием.
 
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignState = preload("res://scripts/campaign/campaign_state.gd")
+const ModeCatalog = preload("res://scripts/campaign/mode_catalog.gd")
 const EquipmentCatalog = preload("res://scripts/equipment/equipment_catalog.gd")
 const ProgressionCatalog = preload("res://scripts/progression/progression_catalog.gd")
 const SaveCatalog = preload("res://scripts/save/save_catalog.gd")
@@ -77,6 +79,13 @@ var action_button: Button
 var log_card: PanelContainer
 var battle_log: Label
 var hint_label: Label
+var mode_button: Button
+var mode_panel: PanelContainer
+var mode_status_label: Label
+var mode_stats_label: Label
+var mode_hint_label: Label
+var mode_buttons: Dictionary = {}
+var dungeon_buttons: Dictionary = {}
 var particles_effect: CPUParticles2D
 var sound_button: Button
 var particles_button: Button
@@ -89,6 +98,7 @@ var log_lines: PackedStringArray = PackedStringArray()
 var initialized: bool = false
 var equipment_visible: bool = false
 var progression_visible: bool = false
+var mode_visible: bool = false
 var selected_summon_id: String = "ash"
 var selected_item_id: String = ""
 var selected_skill_id: String = ""
@@ -135,9 +145,9 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 	for line in startup_lines:
 		_add_log(str(line))
 	_update_view()
-	print("Игровой цикл, экипировка, прогрессия и сохранения запущены: этапов %d, текущий этап %d, профиль %s" % [
-		campaign.stage_count(),
-		campaign.stage_number(),
+	var startup_summary: Dictionary = campaign.get_summary()
+	print("Игровой цикл, экипировка, прогрессия, сохранения и режимы запущены: %s, профиль %s" % [
+		str(startup_summary.get("mode_progress", "")),
 		str(startup_report.get("status_text", "")),
 	])
 
@@ -187,6 +197,7 @@ func _bind_nodes() -> void:
 	mass_dismantle_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2/MassDismantleButton")
 	equipment_hint_label = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/EquipmentHintLabel")
 	progression_button = get_node("Margin/Panel/MenuRow/ProgressionButton")
+	mode_button = get_node("Margin/Panel/MenuRow/ModeButton") as Button
 	progression_panel = get_node("Margin/Panel/ProgressionPanel")
 	progression_wallet_label = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow/ProgressionWalletLabel")
 	progression_power_label = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow/ProgressionPowerLabel")
@@ -205,6 +216,10 @@ func _bind_nodes() -> void:
 	log_card = get_node("Margin/Panel/LogCard")
 	battle_log = get_node("Margin/Panel/LogCard/BattleLog")
 	hint_label = get_node("Margin/Panel/HintLabel")
+	mode_panel = get_node("Margin/Panel/ModePanel") as PanelContainer
+	mode_status_label = get_node("Margin/Panel/ModePanel/ModeBox/ModeTopRow/ModeStatusLabel") as Label
+	mode_stats_label = get_node("Margin/Panel/ModePanel/ModeBox/ModeTopRow/ModeStatsLabel") as Label
+	mode_hint_label = get_node("Margin/Panel/ModePanel/ModeBox/ModeHintLabel") as Label
 	particles_effect = get_node("Particles") as CPUParticles2D
 	sound_button = get_node("Margin/Panel/SettingsRow/SoundButton") as Button
 	particles_button = get_node("Margin/Panel/SettingsRow/ParticlesButton") as Button
@@ -226,6 +241,7 @@ func _apply_styles() -> void:
 	health_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
 	equipment_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
 	progression_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
+	mode_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
 	log_card.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
 	action_button.add_theme_stylebox_override("normal", AshenStyle.action_button_style())
 	for bar in [hero_health_bar, enemy_health_bar, shield_bar, experience_bar]:
@@ -260,6 +276,9 @@ func _apply_styles() -> void:
 	progression_hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
 	battle_log.add_theme_color_override("font_color", AshenStyle.PARCHMENT)
 	hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
+	mode_status_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	mode_stats_label.add_theme_color_override("font_color", AshenStyle.MUTED)
+	mode_hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
 
 
 func _connect_battle_signals() -> void:
@@ -282,6 +301,8 @@ func _connect_ui_signals() -> void:
 	action_button.pressed.connect(_on_action_pressed)
 	equipment_button.pressed.connect(_on_equipment_toggle_pressed)
 	progression_button.pressed.connect(_on_progression_toggle_pressed)
+	mode_button.pressed.connect(_on_mode_toggle_pressed)
+	_populate_modes()
 	progression_skill_list.item_selected.connect(_on_skill_selected)
 	skill_upgrade_button.pressed.connect(_on_skill_upgrade_pressed)
 	skill_auto_button.pressed.connect(_on_skill_auto_pressed)
@@ -382,7 +403,7 @@ func _process(delta: float) -> void:
 func _update_view() -> void:
 	var summary: Dictionary = campaign.get_summary()
 	var battle = campaign.system
-	stage_label.text = "%s · Этап %d/%d" % [str(summary["region"]), int(summary["stage"]), int(summary["stages"])]
+	stage_label.text = str(summary["mode_progress"])
 	level_label.text = "УР. %d" % int(summary["level"])
 	experience_bar.max_value = float(summary["experience_to_next"])
 	experience_bar.value = float(summary["experience"])
@@ -430,7 +451,7 @@ func _update_view() -> void:
 		CampaignState.STATUS_DEFEAT:
 			stage_notice.text = "ПОРАЖЕНИЕ · ЭТАП МОЖНО ПОВТОРИТЬ"
 		CampaignState.STATUS_COMPLETE:
-			stage_notice.text = "КАМПАНИЯ ПРОЙДЕНА · УР. %d" % int(summary["level"])
+			stage_notice.text = "%s · УР. %d" % [str(summary["status_name"]).to_upper(), int(summary["level"])]
 	var strike_cooldown: float = campaign.get_cooldown_remaining("heavy_strike")
 	var guard_cooldown: float = campaign.get_cooldown_remaining("ash_guard")
 	var skills_blocked: bool = campaign.status != CampaignState.STATUS_BATTLE
@@ -445,19 +466,28 @@ func _update_view() -> void:
 	else:
 		guard_button.text = "ЩИТ"
 	action_button.visible = campaign.status != CampaignState.STATUS_BATTLE
-	match campaign.status:
-		CampaignState.STATUS_VICTORY:
-			action_button.text = "ДАЛЬШЕ · ЭТАП %d" % (campaign.stage_number() + 1)
-		CampaignState.STATUS_DEFEAT:
-			action_button.text = "ПОВТОРИТЬ ЭТАП"
-		CampaignState.STATUS_COMPLETE:
-			action_button.text = "НОВЫЙ ПОХОД"
+	action_button.disabled = false
+	if action_button.visible:
+		action_button.text = ModeCatalog.action_text(
+			balance,
+			campaign.mode_id(),
+			campaign.mode_status_key(),
+			campaign.mode_number(),
+			campaign.mode_state_view(),
+		)
+		if campaign.mode_id() == "dungeon" and campaign.status == CampaignState.STATUS_VICTORY:
+			var dungeon_state: Dictionary = campaign.mode_state_view()
+			if campaign.dungeon_block_reason(str(dungeon_state.get("dungeon_id", ""))) != "":
+				action_button.disabled = true
+				action_button.text = "НУЖНЫ РЕСУРСЫ ДЛЯ ВХОДА"
 	if equipment_visible:
 		_refresh_equipment_ui()
 	if progression_visible:
 		_refresh_progression_ui()
+	if mode_visible:
+		_refresh_mode_ui()
 	if profile_manager != null:
-		hint_label.text = profile_manager.hint_text()
+		hint_label.text = "%s · %s" % [profile_manager.hint_text(), str(summary["mode_short"])]
 	_refresh_settings_ui()
 
 
@@ -469,6 +499,9 @@ func _on_equipment_toggle_pressed() -> void:
 		progression_visible = false
 		progression_panel.visible = false
 		progression_button.text = "ПРОГРЕССИЯ"
+		mode_visible = false
+		mode_panel.visible = false
+		mode_button.text = "РЕЖИМЫ"
 		equipment_button.text = "СКРЫТЬ ЭКИПИРОВКУ"
 		_refresh_equipment_ui()
 	else:
@@ -740,11 +773,128 @@ func _on_progression_toggle_pressed() -> void:
 		equipment_visible = false
 		equipment_panel.visible = false
 		equipment_button.text = "ЭКИПИРОВКА"
+		mode_visible = false
+		mode_panel.visible = false
+		mode_button.text = "РЕЖИМЫ"
 		_clear_force_dismantle()
 		progression_button.text = "СКРЫТЬ ПРОГРЕССИЮ"
 		_refresh_progression_ui()
 	else:
 		progression_button.text = "ПРОГРЕССИЯ"
+
+
+func _on_mode_toggle_pressed() -> void:
+	mode_visible = not mode_visible
+	mode_panel.visible = mode_visible
+	if mode_visible:
+		equipment_visible = false
+		equipment_panel.visible = false
+		equipment_button.text = "ЭКИПИРОВКА"
+		progression_visible = false
+		progression_panel.visible = false
+		progression_button.text = "ПРОГРЕССИЯ"
+		_clear_force_dismantle()
+		mode_button.text = "СКРЫТЬ РЕЖИМЫ"
+		_refresh_mode_ui()
+	else:
+		mode_button.text = "РЕЖИМЫ"
+
+
+func _populate_modes() -> void:
+	mode_buttons.clear()
+	dungeon_buttons.clear()
+	var mode_paths: Array = [
+		"Margin/Panel/ModePanel/ModeBox/ModeSwitchRow/CampaignModeButton",
+		"Margin/Panel/ModePanel/ModeBox/ModeSwitchRow/TowerModeButton",
+		"Margin/Panel/ModePanel/ModeBox/ModeSwitchRow/DungeonModeButton",
+	]
+	var mode_ids: Array = ModeCatalog.mode_ids(balance)
+	for index in range(mini(mode_ids.size(), mode_paths.size())):
+		var mode_id: String = str(mode_ids[index])
+		var button: Button = get_node(str(mode_paths[index])) as Button
+		mode_buttons[mode_id] = button
+		button.pressed.connect(_on_mode_button_pressed.bind(mode_id))
+	var dungeon_paths: Array = [
+		"Margin/Panel/ModePanel/ModeBox/DungeonRow/GoldDungeonButton",
+		"Margin/Panel/ModePanel/ModeBox/DungeonRow/MaterialsDungeonButton",
+		"Margin/Panel/ModePanel/ModeBox/DungeonRow/ExperienceDungeonButton",
+	]
+	var dungeon_ids: Array = ModeCatalog.dungeon_ids(balance)
+	for index in range(mini(dungeon_ids.size(), dungeon_paths.size())):
+		var dungeon_id: String = str(dungeon_ids[index])
+		var button: Button = get_node(str(dungeon_paths[index])) as Button
+		dungeon_buttons[dungeon_id] = button
+		button.pressed.connect(_on_dungeon_button_pressed.bind(dungeon_id))
+
+
+func _refresh_mode_ui() -> void:
+	if not mode_visible:
+		return
+	var summary: Dictionary = campaign.get_summary()
+	mode_status_label.text = "%s · %s" % [str(summary["mode_name"]), str(summary["mode_progress"])]
+	mode_stats_label.text = str(summary["mode_stats"])
+	var hints: PackedStringArray = PackedStringArray()
+	for mode_id in mode_buttons.keys():
+		var mode_button_value: Button = mode_buttons[mode_id] as Button
+		var unlocked: bool = campaign.mode_is_unlocked(str(mode_id))
+		mode_button_value.disabled = not unlocked
+		if unlocked:
+			mode_button_value.text = ModeCatalog.mode_short(balance, str(mode_id))
+		else:
+			mode_button_value.text = "%s · ЭТАП %d" % [
+				ModeCatalog.mode_short(balance, str(mode_id)),
+				ModeCatalog.mode_unlock_stage(balance, str(mode_id)),
+			]
+			hints.append("Режим %s: этап %d" % [
+				ModeCatalog.mode_short(balance, str(mode_id)),
+				ModeCatalog.mode_unlock_stage(balance, str(mode_id)),
+			])
+	for dungeon_id in dungeon_buttons.keys():
+		var dungeon_button_value: Button = dungeon_buttons[dungeon_id] as Button
+		var reason: String = campaign.dungeon_block_reason(str(dungeon_id))
+		var cost: Dictionary = ModeCatalog.dungeon_entry_cost(balance, str(dungeon_id))
+		dungeon_button_value.disabled = reason != ""
+		dungeon_button_value.text = "%s · %dЗ/%dП" % [
+			ModeCatalog.dungeon_short(balance, str(dungeon_id)),
+			int(cost.get("gold", 0)),
+			int(cost.get("materials", 0)),
+		]
+		if reason != "":
+			hints.append("%s: %s" % [ModeCatalog.dungeon_short(balance, str(dungeon_id)), reason])
+	mode_hint_label.text = str(summary["mode_description"])
+	if not hints.is_empty():
+		mode_hint_label.text += " · " + "; ".join(hints)
+
+
+func _on_mode_button_pressed(mode_id: String) -> void:
+	var result: Dictionary = campaign.select_mode(mode_id)
+	if not bool(result.get("success", false)):
+		_add_log("Режим недоступен: %s" % str(result.get("reason", "")))
+		_update_view()
+		return
+	_connect_battle_signals()
+	_add_log("Режим: %s · %s" % [
+		str(result.get("mode_name", ModeCatalog.mode_name(balance, mode_id))),
+		str(campaign.current_stage().get("name", "")),
+	])
+	_save("смена режима")
+	_update_view()
+
+
+func _on_dungeon_button_pressed(dungeon_id: String) -> void:
+	var result: Dictionary = campaign.select_dungeon(dungeon_id)
+	if not bool(result.get("success", false)):
+		_add_log("Подземелье недоступно: %s" % str(result.get("reason", "")))
+		_update_view()
+		return
+	_connect_battle_signals()
+	_add_log("Подземелье: %s · −%d золота, −%d пепла" % [
+		str(result.get("dungeon_name", "")),
+		int(result.get("gold", 0)),
+		int(result.get("materials", 0)),
+	])
+	_save("вход в подземелье")
+	_update_view()
 
 
 func _refresh_progression_ui() -> void:
@@ -986,20 +1136,27 @@ func _on_guard_pressed() -> void:
 
 
 func _on_action_pressed() -> void:
+	var changed: bool = false
 	match campaign.status:
 		CampaignState.STATUS_VICTORY:
-			if campaign.next_stage():
-				_connect_battle_signals()
-				_add_log("Этап %d: %s" % [campaign.stage_number(), str(campaign.current_stage().get("name", ""))])
+			changed = campaign.next_stage()
+			if not changed and campaign.mode_id() == "dungeon":
+				var state: Dictionary = campaign.mode_state_view()
+				_add_log("Подземелье недоступно: %s" % campaign.dungeon_block_reason(str(state.get("dungeon_id", ""))))
 		CampaignState.STATUS_DEFEAT:
-			if campaign.retry_stage():
-				_connect_battle_signals()
-				_add_log("Повтор этапа %d" % campaign.stage_number())
+			changed = campaign.retry_stage()
 		CampaignState.STATUS_COMPLETE:
-			if campaign.restart_campaign():
-				_connect_battle_signals()
-				selected_pet_id = ""
-				_add_log("Новый поход: этап 1")
+			if campaign.mode_id() == "campaign":
+				changed = campaign.restart_campaign()
+			else:
+				changed = campaign.restart_mode()
+	if changed:
+		_connect_battle_signals()
+		selected_pet_id = str(campaign.development.selected_pet_id)
+		_add_log("%s · %s" % [
+			ModeCatalog.mode_short(balance, campaign.mode_id()),
+			str(campaign.current_stage().get("name", "")),
+		])
 	_save("переход этапа")
 	_update_view()
 
@@ -1020,9 +1177,9 @@ func _on_stage_finished() -> void:
 					int(reward.get("skill_points", 0)),
 				])
 		CampaignState.STATUS_DEFEAT:
-			_add_log("Герой пал. Повторить этап?")
+			_add_log("Герой пал. %s?" % str(ModeCatalog.modes_data(balance).get("defeat_action", "ПОВТОРИТЬ БОЙ")))
 		CampaignState.STATUS_COMPLETE:
-			_add_log("Кампания пройдена. Уровень %d" % campaign.level)
+			_add_log("%s. Уровень %d" % [str(campaign.get_summary().get("status_name", "")), campaign.level])
 	_save("итог этапа")
 
 
