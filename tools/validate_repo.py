@@ -100,7 +100,7 @@ for path in gd_paths:
         warn(f"{rel}: нет перевода строки в конце файла")
 notes.append(f"Скриптов GDScript проверено: {len(gd_paths)}")
 
-# --- 5. project.godot (проверки появятся вместе с проектом) ---------------
+# --- 5. Настройки проекта и требования портретного Android -----------------
 project = ROOT / "project.godot"
 if project.is_file():
     cfg = project.read_text(encoding="utf-8")
@@ -108,7 +108,20 @@ if project.is_file():
         err("project.godot: нет раздела [application]")
     if "config/name" not in cfg:
         warn("project.godot: не задано config/name")
-    notes.append("project.godot найден")
+    if "run/main_scene" not in cfg:
+        err("project.godot: не задана главная сцена")
+    icon_match = re.search(r'^config/icon="([^"]+)"', cfg, flags=re.M)
+    if not icon_match:
+        warn("project.godot: не задана иконка проекта")
+    elif not (ROOT / icon_match.group(1).removeprefix("res://")).is_file():
+        err(f"project.godot: файл иконки не найден: {icon_match.group(1)}")
+    else:
+        notes.append(f"Иконка проекта: {icon_match.group(1)}")
+    if "window/handheld/orientation=1" not in cfg:
+        err("project.godot: ожидается портретная ориентация (window/handheld/orientation=1)")
+    if "import_etc2_astc=true" not in cfg:
+        err("project.godot: для экспорта на Android нужно сжатие текстур ETC2/ASTC")
+    notes.append("project.godot найден, настройки портретного Android проверены")
 else:
     notes.append("project.godot ещё нет — проверки движка пропущены (ожидаемо на этапе 0)")
 

@@ -227,8 +227,9 @@ jobs:
           sdk_path="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
           aapt_bin=$(find "$sdk_path/build-tools" -type f -name aapt | sort | tail -1)
           # Старый aapt ругается на новые атрибуты манифеста, но данные пакета
-          # всё равно выводит, поэтому его код возврата здесь не решает исход.
-          "$aapt_bin" dump badging build/android/AshenWorld-debug.apk > /tmp/apk-badging.txt 2>&1 || true
+          # всё равно выводит, поэтому его код возврата и поток ошибок здесь
+          # не решают исход: проверяем именно содержимое вывода.
+          "$aapt_bin" dump badging build/android/AshenWorld-debug.apk > /tmp/apk-badging.txt 2>/dev/null || true
           head -6 /tmp/apk-badging.txt
           grep -q "package: name='com.izvex.ashenworld'" /tmp/apk-badging.txt
           grep -q "application-label:'ASHEN WORLD'" /tmp/apk-badging.txt
