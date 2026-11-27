@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -110,6 +111,19 @@ if project.is_file():
     notes.append("project.godot найден")
 else:
     notes.append("project.godot ещё нет — проверки движка пропущены (ожидаемо на этапе 0)")
+
+# --- 6. Язык сообщений коммитов --------------------------------------------
+# По правилам проекта все коммиты, комментарии и документация пишутся
+# только на русском языке. Технические идентификаторы остаются в исходном виде.
+result = subprocess.run(
+    ["git", "log", "-1", "--pretty=%s"],
+    cwd=ROOT, capture_output=True, text=True,
+)
+message = result.stdout.strip()
+if result.returncode == 0 and message:
+    if not re.search(r"[А-Яа-яЁё]", message):
+        err("Сообщение последнего коммита должно быть на русском языке")
+    notes.append(f"Сообщение коммита: {message}")
 
 # --- Итог ------------------------------------------------------------------
 for line in notes:
