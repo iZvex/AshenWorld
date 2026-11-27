@@ -125,6 +125,21 @@ if result.returncode == 0 and message:
         err("Сообщение последнего коммита должно быть на русском языке")
     notes.append(f"Сообщение коммита: {message}")
 
+# --- 7. Пресет экспорта Android --------------------------------------------
+preset = ROOT / "export_presets.cfg"
+if preset.is_file():
+    cfg_text = preset.read_text(encoding="utf-8")
+    if 'platform="Android"' not in cfg_text:
+        err('export_presets.cfg: нет пресета с platform="Android"')
+    if "gradle_build/use_gradle_build=true" in cfg_text:
+        warn("export_presets.cfg: включена сборка Gradle, для неё нужна отдельная настройка сборки")
+    for line in cfg_text.splitlines():
+        if line.startswith("keystore/") and '=""' not in line:
+            err(f"export_presets.cfg: указан ключ подписи ({line.split('=')[0]}), секреты коммитить нельзя")
+    notes.append("Пресет Android найден, ключи подписи в репозиторий не попали")
+else:
+    notes.append("Пресет Android ещё не создан")
+
 # --- Итог ------------------------------------------------------------------
 for line in notes:
     print(f"  • {line}")

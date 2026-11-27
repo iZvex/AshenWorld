@@ -180,21 +180,24 @@ jobs:
 
       - name: Настройки экспорта Godot
         run: |
+          set -euo pipefail
+          sdk_path="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
           mkdir -p "$HOME/.config/godot"
           cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
-          export/android/android_sdk_path = "$ANDROID_SDK_ROOT"
+          export/android/android_sdk_path = "$sdk_path"
+          export/android/java_sdk_path = "$JAVA_HOME"
           export/android/debug_keystore = "$HOME/.android/debug.keystore"
           export/android/debug_keystore_user = "androiddebugkey"
           export/android/debug_keystore_pass = "android"
           EOF
+          echo "Путь к Android SDK: $sdk_path"
 
-      - name: Шаблон сборки Android и импорт ассетов
+      - name: Импорт ассетов
         run: |
           set -euo pipefail
-          godot --headless --path . --install-android-build-template
           godot --headless --path . --editor --quit
 
       - name: Экспорт отладочного APK
@@ -205,6 +208,21 @@ jobs:
           size=$(stat -c%s build/android/AshenWorld-debug.apk)
           echo "Размер APK: $size байт"
           [ "$size" -gt 1000000 ] || { echo "::error::APK отсутствует или подозрительно мал"; exit 1; }
+
+      - name: Проверка подписи APK
+        run: |
+          set -euo pipefail
+          sdk_path="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          apksigner_bin=$(find "$sdk_path/build-tools" -type f -name apksigner | sort | tail -1)
+          "$apksigner_bin" verify --verbose build/android/AshenWorld-debug.apk
+
+      - name: Проверка содержимого APK
+        run: |
+          set -euo pipefail
+          sdk_path="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          aapt_bin=$(find "$sdk_path/build-tools" -type f -name aapt | sort | tail -1)
+          "$aapt_bin" dump badging build/android/AshenWorld-debug.apk | tee /tmp/apk-badging.txt
+          grep -q "package: name='com.izvex.ashenworld'" /tmp/apk-badging.txt
 
       - name: Выгрузка APK как артефакта
         uses: actions/upload-artifact@v4
