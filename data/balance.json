@@ -1,19 +1,35 @@
 {
-  "version": 4,
+  "version": 5,
   "combat": {
     "attack_interval_seconds": 1.0,
     "base_damage": 10,
     "critical_chance": 0.05,
     "critical_multiplier": 1.5,
     "defense_reduction_per_point": 0.02,
-    "max_defense_reduction": 0.6
+    "max_defense_reduction": 0.6,
+    "min_attack_interval": 0.45,
+    "max_lifesteal": 0.25,
+    "max_dodge": 0.25,
+    "max_resistance": 0.35,
+    "max_health_regen": 8.0,
+    "max_crit_chance": 0.45,
+    "max_critical_multiplier": 2.5
   },
   "hero": {
     "name": "Пепельный странник",
     "max_health": 120,
     "attack": 14,
     "defense": 4,
-    "crit_chance": 0.05
+    "crit_chance": 0.05,
+    "class_name": "Пепельный странник",
+    "physical_attack": 14.0,
+    "magic_attack": 0.0,
+    "critical_multiplier": 1.5,
+    "attack_interval_seconds": 1.0,
+    "lifesteal": 0.0,
+    "dodge": 0.0,
+    "resistance": 0.0,
+    "health_regen": 0.0
   },
   "enemies": {
     "ash_walker": {
@@ -42,12 +58,86 @@
     "heavy_strike": {
       "name": "Тяжёлый удар",
       "cooldown_seconds": 4.0,
-      "damage_multiplier": 2.2
+      "damage_multiplier": 2.2,
+      "kind": "атака",
+      "description": "Мощный удар с увеличенным уроном",
+      "unlock_level": 1,
+      "max_level": 5,
+      "auto_use": true,
+      "damage_per_level": 0.25,
+      "cooldown_per_level": 0.15
     },
     "ash_guard": {
       "name": "Пепельный щит",
       "cooldown_seconds": 6.0,
-      "shield_ratio": 0.25
+      "shield_ratio": 0.25,
+      "kind": "защита",
+      "description": "Щит из пепла и углей",
+      "unlock_level": 1,
+      "max_level": 5,
+      "auto_use": true,
+      "shield_per_level": 0.04,
+      "cooldown_per_level": 0.2
+    },
+    "cinder_nova": {
+      "name": "Огненная волна",
+      "kind": "атака",
+      "description": "Урон по врагу и небольшое лечение",
+      "cooldown_seconds": 5.0,
+      "damage_multiplier": 1.6,
+      "heal_ratio": 0.04,
+      "unlock_level": 2,
+      "max_level": 5,
+      "auto_use": true,
+      "damage_per_level": 0.2,
+      "heal_per_level": 0.015,
+      "cooldown_per_level": 0.15
+    },
+    "ember_barrier": {
+      "name": "Угольный барьер",
+      "kind": "защита",
+      "description": "Щит и восстановление здоровья",
+      "cooldown_seconds": 7.0,
+      "shield_ratio": 0.18,
+      "heal_ratio": 0.08,
+      "unlock_level": 3,
+      "max_level": 5,
+      "auto_use": false,
+      "shield_per_level": 0.03,
+      "heal_per_level": 0.02,
+      "cooldown_per_level": 0.2
+    },
+    "ash_blade": {
+      "name": "Пепельное лезвие",
+      "kind": "атака",
+      "description": "Сильный удар с повышенным шансом крита",
+      "cooldown_seconds": 6.0,
+      "damage_multiplier": 2.6,
+      "heal_ratio": 0.05,
+      "critical_chance_bonus": 0.1,
+      "unlock_level": 3,
+      "max_level": 5,
+      "auto_use": false,
+      "damage_per_level": 0.3,
+      "heal_per_level": 0.015,
+      "crit_bonus_per_level": 0.02,
+      "cooldown_per_level": 0.2
+    },
+    "soul_flare": {
+      "name": "Вспышка духа",
+      "kind": "атака",
+      "description": "Магическая вспышка с высоким шансом крита",
+      "cooldown_seconds": 8.0,
+      "damage_multiplier": 2.0,
+      "heal_ratio": 0.05,
+      "critical_chance_bonus": 0.2,
+      "unlock_level": 4,
+      "max_level": 5,
+      "auto_use": false,
+      "damage_per_level": 0.35,
+      "heal_per_level": 0.02,
+      "crit_bonus_per_level": 0.03,
+      "cooldown_per_level": 0.25
     }
   },
   "progression": {
@@ -55,7 +145,36 @@
     "experience_growth": 1.18,
     "max_health_per_level": 16,
     "attack_per_level": 3,
-    "defense_per_level": 1
+    "defense_per_level": 1,
+    "starting_attribute_points": 5,
+    "starting_skill_points": 2,
+    "attribute_points_per_level": 3,
+    "skill_points_per_level": 1,
+    "attribute_soft_cap": 10,
+    "attribute_soft_cap_scale": 0.5,
+    "auto_skill_interval_seconds": 1.0,
+    "skill_upgrade": {
+      "skill_point_cost": 1,
+      "gold_base": 12,
+      "gold_per_level": 8,
+      "materials_base": 2,
+      "materials_per_level": 2
+    },
+    "passive_upgrade": {
+      "skill_point_cost": 1,
+      "gold_base": 10,
+      "gold_per_level": 6,
+      "materials_base": 3,
+      "materials_per_level": 2
+    },
+    "pet_upgrade": {
+      "max_level": 5,
+      "gold_base": 15,
+      "gold_per_level": 10,
+      "materials_base": 6,
+      "materials_per_level": 4,
+      "assist_growth_per_level": 0.15
+    }
   },
   "economy": {
     "gold_per_victory": 12,
@@ -72,18 +191,37 @@
         "name": "Тропа праха",
         "kind": "обычный",
         "enemies": [
-          {"id": "ash_walker", "count": 1}
+          {
+            "id": "ash_walker",
+            "count": 1
+          }
         ],
-        "reward": {"experience": 45, "gold": 12, "materials": 5}
+        "reward": {
+          "experience": 45,
+          "gold": 12,
+          "materials": 5
+        }
       },
       {
         "name": "Старые костры",
         "kind": "обычный",
         "enemies": [
-          {"id": "cinder_hound", "count": 1},
-          {"id": "ash_walker", "count": 1, "health_scale": 1.15, "attack_scale": 1.1}
+          {
+            "id": "cinder_hound",
+            "count": 1
+          },
+          {
+            "id": "ash_walker",
+            "count": 1,
+            "health_scale": 1.15,
+            "attack_scale": 1.1
+          }
         ],
-        "reward": {"experience": 70, "gold": 20, "materials": 8}
+        "reward": {
+          "experience": 70,
+          "gold": 20,
+          "materials": 8
+        }
       },
       {
         "name": "Врата стража",
@@ -98,17 +236,39 @@
             "phase_attack_multiplier": 1.25
           }
         ],
-        "reward": {"experience": 130, "gold": 45, "materials": 14}
+        "reward": {
+          "experience": 130,
+          "gold": 45,
+          "materials": 14
+        }
       },
       {
         "name": "Засада в пепле",
         "kind": "элита",
         "enemies": [
-          {"id": "ash_walker", "count": 1, "health_scale": 1.2},
-          {"id": "cinder_hound", "count": 1, "health_scale": 1.15, "attack_scale": 1.1},
-          {"id": "ash_walker", "count": 1, "health_scale": 1.25, "attack_scale": 1.1}
+          {
+            "id": "ash_walker",
+            "count": 1,
+            "health_scale": 1.2
+          },
+          {
+            "id": "cinder_hound",
+            "count": 1,
+            "health_scale": 1.15,
+            "attack_scale": 1.1
+          },
+          {
+            "id": "ash_walker",
+            "count": 1,
+            "health_scale": 1.25,
+            "attack_scale": 1.1
+          }
         ],
-        "reward": {"experience": 150, "gold": 55, "materials": 16}
+        "reward": {
+          "experience": 150,
+          "gold": 55,
+          "materials": 16
+        }
       },
       {
         "name": "Сердце пожарища",
@@ -126,7 +286,11 @@
             "phase_threshold": 0.55
           }
         ],
-        "reward": {"experience": 220, "gold": 90, "materials": 25}
+        "reward": {
+          "experience": 220,
+          "gold": 90,
+          "materials": 25
+        }
       }
     ]
   },
@@ -150,32 +314,229 @@
     },
     "dismantle": {
       "level_bonus_per_level": 1,
-      "gold": {"common": 2, "uncommon": 4, "rare": 8, "epic": 14, "legendary": 24, "mythic": 40},
-      "materials": {"common": 1, "uncommon": 2, "rare": 4, "epic": 7, "legendary": 12, "mythic": 20}
+      "gold": {
+        "common": 2,
+        "uncommon": 4,
+        "rare": 8,
+        "epic": 14,
+        "legendary": 24,
+        "mythic": 40
+      },
+      "materials": {
+        "common": 1,
+        "uncommon": 2,
+        "rare": 4,
+        "epic": 7,
+        "legendary": 12,
+        "mythic": 20
+      }
     },
     "slots": [
-      {"id": "weapon", "name": "Оружие", "names": ["Пепельный клинок", "Угольный топор", "Клинок руин"], "base_stats": {"attack": 6.0, "max_health": 0.0, "defense": 0.0}},
-      {"id": "helmet", "name": "Шлем", "names": ["Пепельный шлем", "Корона углей", "Шлем стража"], "base_stats": {"attack": 0.0, "max_health": 12.0, "defense": 1.0}},
-      {"id": "chest", "name": "Нагрудник", "names": ["Нагрудник из пепла", "Панцирь руин", "Мантия тлеющих"], "base_stats": {"attack": 0.0, "max_health": 18.0, "defense": 3.0}},
-      {"id": "gloves", "name": "Перчатки", "names": ["Рукавицы скитальца", "Перчатки угля", "Хватка стража"], "base_stats": {"attack": 2.0, "max_health": 0.0, "defense": 1.0}},
-      {"id": "legs", "name": "Штаны", "names": ["Штаны странника", "Поножи руин", "Тлеющие набедренники"], "base_stats": {"attack": 0.0, "max_health": 14.0, "defense": 2.0}},
-      {"id": "boots", "name": "Сапоги", "names": ["Сапоги пепла", "Ботфорты руин", "Угольные сапоги"], "base_stats": {"attack": 0.0, "max_health": 8.0, "defense": 1.0}},
-      {"id": "ring", "name": "Кольцо", "names": ["Кольцо праха", "Печать руин", "Угольный перстень"], "base_stats": {"attack": 3.0, "max_health": 0.0, "defense": 0.0}},
-      {"id": "amulet", "name": "Амулет", "names": ["Амулет пепла", "Око руин", "Табличка тлеющих"], "base_stats": {"attack": 1.0, "max_health": 10.0, "defense": 0.0}},
-      {"id": "relic", "name": "Реликвия", "names": ["Реликвия бездны", "Урна праха", "Осколок пожарища"], "base_stats": {"attack": 4.0, "max_health": 6.0, "defense": 1.0}}
+      {
+        "id": "weapon",
+        "name": "Оружие",
+        "names": [
+          "Пепельный клинок",
+          "Угольный топор",
+          "Клинок руин"
+        ],
+        "base_stats": {
+          "attack": 6.0,
+          "max_health": 0.0,
+          "defense": 0.0
+        }
+      },
+      {
+        "id": "helmet",
+        "name": "Шлем",
+        "names": [
+          "Пепельный шлем",
+          "Корона углей",
+          "Шлем стража"
+        ],
+        "base_stats": {
+          "attack": 0.0,
+          "max_health": 12.0,
+          "defense": 1.0
+        }
+      },
+      {
+        "id": "chest",
+        "name": "Нагрудник",
+        "names": [
+          "Нагрудник из пепла",
+          "Панцирь руин",
+          "Мантия тлеющих"
+        ],
+        "base_stats": {
+          "attack": 0.0,
+          "max_health": 18.0,
+          "defense": 3.0
+        }
+      },
+      {
+        "id": "gloves",
+        "name": "Перчатки",
+        "names": [
+          "Рукавицы скитальца",
+          "Перчатки угля",
+          "Хватка стража"
+        ],
+        "base_stats": {
+          "attack": 2.0,
+          "max_health": 0.0,
+          "defense": 1.0
+        }
+      },
+      {
+        "id": "legs",
+        "name": "Штаны",
+        "names": [
+          "Штаны странника",
+          "Поножи руин",
+          "Тлеющие набедренники"
+        ],
+        "base_stats": {
+          "attack": 0.0,
+          "max_health": 14.0,
+          "defense": 2.0
+        }
+      },
+      {
+        "id": "boots",
+        "name": "Сапоги",
+        "names": [
+          "Сапоги пепла",
+          "Ботфорты руин",
+          "Угольные сапоги"
+        ],
+        "base_stats": {
+          "attack": 0.0,
+          "max_health": 8.0,
+          "defense": 1.0
+        }
+      },
+      {
+        "id": "ring",
+        "name": "Кольцо",
+        "names": [
+          "Кольцо праха",
+          "Печать руин",
+          "Угольный перстень"
+        ],
+        "base_stats": {
+          "attack": 3.0,
+          "max_health": 0.0,
+          "defense": 0.0
+        }
+      },
+      {
+        "id": "amulet",
+        "name": "Амулет",
+        "names": [
+          "Амулет пепла",
+          "Око руин",
+          "Табличка тлеющих"
+        ],
+        "base_stats": {
+          "attack": 1.0,
+          "max_health": 10.0,
+          "defense": 0.0
+        }
+      },
+      {
+        "id": "relic",
+        "name": "Реликвия",
+        "names": [
+          "Реликвия бездны",
+          "Урна праха",
+          "Осколок пожарища"
+        ],
+        "base_stats": {
+          "attack": 4.0,
+          "max_health": 6.0,
+          "defense": 1.0
+        }
+      }
     ],
     "rarities": [
-      {"id": "common", "short": "О", "name": "Обычная", "color": "#9A8CA3", "score": 1, "multiplier": 1.0, "affix_count": 0},
-      {"id": "uncommon", "short": "Н", "name": "Необычная", "color": "#6E8CA8", "score": 2, "multiplier": 1.25, "affix_count": 1},
-      {"id": "rare", "short": "Р", "name": "Редкая", "color": "#B49AC6", "score": 3, "multiplier": 1.6, "affix_count": 1},
-      {"id": "epic", "short": "Э", "name": "Эпическая", "color": "#E08A3C", "score": 4, "multiplier": 2.1, "affix_count": 2},
-      {"id": "legendary", "short": "Л", "name": "Легендарная", "color": "#F4C98A", "score": 5, "multiplier": 2.8, "affix_count": 2},
-      {"id": "mythic", "short": "М", "name": "Мифическая", "color": "#A63D40", "score": 6, "multiplier": 3.8, "affix_count": 3}
+      {
+        "id": "common",
+        "short": "О",
+        "name": "Обычная",
+        "color": "#9A8CA3",
+        "score": 1,
+        "multiplier": 1.0,
+        "affix_count": 0
+      },
+      {
+        "id": "uncommon",
+        "short": "Н",
+        "name": "Необычная",
+        "color": "#6E8CA8",
+        "score": 2,
+        "multiplier": 1.25,
+        "affix_count": 1
+      },
+      {
+        "id": "rare",
+        "short": "Р",
+        "name": "Редкая",
+        "color": "#B49AC6",
+        "score": 3,
+        "multiplier": 1.6,
+        "affix_count": 1
+      },
+      {
+        "id": "epic",
+        "short": "Э",
+        "name": "Эпическая",
+        "color": "#E08A3C",
+        "score": 4,
+        "multiplier": 2.1,
+        "affix_count": 2
+      },
+      {
+        "id": "legendary",
+        "short": "Л",
+        "name": "Легендарная",
+        "color": "#F4C98A",
+        "score": 5,
+        "multiplier": 2.8,
+        "affix_count": 2
+      },
+      {
+        "id": "mythic",
+        "short": "М",
+        "name": "Мифическая",
+        "color": "#A63D40",
+        "score": 6,
+        "multiplier": 3.8,
+        "affix_count": 3
+      }
     ],
     "affixes": [
-      {"id": "health", "stat": "max_health", "name": "здоровье", "min": 2.0, "max": 8.0},
-      {"id": "attack", "stat": "attack", "name": "атака", "min": 1.0, "max": 4.0},
-      {"id": "defense", "stat": "defense", "name": "защита", "min": 1.0, "max": 3.0}
+      {
+        "id": "health",
+        "stat": "max_health",
+        "name": "здоровье",
+        "min": 2.0,
+        "max": 8.0
+      },
+      {
+        "id": "attack",
+        "stat": "attack",
+        "name": "атака",
+        "min": 1.0,
+        "max": 4.0
+      },
+      {
+        "id": "defense",
+        "stat": "defense",
+        "name": "защита",
+        "min": 1.0,
+        "max": 3.0
+      }
     ],
     "summons": {
       "ash": {
@@ -188,7 +549,7 @@
         "batch_size": 10,
         "chances": {
           "common": 0.55,
-          "uncommon": 0.30,
+          "uncommon": 0.3,
           "rare": 0.12,
           "epic": 0.025,
           "legendary": 0.004,
@@ -216,5 +577,209 @@
   },
   "afk": {
     "limit_hours": 12
+  },
+  "attributes": [
+    {
+      "id": "strength",
+      "name": "Сила",
+      "short": "СИЛ",
+      "max_points": 20,
+      "description": "Физическая атака, запас здоровья и защита"
+    },
+    {
+      "id": "agility",
+      "name": "Ловкость",
+      "short": "ЛОВ",
+      "max_points": 20,
+      "description": "Скорость атаки, крит, уклонение и физическая атака"
+    },
+    {
+      "id": "intellect",
+      "name": "Интеллект",
+      "short": "ИНТ",
+      "max_points": 20,
+      "description": "Магическая атака, критический урон и шанс крита"
+    },
+    {
+      "id": "stamina",
+      "name": "Выносливость",
+      "short": "ВЫН",
+      "max_points": 20,
+      "description": "Здоровье, защита и восстановление"
+    },
+    {
+      "id": "spirit",
+      "name": "Дух",
+      "short": "ДУХ",
+      "max_points": 20,
+      "description": "Магия, вампиризм, сопротивление и лечение"
+    }
+  ],
+  "attribute_coefficients": {
+    "magic_attack_weight": 0.65,
+    "health_per_strength": 1.0,
+    "health_per_stamina": 3.0,
+    "health_per_spirit": 1.0,
+    "physical_attack_per_strength": 1.2,
+    "physical_attack_per_agility": 0.35,
+    "magic_attack_per_intellect": 1.1,
+    "magic_attack_per_spirit": 0.4,
+    "defense_per_stamina": 0.6,
+    "defense_per_strength": 0.2,
+    "defense_per_spirit": 0.2,
+    "crit_chance_per_agility": 0.006,
+    "crit_chance_per_intellect": 0.002,
+    "critical_multiplier_per_intellect": 0.015,
+    "attack_speed_per_agility": 0.015,
+    "lifesteal_per_spirit": 0.004,
+    "dodge_per_agility": 0.004,
+    "resistance_per_spirit": 0.005,
+    "health_regen_per_stamina": 0.18,
+    "health_regen_per_spirit": 0.12
+  },
+  "skill_variants": {
+    "power": {
+      "name": "Мощь",
+      "effect_multiplier": 1.18,
+      "cooldown_multiplier": 1.05
+    },
+    "haste": {
+      "name": "Темп",
+      "effect_multiplier": 0.95,
+      "cooldown_multiplier": 0.78
+    }
+  },
+  "passives": {
+    "ashen_endurance": {
+      "name": "Пепельная стойкость",
+      "description": "Здоровье, защита и сопротивление",
+      "unlock_level": 2,
+      "max_level": 5,
+      "bonuses": {
+        "max_health": 6.0,
+        "defense": 0.5,
+        "resistance": 0.01
+      },
+      "short": "СТОЙКОСТЬ"
+    },
+    "cinder_precision": {
+      "name": "Точность угля",
+      "description": "Физическая атака, шанс и сила крита",
+      "unlock_level": 2,
+      "max_level": 5,
+      "bonuses": {
+        "physical_attack": 1.0,
+        "crit_chance": 0.01,
+        "critical_multiplier": 0.03
+      },
+      "short": "ТОЧНОСТЬ"
+    },
+    "spirit_embrace": {
+      "name": "Объятие духа",
+      "description": "Магия, вампиризм и восстановление",
+      "unlock_level": 3,
+      "max_level": 5,
+      "bonuses": {
+        "magic_attack": 1.0,
+        "lifesteal": 0.008,
+        "health_regen": 0.4
+      },
+      "short": "ДУХ"
+    }
+  },
+  "pets": {
+    "ash_fox": {
+      "name": "Пепельная лиса",
+      "description": "Быстрая спутница с укусом и критом",
+      "unlock_stage": 1,
+      "max_level": 5,
+      "base_bonuses": {
+        "physical_attack": 1.5,
+        "magic_attack": 0.5,
+        "crit_chance": 0.01
+      },
+      "per_level_bonuses": {
+        "physical_attack": 0.6,
+        "magic_attack": 0.2,
+        "crit_chance": 0.003
+      },
+      "assist": {
+        "name": "Укус лисы",
+        "attack_ratio": 0.25,
+        "interval_seconds": 2.5
+      },
+      "short": "ЛИСА"
+    },
+    "cinder_hound": {
+      "name": "Угольный пёс",
+      "description": "Стойкий защитник с тяжёлым рывком",
+      "unlock_stage": 3,
+      "max_level": 5,
+      "base_bonuses": {
+        "max_health": 12.0,
+        "defense": 1.0,
+        "physical_attack": 0.8
+      },
+      "per_level_bonuses": {
+        "max_health": 4.0,
+        "defense": 0.4,
+        "physical_attack": 0.3
+      },
+      "assist": {
+        "name": "Рывок пса",
+        "attack_ratio": 0.35,
+        "interval_seconds": 3.0
+      },
+      "short": "ПЁС"
+    },
+    "rune_owl": {
+      "name": "Рунная сова",
+      "description": "Магический страж с рунной вспышкой",
+      "unlock_stage": 5,
+      "max_level": 5,
+      "base_bonuses": {
+        "magic_attack": 2.0,
+        "lifesteal": 0.01,
+        "resistance": 0.015
+      },
+      "per_level_bonuses": {
+        "magic_attack": 0.8,
+        "lifesteal": 0.004,
+        "resistance": 0.005
+      },
+      "assist": {
+        "name": "Рунная вспышка",
+        "attack_ratio": 0.45,
+        "interval_seconds": 3.5
+      },
+      "short": "СОВА"
+    }
+  },
+  "balance": {
+    "stage_power_targets": [
+      85.0,
+      105.0,
+      135.0,
+      165.0,
+      210.0
+    ],
+    "tolerance": 0.45,
+    "power_weights": {
+      "max_health": 0.25,
+      "physical_attack": 2.0,
+      "magic_attack": 1.3,
+      "defense": 1.5,
+      "crit_chance": 100.0,
+      "critical_multiplier": 10.0,
+      "attack_speed": 20.0,
+      "lifesteal": 100.0,
+      "dodge": 100.0,
+      "resistance": 100.0,
+      "health_regen": 1.0
+    },
+    "auto_battle": {
+      "max_skill_share": 0.5,
+      "min_stage_duration_seconds": 8
+    }
   }
 }

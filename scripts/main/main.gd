@@ -1,12 +1,13 @@
 extends Control
 
-# Компактный экран кампании и экипировки: здоровье героя и противника
-# в одной строке, этапы, награды, Алтарь призыва и инвентарь. Все кнопки
-# связаны с рабочим состоянием CampaignState и EquipmentState.
+# Компактный экран кампании, экипировки и прогрессии: здоровье героя и
+# противника в одной строке, этапы, награды, Алтарь призыва, инвентарь,
+# характеристики, навыки и питомцы. Все кнопки связаны с рабочим состоянием.
 
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignState = preload("res://scripts/campaign/campaign_state.gd")
 const EquipmentCatalog = preload("res://scripts/equipment/equipment_catalog.gd")
+const ProgressionCatalog = preload("res://scripts/progression/progression_catalog.gd")
 const AshenStyle = preload("res://scripts/ui/ashen_style.gd")
 
 var title_label: Label
@@ -52,6 +53,22 @@ var dismantle_button: Button
 var auto_equip_button: Button
 var mass_dismantle_button: Button
 var equipment_hint_label: Label
+var progression_button: Button
+var progression_panel: PanelContainer
+var progression_wallet_label: Label
+var progression_power_label: Label
+var attribute_buttons: Dictionary = {}
+var attribute_hint_label: Label
+var progression_skill_list: ItemList
+var progression_skill_details: Label
+var skill_upgrade_button: Button
+var skill_auto_button: Button
+var skill_variant_button: Button
+var passive_buttons: Dictionary = {}
+var pet_buttons: Dictionary = {}
+var progression_pet_details: Label
+var pet_upgrade_button: Button
+var progression_hint_label: Label
 var strike_button: Button
 var guard_button: Button
 var action_button: Button
@@ -64,8 +81,11 @@ var balance: Dictionary = {}
 var log_lines: PackedStringArray = PackedStringArray()
 var initialized: bool = false
 var equipment_visible: bool = false
+var progression_visible: bool = false
 var selected_summon_id: String = "ash"
 var selected_item_id: String = ""
+var selected_skill_id: String = ""
+var selected_pet_id: String = ""
 var force_dismantle_item_id: String = ""
 var force_dismantle_deadline_ms: int = 0
 
@@ -91,12 +111,16 @@ func setup(data: Dictionary) -> void:
 	_connect_battle_signals()
 	_connect_ui_signals()
 	_populate_filters()
+	_populate_progression()
 	var summon_ids: Array = campaign.equipment.get_summon_ids()
 	if summon_ids.size() > 0:
 		selected_summon_id = str(summon_ids[0])
+	var skill_ids: Array = campaign.get_skill_ids()
+	if skill_ids.size() > 0:
+		selected_skill_id = str(skill_ids[0])
 	_add_log("Этап %d: %s" % [campaign.stage_number(), str(campaign.current_stage().get("name", ""))])
 	_update_view()
-	print("Игровой цикл и экипировка запущены: этапов %d, текущий этап %d" % [campaign.stage_count(), campaign.stage_number()])
+	print("Игровой цикл, экипировка и прогрессия запущены: этапов %d, текущий этап %d" % [campaign.stage_count(), campaign.stage_number()])
 
 
 func _bind_nodes() -> void:
@@ -143,6 +167,19 @@ func _bind_nodes() -> void:
 	auto_equip_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2/AutoEquipButton")
 	mass_dismantle_button = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2/MassDismantleButton")
 	equipment_hint_label = get_node("Margin/Panel/EquipmentPanel/EquipmentBox/EquipmentHintLabel")
+	progression_button = get_node("Margin/Panel/MenuRow/ProgressionButton")
+	progression_panel = get_node("Margin/Panel/ProgressionPanel")
+	progression_wallet_label = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow/ProgressionWalletLabel")
+	progression_power_label = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow/ProgressionPowerLabel")
+	attribute_hint_label = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/AttributeHintLabel")
+	progression_skill_list = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillList")
+	progression_skill_details = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillDetails")
+	skill_upgrade_button = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow/SkillUpgradeButton")
+	skill_auto_button = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow/SkillAutoButton")
+	skill_variant_button = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow/SkillVariantButton")
+	progression_pet_details = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetDetails")
+	pet_upgrade_button = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetActionsRow/PetUpgradeButton")
+	progression_hint_label = get_node("Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetActionsRow/ProgressionHintLabel")
 	strike_button = get_node("Margin/Panel/SkillRow/StrikeButton")
 	guard_button = get_node("Margin/Panel/SkillRow/GuardButton")
 	action_button = get_node("Margin/Panel/ActionButton")
@@ -165,6 +202,7 @@ func _load_data() -> Dictionary:
 func _apply_styles() -> void:
 	health_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
 	equipment_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
+	progression_panel.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
 	log_card.add_theme_stylebox_override("panel", AshenStyle.compact_panel_style())
 	action_button.add_theme_stylebox_override("normal", AshenStyle.action_button_style())
 	for bar in [hero_health_bar, enemy_health_bar, shield_bar, experience_bar]:
@@ -191,6 +229,12 @@ func _apply_styles() -> void:
 	history_label.add_theme_color_override("font_color", AshenStyle.MUTED)
 	item_details.add_theme_color_override("font_color", AshenStyle.PARCHMENT)
 	equipment_hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
+	progression_wallet_label.add_theme_color_override("font_color", AshenStyle.MUTED)
+	progression_power_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	attribute_hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
+	progression_skill_details.add_theme_color_override("font_color", AshenStyle.PARCHMENT)
+	progression_pet_details.add_theme_color_override("font_color", AshenStyle.PARCHMENT)
+	progression_hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
 	battle_log.add_theme_color_override("font_color", AshenStyle.PARCHMENT)
 	hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
 
@@ -204,6 +248,9 @@ func _connect_battle_signals() -> void:
 	battle.hero_defeated.connect(_on_hero_defeated)
 	battle.skill_used.connect(_on_skill_used)
 	battle.shield_changed.connect(_on_shield_changed)
+	battle.pet_attack.connect(_on_pet_attack)
+	battle.hero_healed.connect(_on_hero_healed)
+	battle.attack_dodged.connect(_on_attack_dodged)
 
 
 func _connect_ui_signals() -> void:
@@ -211,6 +258,12 @@ func _connect_ui_signals() -> void:
 	guard_button.pressed.connect(_on_guard_pressed)
 	action_button.pressed.connect(_on_action_pressed)
 	equipment_button.pressed.connect(_on_equipment_toggle_pressed)
+	progression_button.pressed.connect(_on_progression_toggle_pressed)
+	progression_skill_list.item_selected.connect(_on_skill_selected)
+	skill_upgrade_button.pressed.connect(_on_skill_upgrade_pressed)
+	skill_auto_button.pressed.connect(_on_skill_auto_pressed)
+	skill_variant_button.pressed.connect(_on_skill_variant_pressed)
+	pet_upgrade_button.pressed.connect(_on_pet_upgrade_pressed)
 	summon_type_button.pressed.connect(_on_summon_type_pressed)
 	summon_one_button.pressed.connect(_on_summon_one_pressed)
 	summon_ten_button.pressed.connect(_on_summon_ten_pressed)
@@ -247,6 +300,47 @@ func _populate_filters() -> void:
 	affix_filter.select(0)
 
 
+func _populate_progression() -> void:
+	attribute_buttons.clear()
+	passive_buttons.clear()
+	pet_buttons.clear()
+	var attribute_ids: Array = ProgressionCatalog.attribute_ids(balance)
+	var attribute_paths: Array = [
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/StrengthButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/AgilityButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/IntellectButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/StaminaButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/SpiritButton",
+	]
+	for index in range(mini(attribute_ids.size(), attribute_paths.size())):
+		var attribute_id: String = str(attribute_ids[index])
+		var attribute_button: Button = get_node(str(attribute_paths[index])) as Button
+		attribute_buttons[attribute_id] = attribute_button
+		attribute_button.pressed.connect(_on_attribute_pressed.bind(attribute_id))
+	var passive_paths: Array = [
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow/PassiveEnduranceButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow/PassivePrecisionButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow/PassiveSpiritButton",
+	]
+	var passive_ids: Array = campaign.get_passive_ids()
+	for index in range(mini(passive_ids.size(), passive_paths.size())):
+		var passive_id: String = str(passive_ids[index])
+		var passive_button: Button = get_node(str(passive_paths[index])) as Button
+		passive_buttons[passive_id] = passive_button
+		passive_button.pressed.connect(_on_passive_pressed.bind(passive_id))
+	var pet_paths: Array = [
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PetRow/PetFoxButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PetRow/PetHoundButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PetRow/PetOwlButton",
+	]
+	var pet_ids: Array = campaign.get_pet_ids()
+	for index in range(mini(pet_ids.size(), pet_paths.size())):
+		var pet_id: String = str(pet_ids[index])
+		var pet_button: Button = get_node(str(pet_paths[index])) as Button
+		pet_buttons[pet_id] = pet_button
+		pet_button.pressed.connect(_on_pet_selected.bind(pet_id))
+
+
 func _process(delta: float) -> void:
 	if not initialized:
 		return
@@ -266,7 +360,7 @@ func _update_view() -> void:
 	experience_bar.value = float(summary["experience"])
 	gold_label.text = "ЗОЛОТО %d" % int(summary["gold"])
 	materials_label.text = "ПЕПЕЛ %d" % int(summary["materials"])
-	equipment_power_label.text = "СИЛА ЭКИПИРОВКИ %.0f" % float(summary["equipment_power"])
+	equipment_power_label.text = "СИЛА %.0f" % float(summary["equipment_power"])
 	if battle == null:
 		hero_label.text = "ГЕРОЙ —"
 		enemy_label.text = "ВРАГ —"
@@ -332,6 +426,8 @@ func _update_view() -> void:
 			action_button.text = "НОВЫЙ ПОХОД"
 	if equipment_visible:
 		_refresh_equipment_ui()
+	if progression_visible:
+		_refresh_progression_ui()
 
 
 func _on_equipment_toggle_pressed() -> void:
@@ -339,6 +435,9 @@ func _on_equipment_toggle_pressed() -> void:
 	equipment_panel.visible = equipment_visible
 	_clear_force_dismantle()
 	if equipment_visible:
+		progression_visible = false
+		progression_panel.visible = false
+		progression_button.text = "ПРОГРЕССИЯ"
 		equipment_button.text = "СКРЫТЬ ЭКИПИРОВКУ"
 		_refresh_equipment_ui()
 	else:
@@ -595,6 +694,243 @@ func _refresh_item_details() -> void:
 	mass_dismantle_button.disabled = false
 
 
+func _on_progression_toggle_pressed() -> void:
+	progression_visible = not progression_visible
+	progression_panel.visible = progression_visible
+	if progression_visible:
+		equipment_visible = false
+		equipment_panel.visible = false
+		equipment_button.text = "ЭКИПИРОВКА"
+		_clear_force_dismantle()
+		progression_button.text = "СКРЫТЬ ПРОГРЕССИЮ"
+		_refresh_progression_ui()
+	else:
+		progression_button.text = "ПРОГРЕССИЯ"
+
+
+func _refresh_progression_ui() -> void:
+	if not progression_visible:
+		return
+	if selected_pet_id == "":
+		selected_pet_id = str(campaign.development.selected_pet_id)
+	var summary: Dictionary = campaign.get_summary()
+	var report: Dictionary = campaign.get_balance_report()
+	var auto_report: Dictionary = campaign.get_auto_battle_report()
+	progression_wallet_label.text = "%s · Х %d · Н %d" % [
+		str(summary.get("class_name", "")),
+		int(summary.get("attribute_points", 0)),
+		int(summary.get("skill_points", 0)),
+	]
+	progression_power_label.text = "БАЛАНС %.2f · АВТО %d/%d · %.0f/%.0fС" % [
+		float(report.get("ratio", 0.0)),
+		int(auto_report.get("auto_skill_count", 0)),
+		int(auto_report.get("total_skill_count", 0)),
+		float(auto_report.get("stage_duration", 0.0)),
+		float(auto_report.get("min_stage_duration", 0.0)),
+	]
+	for attribute_id in ProgressionCatalog.attribute_ids(balance):
+		var id: String = str(attribute_id)
+		if not attribute_buttons.has(id):
+			continue
+		var button: Button = attribute_buttons[id] as Button
+		var points: int = campaign.development.get_attribute_points(id)
+		button.text = ProgressionCatalog.attribute_button_text(balance, id, points)
+		button.disabled = campaign.development.attribute_points <= 0 or points >= ProgressionCatalog.attribute_max_points(balance, id)
+	_refresh_skill_list()
+	_refresh_skill_details()
+	_refresh_passive_buttons()
+	_refresh_pet_buttons()
+	_refresh_pet_details()
+	progression_hint_label.text = "%s. Характеристики и бонусы питомца — со следующего этапа" % str(auto_report.get("status", ""))
+
+
+func _refresh_skill_list() -> void:
+	progression_skill_list.clear()
+	var selected_index: int = -1
+	for skill_id in campaign.get_skill_ids():
+		var id: String = str(skill_id)
+		var view: Dictionary = campaign.get_skill_view(id)
+		var locked_mark: String = "" if bool(view.get("unlocked", false)) else " [УР.%d]" % int(view.get("unlock_level", 1))
+		var auto_mark: String = " [А]" if bool(view.get("auto_use", false)) else ""
+		var line: String = "%s · ур.%d/%d · %s%s%s" % [
+			str(view.get("name", id)),
+			int(view.get("level", 1)),
+			int(view.get("max_level", 5)),
+			str(view.get("variant_name", "")),
+			auto_mark,
+			locked_mark,
+		]
+		var index: int = progression_skill_list.add_item(line)
+		progression_skill_list.set_item_metadata(index, id)
+		progression_skill_list.set_item_custom_fg_color(index, AshenStyle.PARCHMENT if bool(view.get("unlocked", false)) else AshenStyle.MUTED)
+		if id == selected_skill_id:
+			selected_index = index
+	if selected_index >= 0:
+		progression_skill_list.select(selected_index)
+
+
+func _refresh_skill_details() -> void:
+	var view: Dictionary = campaign.get_skill_view(selected_skill_id)
+	if view.is_empty() or not bool(view.get("unlocked", false)):
+		progression_skill_details.text = "%s · откроется на ур. %d" % [
+			str(view.get("name", "Навык")),
+			int(view.get("unlock_level", 1)),
+		]
+		skill_upgrade_button.text = "ЗАКРЫТ"
+		skill_upgrade_button.disabled = true
+		skill_auto_button.text = "АВТО"
+		skill_auto_button.disabled = true
+		skill_variant_button.text = "ВАРИАНТ"
+		skill_variant_button.disabled = true
+		return
+	var cost: Dictionary = view.get("cost", {}) as Dictionary
+	var cost_valid: bool = bool(cost.get("valid", false))
+	var cost_gold: int = int(cost.get("gold", 0))
+	var cost_materials: int = int(cost.get("materials", 0))
+	var cost_points: int = int(cost.get("skill_points", 0))
+	progression_skill_details.text = "%s · ур. %d/%d · %s · КД %.1f\n%s\nАвто: %s" % [
+		str(view.get("name", "Навык")),
+		int(view.get("level", 1)),
+		int(view.get("max_level", 5)),
+		str(view.get("variant_name", "")),
+		float(view.get("cooldown_seconds", 0.0)),
+		str(view.get("description", "")),
+		"вкл" if bool(view.get("auto_use", false)) else "выкл",
+	]
+	skill_upgrade_button.text = "УЛУЧШИТЬ %d/%d" % [cost_gold, cost_materials] if cost_valid else "ПРЕДЕЛ"
+	skill_upgrade_button.disabled = not cost_valid or campaign.development.skill_points < cost_points or campaign.gold < cost_gold or campaign.materials < cost_materials
+	skill_auto_button.text = "АВТО ВКЛ" if bool(view.get("auto_use", false)) else "АВТО ВЫКЛ"
+	skill_auto_button.disabled = false
+	skill_variant_button.text = "ВАРИАНТ: " + str(view.get("variant_name", "")).to_upper()
+	skill_variant_button.disabled = false
+
+
+func _refresh_passive_buttons() -> void:
+	for passive_id in campaign.get_passive_ids():
+		var id: String = str(passive_id)
+		if not passive_buttons.has(id):
+			continue
+		var view: Dictionary = campaign.get_passive_view(id)
+		var passive: Dictionary = ProgressionCatalog.passive_by_id(balance, id)
+		var short: String = str(passive.get("short", str(view.get("name", id))))
+		var button: Button = passive_buttons[id] as Button
+		var cost: Dictionary = view.get("cost", {}) as Dictionary
+		if not bool(view.get("unlocked", false)):
+			button.text = "[УР.%d] %s" % [int(view.get("unlock_level", 1)), short]
+			button.disabled = true
+			continue
+		button.text = "%s %d/%d" % [short, int(view.get("level", 0)), int(view.get("max_level", 5))]
+		button.disabled = not bool(cost.get("valid", false)) or campaign.development.skill_points < int(cost.get("skill_points", 0)) or campaign.gold < int(cost.get("gold", 0)) or campaign.materials < int(cost.get("materials", 0))
+
+
+func _refresh_pet_buttons() -> void:
+	for pet_id in campaign.get_pet_ids():
+		var id: String = str(pet_id)
+		if not pet_buttons.has(id):
+			continue
+		var view: Dictionary = campaign.get_pet_view(id)
+		var pet: Dictionary = ProgressionCatalog.pet_by_id(balance, id)
+		var short: String = str(pet.get("short", str(view.get("name", id))))
+		var button: Button = pet_buttons[id] as Button
+		if not bool(view.get("unlocked", false)):
+			button.text = "[ЭТАП %d] %s" % [int(view.get("unlock_stage", 1)), short]
+			button.disabled = true
+			continue
+		var mark: String = "[В] " if bool(view.get("selected", false)) else ""
+		button.text = "%s%s %d" % [mark, short, int(view.get("level", 0))]
+		button.disabled = false
+
+
+func _refresh_pet_details() -> void:
+	if selected_pet_id == "":
+		progression_pet_details.text = "Питомец не выбран"
+		pet_upgrade_button.text = "УЛУЧШИТЬ"
+		pet_upgrade_button.disabled = true
+		return
+	var view: Dictionary = campaign.get_pet_view(selected_pet_id)
+	var cost: Dictionary = view.get("cost", {}) as Dictionary
+	var cost_valid: bool = bool(cost.get("valid", false))
+	var cost_gold: int = int(cost.get("gold", 0))
+	var cost_materials: int = int(cost.get("materials", 0))
+	progression_pet_details.text = "%s · ур. %d/%d · %s" % [
+		str(view.get("name", "Питомец")),
+		int(view.get("level", 0)),
+		int(view.get("max_level", 5)),
+		str(view.get("description", "")),
+	]
+	pet_upgrade_button.text = "УЛУЧШИТЬ %d/%d" % [cost_gold, cost_materials] if cost_valid else "ПРЕДЕЛ"
+	pet_upgrade_button.disabled = not cost_valid or campaign.gold < cost_gold or campaign.materials < cost_materials
+
+
+func _on_attribute_pressed(attribute_id: String) -> void:
+	var id: String = str(attribute_id)
+	if campaign.allocate_attribute(id):
+		var attribute: Dictionary = ProgressionCatalog.attribute_by_id(balance, id)
+		_add_log("Характеристика: %s" % str(attribute.get("name", id)))
+	else:
+		_add_log("Очко характеристики недоступно")
+	_update_view()
+
+
+func _on_skill_selected(index: int) -> void:
+	selected_skill_id = str(progression_skill_list.get_item_metadata(index))
+	_refresh_skill_details()
+
+
+func _on_skill_upgrade_pressed() -> void:
+	var result: Dictionary = campaign.upgrade_skill(selected_skill_id)
+	if bool(result.get("success", false)):
+		_add_log("Навык улучшен: −%d золота, −%d пепла" % [int(result.get("gold", 0)), int(result.get("materials", 0))])
+	else:
+		_add_log("Навык не улучшен: %s" % str(result.get("reason", "")))
+	_update_view()
+
+
+func _on_skill_auto_pressed() -> void:
+	var enabled: bool = campaign.toggle_skill_auto(selected_skill_id)
+	_add_log("Авто-навык: %s" % ("вкл" if enabled else "выкл"))
+	_update_view()
+
+
+func _on_skill_variant_pressed() -> void:
+	var variant: String = campaign.cycle_skill_variant(selected_skill_id)
+	if variant != "":
+		_add_log("Вариант навыка изменён")
+	_update_view()
+
+
+func _on_passive_pressed(passive_id: String) -> void:
+	var result: Dictionary = campaign.upgrade_passive(str(passive_id))
+	if bool(result.get("success", false)):
+		_add_log("Пассивная способность улучшена")
+	else:
+		_add_log("Способность не улучшена: %s" % str(result.get("reason", "")))
+	_update_view()
+
+
+func _on_pet_selected(pet_id: String) -> void:
+	var id: String = str(pet_id)
+	if campaign.select_pet(id):
+		selected_pet_id = id
+		var pet: Dictionary = ProgressionCatalog.pet_by_id(balance, id)
+		_add_log("Питомец выбран: %s" % str(pet.get("name", id)))
+	else:
+		_add_log("Питомец ещё не открыт")
+	_update_view()
+
+
+func _on_pet_upgrade_pressed() -> void:
+	if selected_pet_id == "":
+		_add_log("Сначала выберите питомца")
+		return
+	var result: Dictionary = campaign.upgrade_pet(selected_pet_id)
+	if bool(result.get("success", false)):
+		_add_log("Питомец улучшен: −%d золота, −%d пепла" % [int(result.get("gold", 0)), int(result.get("materials", 0))])
+	else:
+		_add_log("Питомец не улучшен: %s" % str(result.get("reason", "")))
+	_update_view()
+
+
 func _on_strike_pressed() -> void:
 	campaign.use_skill("heavy_strike")
 
@@ -616,6 +952,7 @@ func _on_action_pressed() -> void:
 		CampaignState.STATUS_COMPLETE:
 			if campaign.restart_campaign():
 				_connect_battle_signals()
+				selected_pet_id = ""
 				_add_log("Новый поход: этап 1")
 	_update_view()
 
@@ -630,7 +967,11 @@ func _on_stage_finished() -> void:
 				int(reward.get("materials", 0)),
 			])
 			if int(reward.get("levels", 0)) > 0:
-				_add_log("Новый уровень: %d" % campaign.level)
+				_add_log("Новый уровень: %d · +%d Х, +%d Н" % [
+					campaign.level,
+					int(reward.get("attribute_points", 0)),
+					int(reward.get("skill_points", 0)),
+				])
 		CampaignState.STATUS_DEFEAT:
 			_add_log("Герой пал. Повторить этап?")
 		CampaignState.STATUS_COMPLETE:
@@ -665,6 +1006,19 @@ func _on_shield_changed(amount: float) -> void:
 
 func _on_boss_phase_started(enemy_name: String, phase_name: String) -> void:
 	_add_log("%s: %s" % [enemy_name, phase_name])
+
+
+func _on_pet_attack(pet_name: String, assist_name: String, amount: float) -> void:
+	_add_log("%s: %s −%.0f" % [pet_name, assist_name, amount])
+
+
+func _on_hero_healed(amount: float) -> void:
+	if amount >= 1.0:
+		_add_log("Восстановление: +%.0f" % amount)
+
+
+func _on_attack_dodged(target_name: String) -> void:
+	_add_log("Уклонение: %s" % target_name)
 
 
 func _add_log(line: String) -> void:

@@ -97,6 +97,22 @@ jobs:
             echo "Главная сцена ещё не настроена — пробный запуск пропущен."
           fi
 
+      - name: Точечные проверки игровой логики
+        if: needs.detect.outputs.has_project == 'true'
+        run: |
+          set -euo pipefail
+          for test_script in tests/test_combat.gd tests/test_campaign.gd tests/test_equipment.gd tests/test_progression.gd tests/test_ui.gd; do
+            name="$(basename "$test_script")"
+            log="/tmp/${name}.log"
+            echo "::group::$name"
+            timeout 180 godot --headless --path . --script "$test_script" 2>&1 | tee "$log"
+            if grep -qE 'SCRIPT ERROR|Parse Error|ERROR:|leaked|still in use' "$log"; then
+              echo "::error::Ошибки в проверке $name"
+              exit 1
+            fi
+            echo "::endgroup::"
+          done
+
       - name: Итог
         run: |
           echo "Проверка репозитория завершена успешно"

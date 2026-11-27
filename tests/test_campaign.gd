@@ -35,7 +35,7 @@ func _check(name: String, condition: bool) -> void:
 
 
 func _test_campaign_data(data: Dictionary) -> void:
-	_check("Версия баланса обновлена", int(data.get("version", 0)) == 4)
+	_check("Версия баланса обновлена", int(data.get("version", 0)) == 5)
 	var stages: Array = CampaignCatalog.stages(data)
 	_check("Кампания содержит пять этапов", stages.size() == 5)
 	var enemies: Dictionary = data.get("enemies", {}) as Dictionary
@@ -131,6 +131,12 @@ func _test_defeat_and_retry(data: Dictionary) -> void:
 	var weak_hero: Dictionary = weak_data.get("hero", {}) as Dictionary
 	weak_hero["max_health"] = 1
 	weak_hero["attack"] = 1
+	weak_hero["physical_attack"] = 1
+	weak_hero["magic_attack"] = 0
+	weak_hero["crit_chance"] = 0
+	weak_hero["critical_multiplier"] = 1.0
+	weak_hero["dodge"] = 0.0
+	weak_hero["health_regen"] = 0.0
 	weak_data["hero"] = weak_hero
 	var state = CampaignState.new(weak_data)
 	for step in range(10):

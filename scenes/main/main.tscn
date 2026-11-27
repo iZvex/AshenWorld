@@ -210,20 +210,27 @@ horizontal_alignment = 1
 [node name="MenuRow" type="HBoxContainer" parent="Margin/Panel"]
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="EquipmentButton" type="Button" parent="Margin/Panel/MenuRow"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "ЭКИПИРОВКА"
 
-[node name="EquipmentPowerLabel" type="Label" parent="Margin/Panel/MenuRow"]
-custom_minimum_size = Vector2(220, 0)
+[node name="ProgressionButton" type="Button" parent="Margin/Panel/MenuRow"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "СИЛА ЭКИПИРОВКИ 0"
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "ПРОГРЕССИЯ"
+
+[node name="EquipmentPowerLabel" type="Label" parent="Margin/Panel/MenuRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "СИЛА 0"
 horizontal_alignment = 2
 
 [node name="EquipmentPanel" type="PanelContainer" parent="Margin/Panel"]
@@ -389,6 +396,196 @@ text = "РАЗОБРАТЬ НИЗШЕЕ"
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 text = "Бонусы экипировки применяются со следующего этапа"
+autowrap_mode = 2
+
+[node name="ProgressionPanel" type="PanelContainer" parent="Margin/Panel"]
+visible = false
+custom_minimum_size = Vector2(0, 420)
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="ProgressionBox" type="VBoxContainer" parent="Margin/Panel/ProgressionPanel"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="ProgressionTopRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="ProgressionWalletLabel" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "ОЧКИ 0/0"
+
+[node name="ProgressionPowerLabel" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "БАЛАНС 1.00"
+horizontal_alignment = 2
+
+[node name="AttributeRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="StrengthButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "СИЛ 0"
+
+[node name="AgilityButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "ЛОВ 0"
+
+[node name="IntellectButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "ИНТ 0"
+
+[node name="StaminaButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "ВЫН 0"
+
+[node name="SpiritButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "ДУХ 0"
+
+[node name="AttributeHintLabel" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Каждая характеристика влияет на несколько параметров; после 10 очков рост замедляется"
+autowrap_mode = 2
+
+[node name="ProgressionSkillList" type="ItemList" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
+custom_minimum_size = Vector2(0, 92)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 12
+select_mode = 0
+
+[node name="ProgressionSkillDetails" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Выберите навык"
+autowrap_mode = 2
+
+[node name="ProgressionSkillActionsRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="SkillUpgradeButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "УЛУЧШИТЬ"
+
+[node name="SkillAutoButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "АВТО"
+
+[node name="SkillVariantButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "ВАРИАНТ"
+
+[node name="PassiveRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="PassiveEnduranceButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "СТОЙКОСТЬ 0"
+
+[node name="PassivePrecisionButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "ТОЧНОСТЬ 0"
+
+[node name="PassiveSpiritButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "ДУХ 0"
+
+[node name="PetRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="PetFoxButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PetRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "ЛИСА"
+
+[node name="PetHoundButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PetRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "ПЁС"
+
+[node name="PetOwlButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/PetRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "СОВА"
+
+[node name="ProgressionPetDetails" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Питомец не выбран"
+autowrap_mode = 2
+
+[node name="ProgressionPetActionsRow" type="HBoxContainer" parent="Margin/Panel/ProgressionPanel/ProgressionBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="PetUpgradeButton" type="Button" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetActionsRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "УЛУЧШИТЬ"
+
+[node name="ProgressionHintLabel" type="Label" parent="Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetActionsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Характеристики и бонусы питомца — со следующего этапа; навыки и помощь питомца — сразу"
 autowrap_mode = 2
 
 [node name="SkillRow" type="HBoxContainer" parent="Margin/Panel"]

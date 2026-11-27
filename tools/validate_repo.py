@@ -7,7 +7,7 @@
 Проверяет только то, что можно проверить без движка:
   * целостность спецификации README.md;
   * синтаксис описаний сборок и файлов данных;
-  * целостность данных кампании и экипировки;
+  * целостность данных кампании, экипировки и прогрессии;
   * конфликтные маркеры и переводы строк в скриптах GDScript;
   * базовую структуру project.godot, когда он появится.
 """
@@ -98,8 +98,8 @@ if balance_file.is_file():
         balance = {}
         err(f"data/balance.json: некорректные данные кампании: {exc}")
     if isinstance(balance, dict):
-        if int(balance.get("version", 0)) < 4:
-            err("data/balance.json: для экипировки ожидается версия баланса не ниже 4")
+        if int(balance.get("version", 0)) < 5:
+            err("data/balance.json: для прогрессии ожидается версия баланса не ниже 5")
         campaign = balance.get("campaign", {})
         stages = campaign.get("stages", []) if isinstance(campaign, dict) else []
         enemies = balance.get("enemies", {}) if isinstance(balance.get("enemies", {}), dict) else {}
@@ -198,6 +198,96 @@ if isinstance(balance, dict):
                 if rarity_id not in gold_map or rarity_id not in materials_map:
                     err(f"data/balance.json: нет награды за разбор редкости {rarity_id}")
     notes.append(f"Экипировка: слотов {len(slots)}, редкостей {len(rarities)}, призывов {len(summons)}")
+
+# --- 5.1. Данные прогрессии пятого этапа -----------------------------------
+progression = balance.get("progression", {})
+attributes = balance.get("attributes", [])
+coefficients = balance.get("attribute_coefficients", {})
+skills = balance.get("skills", {})
+variants = balance.get("skill_variants", {})
+passives = balance.get("passives", {})
+pets = balance.get("pets", {})
+balance_settings = balance.get("balance", {})
+if not isinstance(progression, dict):
+    err("data/balance.json: раздел progression должен быть объектом")
+    progression = {}
+for key in ("starting_attribute_points", "starting_skill_points", "attribute_points_per_level", "skill_points_per_level", "attribute_soft_cap"):
+    if int(progression.get(key, -1)) < 0:
+        err(f"data/balance.json: параметр progression.{key} должен быть неотрицательным")
+for key in ("skill_upgrade", "passive_upgrade", "pet_upgrade"):
+    upgrade = progression.get(key, {})
+    if not isinstance(upgrade, dict) or int(upgrade.get("gold_base", 0)) <= 0 or int(upgrade.get("materials_base", 0)) <= 0:
+        err(f"data/balance.json: некорректная стоимость улучшения progression.{key}")
+if not isinstance(attributes, list) or len(attributes) != 5:
+    err("data/balance.json: должно быть ровно пять базовых характеристик")
+    attributes = []
+attribute_ids: set[str] = set()
+for attribute in attributes:
+    if not isinstance(attribute, dict):
+        err("data/balance.json: характеристика должна быть объектом")
+        continue
+    attribute_id = str(attribute.get("id", ""))
+    if not attribute_id or attribute_id in attribute_ids or not str(attribute.get("name", "")) or not str(attribute.get("short", "")):
+        err(f"data/balance.json: у характеристики {attribute_id!r} нет уникального идентификатора или русских подписей")
+    attribute_ids.add(attribute_id)
+    if int(attribute.get("max_points", 0)) <= 0:
+        err(f"data/balance.json: у характеристики {attribute_id} некорректный предел очков")
+if not isinstance(coefficients, dict) or not coefficients:
+    err("data/balance.json: отсутствуют коэффициенты характеристик")
+    coefficients = {}
+for key, value in coefficients.items():
+    if float(value) <= 0.0:
+        err(f"data/balance.json: коэффициент {key} должен быть положительным")
+if not isinstance(skills, dict) or len(skills) != 6:
+    err("data/balance.json: должно быть ровно шесть активных навыков")
+    skills = {}
+for skill_id, skill in skills.items():
+    if not isinstance(skill, dict) or not str(skill.get("name", "")) or float(skill.get("cooldown_seconds", 0)) <= 0.0 or int(skill.get("max_level", 0)) <= 0 or "auto_use" not in skill:
+        err(f"data/balance.json: у навыка {skill_id} некорректные название, откат, предел или авто-режим")
+if not isinstance(variants, dict) or len(variants) != 2:
+    err("data/balance.json: должно быть ровно два варианта развития навыков")
+    variants = {}
+for variant_id, variant in variants.items():
+    if not isinstance(variant, dict) or float(variant.get("effect_multiplier", 0)) <= 0.0 or float(variant.get("cooldown_multiplier", 0)) <= 0.0:
+        err(f"data/balance.json: у варианта {variant_id} некорректные множители")
+if not isinstance(passives, dict) or len(passives) != 3:
+    err("data/balance.json: должно быть ровно три пассивные способности")
+    passives = {}
+for passive_id, passive in passives.items():
+    bonuses = passive.get("bonuses", {}) if isinstance(passive, dict) else {}
+    if not isinstance(passive, dict) or not isinstance(bonuses, dict) or not bonuses or int(passive.get("max_level", 0)) <= 0:
+        err(f"data/balance.json: у пассивной способности {passive_id} нет бонусов или предела уровня")
+if not isinstance(pets, dict) or len(pets) != 3:
+    err("data/balance.json: должно быть ровно три питомца")
+    pets = {}
+unlock_stages: list[int] = []
+for pet_id, pet in pets.items():
+    assist = pet.get("assist", {}) if isinstance(pet, dict) else {}
+    bonuses = pet.get("base_bonuses", {}) if isinstance(pet, dict) else {}
+    unlock_stage = int(pet.get("unlock_stage", 0)) if isinstance(pet, dict) else 0
+    unlock_stages.append(unlock_stage)
+    if not isinstance(pet, dict) or not isinstance(bonuses, dict) or not bonuses or not isinstance(assist, dict) or float(assist.get("attack_ratio", 0)) <= 0.0 or unlock_stage < 1 or unlock_stage > len(stages):
+        err(f"data/balance.json: у питомца {pet_id} нет бонусов, помощи в бою или корректного этапа открытия")
+if sorted(unlock_stages) != sorted(set(unlock_stages)):
+    err("data/balance.json: этапы открытия питомцев не могут повторяться")
+if not isinstance(balance_settings, dict):
+    err("data/balance.json: раздел balance должен быть объектом")
+    balance_settings = {}
+targets = balance_settings.get("stage_power_targets", [])
+if not isinstance(targets, list) or len(targets) != len(stages) or any(float(value) <= 0.0 for value in targets):
+    err("data/balance.json: для каждого этапа нужна положительная цель силы")
+    targets = []
+elif targets != sorted(targets):
+    err("data/balance.json: цели силы должны не убывать по этапам")
+weights = balance_settings.get("power_weights", {})
+if not isinstance(weights, dict) or not weights or any(float(value) <= 0.0 for value in weights.values()):
+    err("data/balance.json: веса оценки силы должны быть положительными")
+if float(balance_settings.get("tolerance", 0)) <= 0.0:
+    err("data/balance.json: коридор баланса должен быть положительным")
+auto_battle = balance_settings.get("auto_battle", {})
+if not isinstance(auto_battle, dict) or not 0.0 < float(auto_battle.get("max_skill_share", 0)) <= 1.0 or float(auto_battle.get("min_stage_duration_seconds", 0)) <= 0.0:
+    err("data/balance.json: некорректные ограничения автоматического боя")
+notes.append(f"Прогрессия: характеристик {len(attributes)}, навыков {len(skills)}, пассивных способностей {len(passives)}, питомцев {len(pets)}")
 
 # --- 6. Скрипты GDScript ---------------------------------------------------
 gd_paths = files("*.gd")

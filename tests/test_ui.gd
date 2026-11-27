@@ -49,7 +49,31 @@ func _initialize() -> void:
 		"Margin/Panel/StatusRow/MaterialsLabel",
 		"Margin/Panel/HealthPanel/HealthBox/HealthRow",
 		"Margin/Panel/MenuRow/EquipmentButton",
+		"Margin/Panel/MenuRow/ProgressionButton",
 		"Margin/Panel/MenuRow/EquipmentPowerLabel",
+		"Margin/Panel/ProgressionPanel",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow/ProgressionWalletLabel",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionTopRow/ProgressionPowerLabel",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/StrengthButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/AgilityButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/IntellectButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/StaminaButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeRow/SpiritButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/AttributeHintLabel",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillList",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillDetails",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow/SkillUpgradeButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow/SkillAutoButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionSkillActionsRow/SkillVariantButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow/PassiveEnduranceButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow/PassivePrecisionButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PassiveRow/PassiveSpiritButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PetRow/PetFoxButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PetRow/PetHoundButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/PetRow/PetOwlButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetDetails",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetActionsRow/PetUpgradeButton",
+		"Margin/Panel/ProgressionPanel/ProgressionBox/ProgressionPetActionsRow/ProgressionHintLabel",
 		"Margin/Panel/EquipmentPanel/EquipmentBox/EquipmentTopRow/WalletLabel",
 		"Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow/SummonTypeButton",
 		"Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow/SummonOneButton",
@@ -88,6 +112,7 @@ func _initialize() -> void:
 	_test_battle_controls(scene)
 	_test_stage_transition(scene)
 	_test_equipment_ui(scene, data)
+	_test_progression_ui(scene, data)
 
 	print("Итого: %d проверок пройдено, %d провалено" % [passed, failed])
 	quit(1 if failed > 0 else 0)
@@ -104,6 +129,8 @@ func _test_compact_layout(scene) -> void:
 	_check("Лог компактный", scene.log_card.custom_minimum_size.y <= 160.0)
 	_check("Панель экипировки компактная", scene.equipment_panel.custom_minimum_size.y <= 380.0)
 	_check("Панель экипировки скрыта по умолчанию", not scene.equipment_panel.visible)
+	_check("Панель прогрессии компактная", scene.progression_panel.custom_minimum_size.y <= 460.0)
+	_check("Панель прогрессии скрыта по умолчанию", not scene.progression_panel.visible)
 	_check("Старых крупных карточек нет", scene.get_node_or_null("Margin/Panel/EnemyCard") == null and scene.get_node_or_null("Margin/Panel/HeroCard") == null)
 	_check("Старой строки баланса нет", scene.get_node_or_null("Margin/Panel/BalanceLabel") == null)
 
@@ -134,8 +161,9 @@ func _test_battle_controls(scene) -> void:
 	_check("Навык записан в лог", "Навык" in scene.battle_log.text)
 	var hero_before: float = scene.hero_health_bar.value
 	var enemy_before: float = scene.enemy_health_bar.value
+	var shield_before: float = scene.shield_bar.value
 	scene._process(1.0)
-	_check("После автоатаки здоровье героя уменьшилось", scene.hero_health_bar.value < hero_before)
+	_check("После автоатаки урон принят щитом или здоровьем", scene.hero_health_bar.value < hero_before or scene.shield_bar.value > shield_before or scene.shield_bar.value < shield_before)
 	_check("После автоатаки здоровье врага уменьшилось", scene.enemy_health_bar.value < enemy_before)
 	_check("Всплывающие числа урона созданы", scene.get_child_count() > 3)
 	_check("Лог ограничен пятью строками", scene.log_lines.size() <= 5)
@@ -256,6 +284,63 @@ func _test_equipment_ui(scene, data: Dictionary) -> void:
 
 	scene.equipment_button.emit_signal("pressed")
 	_check("Панель экипировки закрылась", not scene.equipment_panel.visible)
+
+
+func _test_progression_ui(scene, data: Dictionary) -> void:
+	scene.campaign.gold = 500
+	scene.campaign.materials = 500
+	scene.campaign.level = 4
+	scene.campaign.development.set_level(4, false)
+	scene.campaign.development.attribute_points = 10
+	scene.campaign.development.skill_points = 10
+	scene.progression_button.emit_signal("pressed")
+	_check("Панель прогрессии открылась", scene.progression_panel.visible)
+	_check("Панель экипировки скрыта при открытии прогрессии", not scene.equipment_panel.visible)
+	_check("Кнопка прогрессии изменила подпись", "СКРЫТЬ" in scene.progression_button.text)
+	_check("Раскрытая панель прогрессии компактна", scene.progression_panel.get_combined_minimum_size().y <= 620.0)
+	_check("Экран с прогрессией помещается в портретное окно", scene.get_node("Margin/Panel").get_combined_minimum_size().y <= 1100.0)
+	_check("Базовый класс показан", "Пепельный" in scene.progression_wallet_label.text)
+	_check("Оценка баланса показана", "БАЛАНС" in scene.progression_power_label.text)
+	_check("Диагностика автобоя показана", "АВТО" in scene.progression_power_label.text)
+	_check("Кнопок характеристик пять", scene.attribute_buttons.size() == 5)
+	_check("Список активных навыков содержит шесть записей", scene.progression_skill_list.get_item_count() == 6)
+	_check("Кнопок пассивных способностей три", scene.passive_buttons.size() == 3)
+	_check("Кнопок питомцев три", scene.pet_buttons.size() == 3)
+	_check("Подсказка объясняет мягкий предел", "замедляется" in scene.attribute_hint_label.text)
+	_check("Подсказка объясняет применение бонусов", "следующего этапа" in scene.progression_hint_label.text)
+
+	var points_before: int = scene.campaign.development.attribute_points
+	scene.attribute_buttons["strength"].emit_signal("pressed")
+	_check("Нажатие характеристики распределяет очко", scene.campaign.development.get_attribute_points("strength") == 1 and scene.campaign.development.attribute_points == points_before - 1)
+
+	scene.progression_skill_list.select(0)
+	scene._on_skill_selected(0)
+	_check("Выбранный навык описан", "ур." in scene.progression_skill_details.text)
+	var skill_id: String = scene.selected_skill_id
+	var skill_level_before: int = scene.campaign.development.get_skill_level(skill_id)
+	scene.skill_upgrade_button.emit_signal("pressed")
+	_check("Навык улучшается из интерфейса", scene.campaign.development.get_skill_level(skill_id) == skill_level_before + 1)
+	var auto_before: bool = scene.campaign.development.is_skill_auto(skill_id)
+	scene.skill_auto_button.emit_signal("pressed")
+	_check("Авто-режим навыка переключается из интерфейса", scene.campaign.development.is_skill_auto(skill_id) != auto_before)
+	var variant_before: String = scene.campaign.development.get_skill_variant(skill_id)
+	scene.skill_variant_button.emit_signal("pressed")
+	_check("Вариант навыка меняется из интерфейса", scene.campaign.development.get_skill_variant(skill_id) != variant_before)
+
+	scene.passive_buttons["ashen_endurance"].emit_signal("pressed")
+	_check("Пассивная способность улучшается из интерфейса", scene.campaign.development.get_passive_level("ashen_endurance") > 0)
+
+	scene.pet_buttons["ash_fox"].emit_signal("pressed")
+	_check("Питомец выбирается из интерфейса", scene.selected_pet_id == "ash_fox")
+	scene.pet_upgrade_button.emit_signal("pressed")
+	_check("Питомец улучшается из интерфейса", scene.campaign.development.get_pet_level("ash_fox") == 2)
+	_check("Третий питомец закрыт на третьем этапе", scene.pet_buttons["rune_owl"].disabled)
+	scene.campaign.stage_index = 4
+	scene._refresh_progression_ui()
+	_check("Третий питомец открыт на пятом этапе", not scene.pet_buttons["rune_owl"].disabled)
+
+	scene.progression_button.emit_signal("pressed")
+	_check("Панель прогрессии закрылась", not scene.progression_panel.visible)
 
 
 func _win_stage(scene, max_steps: int = 240) -> bool:
