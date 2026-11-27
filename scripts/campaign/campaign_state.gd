@@ -1,12 +1,12 @@
 extends RefCounted
 
-# Состояние игрового цикла третьего этапа: последовательные этапы, победа,
-# поражение, опыт, уровни, золото и фазы боссов. Сохранения появятся позже,
-# поэтому прогресс живёт в течение текущего запуска игры.
+# Состояние игрового цикла: этапы, победы, опыт, валюта и экипировка.
+# Сохранения появятся позже, поэтому прогресс живёт в течение запуска игры.
 
 const CombatSystem = preload("res://scripts/combat/combat_system.gd")
 const CombatCatalog = preload("res://scripts/combat/combat_catalog.gd")
 const CampaignCatalog = preload("res://scripts/campaign/campaign_catalog.gd")
+const EquipmentState = preload("res://scripts/equipment/equipment_state.gd")
 
 const STATUS_BATTLE: int = 0
 const STATUS_VICTORY: int = 1
@@ -20,10 +20,12 @@ var stages: Array = []
 var progression: Dictionary = {}
 var economy: Dictionary = {}
 var campaign: Dictionary = {}
+var equipment
 var stage_index: int = 0
 var level: int = 1
 var experience: int = 0
 var gold: int = 0
+var materials: int = 0
 var victories: int = 0
 var defeats: int = 0
 var status: int = STATUS_BATTLE
@@ -43,6 +45,7 @@ func _init(data: Dictionary, initial_seed: int = 12345) -> void:
 	economy = data.get("economy", {}) as Dictionary
 	campaign = CampaignCatalog.campaign(data)
 	seed_value = initial_seed
+	equipment = EquipmentState.new(data, seed_value + 777)
 	start_stage()
 
 
@@ -121,11 +124,13 @@ func restart_campaign() -> bool:
 	level = 1
 	experience = 0
 	gold = 0
+	materials = 0
 	victories = 0
 	defeats = 0
 	boss_phase_count = 0
 	observed_phase_counts = {}
 	last_reward = {}
+	equipment.reset()
 	start_stage()
 	return true
 
@@ -145,9 +150,10 @@ func stage_count() -> int:
 func hero_data() -> Dictionary:
 	var hero: Dictionary = (CombatCatalog.hero_data(balance)).duplicate()
 	var bonus: int = maxi(0, level - 1)
-	hero["max_health"] = float(hero.get("max_health", 1.0)) + bonus * float(progression.get("max_health_per_level", 0.0))
-	hero["attack"] = float(hero.get("attack", 0.0)) + bonus * float(progression.get("attack_per_level", 0.0))
-	hero["defense"] = float(hero.get("defense", 0.0)) + bonus * float(progression.get("defense_per_level", 0.0))
+	var equipped_bonuses: Dictionary = equipment.get_total_bonuses()
+	hero["max_health"] = float(hero.get("max_health", 1.0)) + bonus * float(progression.get("max_health_per_level", 0.0)) + float(equipped_bonuses.get("max_health", 0.0))
+	hero["attack"] = float(hero.get("attack", 0.0)) + bonus * float(progression.get("attack_per_level", 0.0)) + float(equipped_bonuses.get("attack", 0.0))
+	hero["defense"] = float(hero.get("defense", 0.0)) + bonus * float(progression.get("defense_per_level", 0.0)) + float(equipped_bonuses.get("defense", 0.0))
 	return hero
 
 
@@ -157,8 +163,68 @@ func experience_to_next() -> int:
 	return maxi(1, int(ceil(base * pow(growth, float(level - 1)))))
 
 
+func summon_equipment(summon_id: String, count: int = 1) -> Dictionary:
+	var reason: String = equipment.summon_block_reason(summon_id, count, stage_number(), gold, materials)
+	if reason != "":
+		return {"success": false, "reason": reason, "items": [], "guaranteed_count": 0}
+	var cost: Dictionary = equipment.get_summon_cost(summon_id, count)
+	var result: Dictionary = equipment.roll_summons(summon_id, count, stage_number())
+	if not bool(result.get("success", false)):
+		return result
+	gold -= int(cost.get("gold", 0))
+	materials -= int(cost.get("materials", 0))
+	return result
+
+
+func equip_item(item_id: String) -> bool:
+	return equipment.equip(item_id)
+
+
+func auto_equip_items() -> int:
+	return equipment.auto_equip()
+
+
+func upgrade_item(item_id: String) -> Dictionary:
+	var cost: Dictionary = equipment.get_upgrade_cost(item_id)
+	if not bool(cost.get("valid", false)):
+		return {"success": false, "reason": str(cost.get("reason", "Улучшение недоступно"))}
+	var gold_cost: int = int(cost.get("gold", 0))
+	var materials_cost: int = int(cost.get("materials", 0))
+	if gold < gold_cost or materials < materials_cost:
+		return {"success": false, "reason": "Недостаточно золота или пепла"}
+	if not equipment.upgrade(item_id):
+		return {"success": false, "reason": "Улучшение не выполнено"}
+	gold -= gold_cost
+	materials -= materials_cost
+	return {"success": true, "reason": "", "gold": gold_cost, "materials": materials_cost}
+
+
+func dismantle_item(item_id: String, force: bool = false) -> Dictionary:
+	var result: Dictionary = equipment.dismantle(item_id, force)
+	if bool(result.get("success", false)):
+		gold += int(result.get("gold", 0))
+		materials += int(result.get("materials", 0))
+	return result
+
+
+func mass_dismantle_items() -> Dictionary:
+	var result: Dictionary = equipment.mass_dismantle()
+	gold += int(result.get("gold", 0))
+	materials += int(result.get("materials", 0))
+	return result
+
+
+func toggle_item_lock(item_id: String) -> bool:
+	return equipment.toggle_lock(item_id)
+
+
+func set_equipment_filters(slot_index: int, rarity_index: int, affix_index: int) -> void:
+	equipment.set_filters(slot_index, rarity_index, affix_index)
+
+
 func get_summary() -> Dictionary:
 	var stage: Dictionary = current_stage()
+	var equipment_summary: Dictionary = equipment.get_summary()
 	return {
 		"stage": stage_number(),
 		"stages": stage_count(),
@@ -172,12 +238,17 @@ func get_summary() -> Dictionary:
 		"experience": experience,
 		"experience_to_next": experience_to_next(),
 		"gold": gold,
+		"materials": materials,
 		"victories": victories,
 		"defeats": defeats,
 		"last_reward": last_reward.duplicate(),
 		"boss_phase_count": boss_phase_count,
 		"boss_phase_active": current_boss_phase_active,
 		"boss_phase_name": current_boss_phase_name,
+		"equipment_power": float(equipment_summary.get("power", 0.0)),
+		"inventory_count": int(equipment_summary.get("inventory_count", 0)),
+		"equipped_count": int(equipment_summary.get("equipped_count", 0)),
+		"total_summons": int(equipment_summary.get("total_summons", 0)),
 	}
 
 
@@ -199,9 +270,11 @@ func _register_victory() -> void:
 	var reward: Dictionary = stage.get("reward", {}) as Dictionary
 	var experience_gain: int = maxi(0, int(reward.get("experience", 0)))
 	var gold_gain: int = maxi(0, int(reward.get("gold", economy.get("gold_per_victory", 0))))
+	var materials_gain: int = maxi(0, int(reward.get("materials", 0)))
 	var levels_gained: int = 0
 	experience += experience_gain
 	gold += gold_gain
+	materials += materials_gain
 	victories += 1
 	while experience >= experience_to_next():
 		experience -= experience_to_next()
@@ -210,6 +283,7 @@ func _register_victory() -> void:
 	last_reward = {
 		"experience": experience_gain,
 		"gold": gold_gain,
+		"materials": materials_gain,
 		"levels": levels_gained,
 	}
 	if stage_index >= stages.size() - 1:

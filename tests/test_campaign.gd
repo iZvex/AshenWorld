@@ -35,7 +35,7 @@ func _check(name: String, condition: bool) -> void:
 
 
 func _test_campaign_data(data: Dictionary) -> void:
-	_check("Версия баланса обновлена", int(data.get("version", 0)) == 3)
+	_check("Версия баланса обновлена", int(data.get("version", 0)) == 4)
 	var stages: Array = CampaignCatalog.stages(data)
 	_check("Кампания содержит пять этапов", stages.size() == 5)
 	var enemies: Dictionary = data.get("enemies", {}) as Dictionary
@@ -54,7 +54,7 @@ func _test_campaign_data(data: Dictionary) -> void:
 		if CampaignCatalog.stage_is_boss(entry):
 			boss_count += 1
 		var reward: Dictionary = entry.get("reward", {}) as Dictionary
-		if int(reward.get("experience", 0)) <= 0 or int(reward.get("gold", 0)) <= 0:
+		if int(reward.get("experience", 0)) <= 0 or int(reward.get("gold", 0)) <= 0 or int(reward.get("materials", 0)) <= 0:
 			rewards_valid = false
 		var list: Array = CampaignCatalog.build_enemy_list(entry, data)
 		if list.is_empty():
@@ -64,7 +64,7 @@ func _test_campaign_data(data: Dictionary) -> void:
 				ids_valid = false
 	_check("Названия этапов не повторяются", names.size() == stages.size())
 	_check("У каждого этапа есть противники из баланса", ids_valid)
-	_check("У каждого этапа есть опыт и золото", rewards_valid)
+	_check("У каждого этапа есть опыт, золото и пепел", rewards_valid)
 	_check("В кампании не меньше двух боссов", boss_count >= 2)
 	var last_stage: Dictionary = CampaignCatalog.stage_at(data, stages.size() - 1)
 	var final_enemies: Array = CampaignCatalog.build_enemy_list(last_stage, data)
@@ -87,10 +87,11 @@ func _test_progression(data: Dictionary) -> void:
 	_check("Статус победы", state.status == CampaignState.STATUS_VICTORY)
 	_check("Начислен опыт первого этапа", state.experience == 45)
 	_check("Начислено золото первого этапа", state.gold == 12)
+	_check("Начислен пепел первого этапа", state.materials == 5)
 	_check("Победа учтена один раз", state.victories == 1)
 	_check("Уровень до порога не вырос", state.level == 1)
 	var reward: Dictionary = state.last_reward
-	_check("Награда содержит опыт и золото", int(reward.get("experience", 0)) == 45 and int(reward.get("gold", 0)) == 12)
+	_check("Награда содержит опыт, золото и пепел", int(reward.get("experience", 0)) == 45 and int(reward.get("gold", 0)) == 12 and int(reward.get("materials", 0)) == 5)
 	_check("Переход ко второму этапу разрешён", state.next_stage())
 	_check("Второй этап начался", state.stage_number() == 2 and state.status == CampaignState.STATUS_BATTLE)
 	_check("Герой восстановлен перед этапом", is_equal_approx(state.system.hero.health, state.system.hero.max_health))
@@ -156,13 +157,15 @@ func _test_full_campaign(data: Dictionary) -> void:
 	_check("Поражений в прохождении нет", state.defeats == 0)
 	_check("Герой получил уровни", state.level > 1)
 	_check("Золото накоплено", state.gold > 0)
+	_check("Пепел накоплен", state.materials > 0)
 	_check("Обе фазы боссов сработали", state.boss_phase_count >= 2)
 	_check("Дальше финала перехода нет", not state.next_stage())
 	var summary: Dictionary = state.get_summary()
 	_check("Сводка сообщает о завершении", str(summary.get("status_name", "")) == "Кампания пройдена")
 	_check("Новый поход разрешён", state.restart_campaign())
 	_check("Новый поход начинается с первого этапа", state.stage_number() == 1 and state.level == 1)
-	_check("Прогресс нового похода сброшен", state.gold == 0 and state.experience == 0)
+	_check("Прогресс нового похода сброшен", state.gold == 0 and state.materials == 0 and state.experience == 0)
+	_check("Инвентарь нового похода пуст", int(state.get_summary().get("inventory_count", -1)) == 0)
 
 
 func _finish_stage(state, max_steps: int = 240) -> bool:

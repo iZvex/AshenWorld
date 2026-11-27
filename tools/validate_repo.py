@@ -7,6 +7,7 @@
 Проверяет только то, что можно проверить без движка:
   * целостность спецификации README.md;
   * синтаксис описаний сборок и файлов данных;
+  * целостность данных кампании и экипировки;
   * конфликтные маркеры и переводы строк в скриптах GDScript;
   * базовую структуру project.godot, когда он появится.
 """
@@ -88,6 +89,7 @@ for path in json_paths:
 notes.append(f"Файлов данных проверено: {len(json_paths)}")
 
 # --- 4. Данные кампании ----------------------------------------------------
+balance: dict = {}
 balance_file = ROOT / "data" / "balance.json"
 if balance_file.is_file():
     try:
@@ -96,8 +98,8 @@ if balance_file.is_file():
         balance = {}
         err(f"data/balance.json: некорректные данные кампании: {exc}")
     if isinstance(balance, dict):
-        if int(balance.get("version", 0)) < 3:
-            err("data/balance.json: для игрового цикла ожидается версия баланса не ниже 3")
+        if int(balance.get("version", 0)) < 4:
+            err("data/balance.json: для экипировки ожидается версия баланса не ниже 4")
         campaign = balance.get("campaign", {})
         stages = campaign.get("stages", []) if isinstance(campaign, dict) else []
         enemies = balance.get("enemies", {}) if isinstance(balance.get("enemies", {}), dict) else {}
@@ -128,13 +130,76 @@ if balance_file.is_file():
                 if bool(wave.get("boss", False)) or str(stage.get("kind", "")) == "босс":
                     bosses += 1
             reward = stage.get("reward", {})
-            if not isinstance(reward, dict) or int(reward.get("experience", 0)) <= 0 or int(reward.get("gold", 0)) <= 0:
+            if not isinstance(reward, dict) or int(reward.get("experience", 0)) <= 0 or int(reward.get("gold", 0)) <= 0 or int(reward.get("materials", 0)) <= 0:
                 err(f"data/balance.json: у этапа {number} нет положительных наград")
         if bosses == 0:
             err("data/balance.json: в кампании должен быть хотя бы один босс")
         notes.append(f"Кампания: этапов {len(stages)}, боссовых волн {bosses}")
 
-# --- 5. Скрипты GDScript ---------------------------------------------------
+# --- 5. Данные экипировки --------------------------------------------------
+if isinstance(balance, dict):
+    equipment = balance.get("equipment", {})
+    if not isinstance(equipment, dict):
+        err("data/balance.json: раздел equipment должен быть объектом")
+        equipment = {}
+    slots = equipment.get("slots", [])
+    rarities = equipment.get("rarities", [])
+    affixes = equipment.get("affixes", [])
+    summons = equipment.get("summons", {})
+    if not isinstance(slots, list) or len(slots) != 9:
+        err("data/balance.json: экипировка должна содержать ровно девять слотов")
+        slots = []
+    if not isinstance(rarities, list) or len(rarities) != 6:
+        err("data/balance.json: экипировка должна содержать ровно шесть редкостей")
+        rarities = []
+    if not isinstance(affixes, list) or len(affixes) < 1:
+        err("data/balance.json: у предметов должны быть случайные свойства")
+        affixes = []
+    rarity_ids: set[str] = set()
+    for rarity in rarities:
+        if not isinstance(rarity, dict):
+            err("data/balance.json: редкость должна быть объектом")
+            continue
+        rarity_id = str(rarity.get("id", ""))
+        if not rarity_id or rarity_id in rarity_ids:
+            err("data/balance.json: у редкости отсутствует уникальный идентификатор")
+        rarity_ids.add(rarity_id)
+        if float(rarity.get("multiplier", 0)) <= 0 or int(rarity.get("score", 0)) <= 0:
+            err(f"data/balance.json: у редкости {rarity_id} некорректные коэффициенты")
+    if not isinstance(summons, dict) or len(summons) < 2:
+        err("data/balance.json: должно быть не менее двух категорий призыва")
+        summons = {}
+    for summon_id, summon in summons.items():
+        if not isinstance(summon, dict):
+            err(f"data/balance.json: призыв {summon_id} должен быть объектом")
+            continue
+        chances = summon.get("chances", {})
+        if not isinstance(chances, dict):
+            err(f"data/balance.json: у призыва {summon_id} некорректные вероятности")
+            chances = {}
+        chance_sum = sum(float(chances.get(rarity_id, 0)) for rarity_id in rarity_ids)
+        if abs(chance_sum - 1.0) > 0.001:
+            err(f"data/balance.json: вероятности призыва {summon_id} не дают единицу")
+        if int(summon.get("cost_gold", 0)) <= 0 or int(summon.get("pity_threshold", 0)) <= 0:
+            err(f"data/balance.json: у призыва {summon_id} некорректная стоимость или гарантия")
+        if str(summon.get("guaranteed_rarity", "")) not in rarity_ids:
+            err(f"data/balance.json: у призыва {summon_id} неизвестная гарантированная редкость")
+    upgrade = equipment.get("upgrade", {})
+    if not isinstance(upgrade, dict) or int(upgrade.get("max_level", 0)) <= 0 or float(upgrade.get("stat_growth", 0)) <= 0:
+        err("data/balance.json: некорректные параметры улучшения предметов")
+    dismantle = equipment.get("dismantle", {})
+    if isinstance(dismantle, dict):
+        gold_map = dismantle.get("gold", {})
+        materials_map = dismantle.get("materials", {})
+        if not isinstance(gold_map, dict) or not isinstance(materials_map, dict):
+            err("data/balance.json: некорректные награды за разбор")
+        else:
+            for rarity_id in rarity_ids:
+                if rarity_id not in gold_map or rarity_id not in materials_map:
+                    err(f"data/balance.json: нет награды за разбор редкости {rarity_id}")
+    notes.append(f"Экипировка: слотов {len(slots)}, редкостей {len(rarities)}, призывов {len(summons)}")
+
+# --- 6. Скрипты GDScript ---------------------------------------------------
 gd_paths = files("*.gd")
 for path in gd_paths:
     src = path.read_text(encoding="utf-8")
@@ -147,7 +212,7 @@ for path in gd_paths:
         warn(f"{rel}: нет перевода строки в конце файла")
 notes.append(f"Скриптов GDScript проверено: {len(gd_paths)}")
 
-# --- 6. Настройки проекта и требования портретного Android -----------------
+# --- 7. Настройки проекта и требования портретного Android -----------------
 project = ROOT / "project.godot"
 if project.is_file():
     cfg = project.read_text(encoding="utf-8")
@@ -172,7 +237,7 @@ if project.is_file():
 else:
     notes.append("project.godot ещё нет — проверки движка пропущены (ожидаемо на этапе 0)")
 
-# --- 7. Язык сообщений коммитов --------------------------------------------
+# --- 8. Язык сообщений коммитов --------------------------------------------
 # По правилам проекта все коммиты, комментарии и документация пишутся
 # только на русском языке. Технические идентификаторы остаются в исходном виде.
 result = subprocess.run(
@@ -185,7 +250,7 @@ if result.returncode == 0 and message:
         err("Сообщение последнего коммита должно быть на русском языке")
     notes.append(f"Сообщение коммита: {message}")
 
-# --- 8. Пресет экспорта Android --------------------------------------------
+# --- 9. Пресет экспорта Android --------------------------------------------
 preset = ROOT / "export_presets.cfg"
 if preset.is_file():
     cfg_text = preset.read_text(encoding="utf-8")

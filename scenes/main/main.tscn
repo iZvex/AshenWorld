@@ -104,7 +104,7 @@ size_flags_vertical = 0
 theme_override_constants/separation = 8
 
 [node name="LevelLabel" type="Label" parent="Margin/Panel/StatusRow"]
-custom_minimum_size = Vector2(86, 0)
+custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "УР. 1"
@@ -119,10 +119,17 @@ value = 0.0
 show_percentage = false
 
 [node name="GoldLabel" type="Label" parent="Margin/Panel/StatusRow"]
-custom_minimum_size = Vector2(130, 0)
+custom_minimum_size = Vector2(105, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "ЗОЛОТО 0"
+horizontal_alignment = 2
+
+[node name="MaterialsLabel" type="Label" parent="Margin/Panel/StatusRow"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "ПЕПЕЛ 0"
 horizontal_alignment = 2
 
 [node name="HealthPanel" type="PanelContainer" parent="Margin/Panel"]
@@ -199,6 +206,190 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "ОБЫЧНЫЙ"
 horizontal_alignment = 1
+
+[node name="MenuRow" type="HBoxContainer" parent="Margin/Panel"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="EquipmentButton" type="Button" parent="Margin/Panel/MenuRow"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+text = "ЭКИПИРОВКА"
+
+[node name="EquipmentPowerLabel" type="Label" parent="Margin/Panel/MenuRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "СИЛА ЭКИПИРОВКИ 0"
+horizontal_alignment = 2
+
+[node name="EquipmentPanel" type="PanelContainer" parent="Margin/Panel"]
+visible = false
+custom_minimum_size = Vector2(0, 360)
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="EquipmentBox" type="VBoxContainer" parent="Margin/Panel/EquipmentPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="EquipmentTopRow" type="HBoxContainer" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="WalletLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox/EquipmentTopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "ЗОЛОТО 0 · ПЕПЕЛ 0"
+
+[node name="ItemPowerLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox/EquipmentTopRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "ПРЕДМЕТОВ 0 · НАДЕТО 0"
+horizontal_alignment = 2
+
+[node name="SummonTypeRow" type="HBoxContainer" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="SummonTypeButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "ПЕПЕЛЬНЫЙ ПРИЗЫВ"
+
+[node name="SummonOneButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "×1"
+
+[node name="SummonTenButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/SummonTypeRow"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "×10"
+
+[node name="SummonInfoLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Шансы призыва"
+autowrap_mode = 2
+
+[node name="SummonStatusLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Доступно"
+
+[node name="HistoryLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "История призывов пуста"
+autowrap_mode = 2
+
+[node name="FilterRow" type="HBoxContainer" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="SlotFilter" type="OptionButton" parent="Margin/Panel/EquipmentPanel/EquipmentBox/FilterRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+
+[node name="RarityFilter" type="OptionButton" parent="Margin/Panel/EquipmentPanel/EquipmentBox/FilterRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+
+[node name="AffixFilter" type="OptionButton" parent="Margin/Panel/EquipmentPanel/EquipmentBox/FilterRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+
+[node name="ItemList" type="ItemList" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+custom_minimum_size = Vector2(0, 128)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 13
+select_mode = 0
+
+[node name="ItemDetails" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Выберите предмет"
+autowrap_mode = 2
+
+[node name="ActionsRow1" type="HBoxContainer" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="EquipButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow1"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "НАДЕТЬ"
+
+[node name="UpgradeButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow1"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "УЛУЧШИТЬ"
+
+[node name="LockButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow1"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "ЗАБЛОК."
+
+[node name="ActionsRow2" type="HBoxContainer" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="DismantleButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "РАЗОБРАТЬ"
+
+[node name="AutoEquipButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "АВТОНАДЕВАНИЕ"
+
+[node name="MassDismantleButton" type="Button" parent="Margin/Panel/EquipmentPanel/EquipmentBox/ActionsRow2"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "РАЗОБРАТЬ НИЗШЕЕ"
+
+[node name="EquipmentHintLabel" type="Label" parent="Margin/Panel/EquipmentPanel/EquipmentBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Бонусы экипировки применяются со следующего этапа"
+autowrap_mode = 2
 
 [node name="SkillRow" type="HBoxContainer" parent="Margin/Panel"]
 layout_mode = 2

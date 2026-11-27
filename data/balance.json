@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "combat": {
     "attack_interval_seconds": 1.0,
     "base_damage": 10,
@@ -59,7 +59,8 @@
   },
   "economy": {
     "gold_per_victory": 12,
-    "summon_cost": 100
+    "summon_cost": 10,
+    "summon_materials": 0
   },
   "campaign": {
     "region": "Пепельные земли",
@@ -73,7 +74,7 @@
         "enemies": [
           {"id": "ash_walker", "count": 1}
         ],
-        "reward": {"experience": 45, "gold": 12}
+        "reward": {"experience": 45, "gold": 12, "materials": 5}
       },
       {
         "name": "Старые костры",
@@ -82,7 +83,7 @@
           {"id": "cinder_hound", "count": 1},
           {"id": "ash_walker", "count": 1, "health_scale": 1.15, "attack_scale": 1.1}
         ],
-        "reward": {"experience": 70, "gold": 20}
+        "reward": {"experience": 70, "gold": 20, "materials": 8}
       },
       {
         "name": "Врата стража",
@@ -97,7 +98,7 @@
             "phase_attack_multiplier": 1.25
           }
         ],
-        "reward": {"experience": 130, "gold": 45}
+        "reward": {"experience": 130, "gold": 45, "materials": 14}
       },
       {
         "name": "Засада в пепле",
@@ -107,7 +108,7 @@
           {"id": "cinder_hound", "count": 1, "health_scale": 1.15, "attack_scale": 1.1},
           {"id": "ash_walker", "count": 1, "health_scale": 1.25, "attack_scale": 1.1}
         ],
-        "reward": {"experience": 150, "gold": 55}
+        "reward": {"experience": 150, "gold": 55, "materials": 16}
       },
       {
         "name": "Сердце пожарища",
@@ -125,9 +126,93 @@
             "phase_threshold": 0.55
           }
         ],
-        "reward": {"experience": 220, "gold": 90}
+        "reward": {"experience": 220, "gold": 90, "materials": 25}
       }
     ]
+  },
+  "equipment": {
+    "score_weights": {
+      "max_health": 0.25,
+      "attack": 2.0,
+      "defense": 1.5
+    },
+    "protection": {
+      "valuable_min_score": 3,
+      "mass_dismantle_max_score": 2
+    },
+    "upgrade": {
+      "max_level": 5,
+      "gold_per_level": 8,
+      "gold_per_rarity": 2,
+      "materials_per_level": 3,
+      "materials_per_rarity": 1,
+      "stat_growth": 0.12
+    },
+    "dismantle": {
+      "level_bonus_per_level": 1,
+      "gold": {"common": 2, "uncommon": 4, "rare": 8, "epic": 14, "legendary": 24, "mythic": 40},
+      "materials": {"common": 1, "uncommon": 2, "rare": 4, "epic": 7, "legendary": 12, "mythic": 20}
+    },
+    "slots": [
+      {"id": "weapon", "name": "Оружие", "names": ["Пепельный клинок", "Угольный топор", "Клинок руин"], "base_stats": {"attack": 6.0, "max_health": 0.0, "defense": 0.0}},
+      {"id": "helmet", "name": "Шлем", "names": ["Пепельный шлем", "Корона углей", "Шлем стража"], "base_stats": {"attack": 0.0, "max_health": 12.0, "defense": 1.0}},
+      {"id": "chest", "name": "Нагрудник", "names": ["Нагрудник из пепла", "Панцирь руин", "Мантия тлеющих"], "base_stats": {"attack": 0.0, "max_health": 18.0, "defense": 3.0}},
+      {"id": "gloves", "name": "Перчатки", "names": ["Рукавицы скитальца", "Перчатки угля", "Хватка стража"], "base_stats": {"attack": 2.0, "max_health": 0.0, "defense": 1.0}},
+      {"id": "legs", "name": "Штаны", "names": ["Штаны странника", "Поножи руин", "Тлеющие набедренники"], "base_stats": {"attack": 0.0, "max_health": 14.0, "defense": 2.0}},
+      {"id": "boots", "name": "Сапоги", "names": ["Сапоги пепла", "Ботфорты руин", "Угольные сапоги"], "base_stats": {"attack": 0.0, "max_health": 8.0, "defense": 1.0}},
+      {"id": "ring", "name": "Кольцо", "names": ["Кольцо праха", "Печать руин", "Угольный перстень"], "base_stats": {"attack": 3.0, "max_health": 0.0, "defense": 0.0}},
+      {"id": "amulet", "name": "Амулет", "names": ["Амулет пепла", "Око руин", "Табличка тлеющих"], "base_stats": {"attack": 1.0, "max_health": 10.0, "defense": 0.0}},
+      {"id": "relic", "name": "Реликвия", "names": ["Реликвия бездны", "Урна праха", "Осколок пожарища"], "base_stats": {"attack": 4.0, "max_health": 6.0, "defense": 1.0}}
+    ],
+    "rarities": [
+      {"id": "common", "short": "О", "name": "Обычная", "color": "#9A8CA3", "score": 1, "multiplier": 1.0, "affix_count": 0},
+      {"id": "uncommon", "short": "Н", "name": "Необычная", "color": "#6E8CA8", "score": 2, "multiplier": 1.25, "affix_count": 1},
+      {"id": "rare", "short": "Р", "name": "Редкая", "color": "#B49AC6", "score": 3, "multiplier": 1.6, "affix_count": 1},
+      {"id": "epic", "short": "Э", "name": "Эпическая", "color": "#E08A3C", "score": 4, "multiplier": 2.1, "affix_count": 2},
+      {"id": "legendary", "short": "Л", "name": "Легендарная", "color": "#F4C98A", "score": 5, "multiplier": 2.8, "affix_count": 2},
+      {"id": "mythic", "short": "М", "name": "Мифическая", "color": "#A63D40", "score": 6, "multiplier": 3.8, "affix_count": 3}
+    ],
+    "affixes": [
+      {"id": "health", "stat": "max_health", "name": "здоровье", "min": 2.0, "max": 8.0},
+      {"id": "attack", "stat": "attack", "name": "атака", "min": 1.0, "max": 4.0},
+      {"id": "defense", "stat": "defense", "name": "защита", "min": 1.0, "max": 3.0}
+    ],
+    "summons": {
+      "ash": {
+        "name": "Пепельный призыв",
+        "cost_gold": 10,
+        "cost_materials": 0,
+        "unlock_stage": 1,
+        "pity_threshold": 10,
+        "guaranteed_rarity": "rare",
+        "batch_size": 10,
+        "chances": {
+          "common": 0.55,
+          "uncommon": 0.30,
+          "rare": 0.12,
+          "epic": 0.025,
+          "legendary": 0.004,
+          "mythic": 0.001
+        }
+      },
+      "rune": {
+        "name": "Рунный призыв",
+        "cost_gold": 25,
+        "cost_materials": 8,
+        "unlock_stage": 3,
+        "pity_threshold": 8,
+        "guaranteed_rarity": "epic",
+        "batch_size": 10,
+        "chances": {
+          "common": 0.15,
+          "uncommon": 0.25,
+          "rare": 0.35,
+          "epic": 0.18,
+          "legendary": 0.06,
+          "mythic": 0.01
+        }
+      }
+    }
   },
   "afk": {
     "limit_hours": 12
