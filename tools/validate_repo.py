@@ -87,7 +87,54 @@ for path in json_paths:
         err(f"{path.relative_to(ROOT)}: некорректный файл данных: {exc}")
 notes.append(f"Файлов данных проверено: {len(json_paths)}")
 
-# --- 4. Скрипты GDScript ---------------------------------------------------
+# --- 4. Данные кампании ----------------------------------------------------
+balance_file = ROOT / "data" / "balance.json"
+if balance_file.is_file():
+    try:
+        balance = json.loads(balance_file.read_text(encoding="utf-8"))
+    except Exception as exc:
+        balance = {}
+        err(f"data/balance.json: некорректные данные кампании: {exc}")
+    if isinstance(balance, dict):
+        if int(balance.get("version", 0)) < 3:
+            err("data/balance.json: для игрового цикла ожидается версия баланса не ниже 3")
+        campaign = balance.get("campaign", {})
+        stages = campaign.get("stages", []) if isinstance(campaign, dict) else []
+        enemies = balance.get("enemies", {}) if isinstance(balance.get("enemies", {}), dict) else {}
+        if not isinstance(stages, list) or len(stages) < 3:
+            err("data/balance.json: кампания должна содержать не менее трёх этапов")
+            stages = []
+        names: set[str] = set()
+        bosses = 0
+        for number, stage in enumerate(stages, start=1):
+            if not isinstance(stage, dict):
+                err(f"data/balance.json: этап {number} должен быть объектом")
+                continue
+            name = str(stage.get("name", ""))
+            if not name or name in names:
+                err(f"data/balance.json: у этапа {number} отсутствует уникальное название")
+            names.add(name)
+            waves = stage.get("enemies", [])
+            if not isinstance(waves, list) or not waves:
+                err(f"data/balance.json: у этапа {number} нет противников")
+                waves = []
+            for wave in waves:
+                if not isinstance(wave, dict):
+                    err(f"data/balance.json: у этапа {number} некорректная волна противников")
+                    continue
+                enemy_id = str(wave.get("id", ""))
+                if enemy_id not in enemies:
+                    err(f"data/balance.json: этап {number} ссылается на неизвестного противника {enemy_id}")
+                if bool(wave.get("boss", False)) or str(stage.get("kind", "")) == "босс":
+                    bosses += 1
+            reward = stage.get("reward", {})
+            if not isinstance(reward, dict) or int(reward.get("experience", 0)) <= 0 or int(reward.get("gold", 0)) <= 0:
+                err(f"data/balance.json: у этапа {number} нет положительных наград")
+        if bosses == 0:
+            err("data/balance.json: в кампании должен быть хотя бы один босс")
+        notes.append(f"Кампания: этапов {len(stages)}, боссовых волн {bosses}")
+
+# --- 5. Скрипты GDScript ---------------------------------------------------
 gd_paths = files("*.gd")
 for path in gd_paths:
     src = path.read_text(encoding="utf-8")
@@ -100,7 +147,7 @@ for path in gd_paths:
         warn(f"{rel}: нет перевода строки в конце файла")
 notes.append(f"Скриптов GDScript проверено: {len(gd_paths)}")
 
-# --- 5. Настройки проекта и требования портретного Android -----------------
+# --- 6. Настройки проекта и требования портретного Android -----------------
 project = ROOT / "project.godot"
 if project.is_file():
     cfg = project.read_text(encoding="utf-8")
@@ -125,7 +172,7 @@ if project.is_file():
 else:
     notes.append("project.godot ещё нет — проверки движка пропущены (ожидаемо на этапе 0)")
 
-# --- 6. Язык сообщений коммитов --------------------------------------------
+# --- 7. Язык сообщений коммитов --------------------------------------------
 # По правилам проекта все коммиты, комментарии и документация пишутся
 # только на русском языке. Технические идентификаторы остаются в исходном виде.
 result = subprocess.run(
@@ -138,7 +185,7 @@ if result.returncode == 0 and message:
         err("Сообщение последнего коммита должно быть на русском языке")
     notes.append(f"Сообщение коммита: {message}")
 
-# --- 7. Пресет экспорта Android --------------------------------------------
+# --- 8. Пресет экспорта Android --------------------------------------------
 preset = ROOT / "export_presets.cfg"
 if preset.is_file():
     cfg_text = preset.read_text(encoding="utf-8")

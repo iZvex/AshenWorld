@@ -11,6 +11,7 @@ signal enemy_defeated(enemy_name: String)
 signal hero_defeated()
 signal skill_used(skill_name: String)
 signal shield_changed(amount: float)
+signal enemy_phase_started(enemy_name: String, phase_name: String, attack_multiplier: float)
 
 var balance: Dictionary = {}
 var hero
@@ -24,6 +25,11 @@ var enemy_next_attack: float = 0.0
 var skill_cooldowns: Dictionary = {}
 var enemy_index: int = -1
 var running: bool = false
+var boss_phase_count: int = 0
+var current_boss_phase_active: bool = false
+var current_boss_phase_name: String = ""
+var last_boss_phase_enemy: String = ""
+var last_boss_phase_name: String = ""
 
 
 func _init(hero_data: Dictionary, enemy_list: Array, skill_map: Dictionary, combat_balance: Dictionary, seed_value: int = 12345) -> void:
@@ -41,6 +47,8 @@ func _init(hero_data: Dictionary, enemy_list: Array, skill_map: Dictionary, comb
 
 func spawn_next_enemy(interval: float = -1.0) -> void:
 	enemy_index += 1
+	current_boss_phase_active = false
+	current_boss_phase_name = ""
 	if enemy_index >= enemies.size():
 		enemy = null
 		running = false
@@ -78,6 +86,27 @@ func perform_attack(attacker, target, multiplier: float) -> void:
 		elif enemy != null and target == enemy:
 			enemy_defeated.emit(target.display_name)
 			spawn_next_enemy()
+	elif target == enemy:
+		_check_enemy_phase()
+
+
+func _check_enemy_phase() -> void:
+	# Босс однократно усиливает атаку, когда его здоровье опускается до порога.
+	if enemy == null or not enemy.alive or not enemy.is_boss:
+		return
+	if enemy.phase_activated or enemy.phase_threshold <= 0.0:
+		return
+	if enemy.health / enemy.max_health > enemy.phase_threshold:
+		return
+	enemy.phase_activated = true
+	var multiplier: float = maxf(1.0, enemy.phase_attack_multiplier)
+	enemy.attack *= multiplier
+	boss_phase_count += 1
+	current_boss_phase_active = true
+	current_boss_phase_name = enemy.phase_name
+	last_boss_phase_enemy = enemy.display_name
+	last_boss_phase_name = enemy.phase_name
+	enemy_phase_started.emit(enemy.display_name, enemy.phase_name, multiplier)
 
 
 func use_skill(skill_id: String) -> bool:

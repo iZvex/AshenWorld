@@ -30,7 +30,7 @@ stretch_mode = 0
 [node name="Particles" type="CPUParticles2D" parent="."]
 position = Vector2(360, 720)
 emitting = true
-amount = 28
+amount = 18
 lifetime = 4.0
 texture = ExtResource("5")
 direction = Vector2(0, -1)
@@ -38,9 +38,9 @@ spread = 28.0
 gravity = Vector2(0, -14)
 initial_velocity_min = 18.0
 initial_velocity_max = 56.0
-scale_amount_min = 0.35
-scale_amount_max = 1.1
-color = Color(0.878, 0.541, 0.235, 0.75)
+scale_amount_min = 0.3
+scale_amount_max = 0.9
+color = Color(0.878, 0.541, 0.235, 0.7)
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -49,117 +49,199 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 48
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 40
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
 
 [node name="Panel" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="TitleBlock" type="VBoxContainer" parent="Margin/Panel"]
-layout_mode = 2
+size_flags_vertical = 0
 theme_override_constants/separation = 8
 
-[node name="TitleLabel" type="Label" parent="Margin/Panel/TitleBlock"]
+[node name="Header" type="HBoxContainer" parent="Margin/Panel"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 44
-text = "ASHEN WORLD"
-horizontal_alignment = 1
-
-[node name="Divider" type="TextureRect" parent="Margin/Panel/TitleBlock"]
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-mouse_filter = 2
-texture = ExtResource("3")
-expand_mode = 1
-stretch_mode = 0
-
-[node name="SubtitleLabel" type="Label" parent="Margin/Panel/TitleBlock"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "ПЕПЕЛ · РУИНЫ · АВТОМАТИЧЕСКИЙ БОЙ"
-horizontal_alignment = 1
-
-[node name="EnemyCard" type="PanelContainer" parent="Margin/Panel"]
-layout_mode = 2
-
-[node name="EnemyBox" type="VBoxContainer" parent="Margin/Panel/EnemyCard"]
-layout_mode = 2
+size_flags_vertical = 0
 theme_override_constants/separation = 10
 
-[node name="EnemyName" type="Label" parent="Margin/Panel/EnemyCard/EnemyBox"]
+[node name="Sigil" type="TextureRect" parent="Margin/Panel/Header"]
+custom_minimum_size = Vector2(52, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
-text = "Противник"
-horizontal_alignment = 1
-
-[node name="EnemyHealthBar" type="ProgressBar" parent="Margin/Panel/EnemyCard/EnemyBox"]
-custom_minimum_size = Vector2(0, 24)
-layout_mode = 2
-max_value = 100.0
-value = 100.0
-show_percentage = false
-
-[node name="SigilRow" type="HBoxContainer" parent="Margin/Panel"]
-layout_mode = 2
-alignment = 1
-
-[node name="Sigil" type="TextureRect" parent="Margin/Panel/SigilRow"]
-custom_minimum_size = Vector2(148, 148)
-layout_mode = 2
+size_flags_vertical = 4
 mouse_filter = 2
 texture = ExtResource("4")
 expand_mode = 1
 stretch_mode = 4
 
-[node name="HeroCard" type="PanelContainer" parent="Margin/Panel"]
+[node name="Titles" type="VBoxContainer" parent="Margin/Panel/Header"]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 2
 
-[node name="HeroBox" type="VBoxContainer" parent="Margin/Panel/HeroCard"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="HeroName" type="Label" parent="Margin/Panel/HeroCard/HeroBox"]
+[node name="TitleLabel" type="Label" parent="Margin/Panel/Header/Titles"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
-text = "Герой"
-horizontal_alignment = 1
+text = "ASHEN WORLD"
 
-[node name="HeroHealthBar" type="ProgressBar" parent="Margin/Panel/HeroCard/HeroBox"]
-custom_minimum_size = Vector2(0, 24)
+[node name="StageLabel" type="Label" parent="Margin/Panel/Header/Titles"]
 layout_mode = 2
-max_value = 100.0
-value = 100.0
-show_percentage = false
+theme_override_font_sizes/font_size = 15
+text = "Пепельные земли · Этап 1/5"
 
-[node name="ShieldBar" type="ProgressBar" parent="Margin/Panel/HeroCard/HeroBox"]
-custom_minimum_size = Vector2(0, 12)
+[node name="Divider" type="TextureRect" parent="Margin/Panel"]
+custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="StatusRow" type="HBoxContainer" parent="Margin/Panel"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="LevelLabel" type="Label" parent="Margin/Panel/StatusRow"]
+custom_minimum_size = Vector2(86, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "УР. 1"
+
+[node name="ExperienceBar" type="ProgressBar" parent="Margin/Panel/StatusRow"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
 max_value = 100.0
 value = 0.0
 show_percentage = false
 
-[node name="SkillButton" type="Button" parent="Margin/Panel"]
-custom_minimum_size = Vector2(0, 96)
+[node name="GoldLabel" type="Label" parent="Margin/Panel/StatusRow"]
+custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
-text = "ТЯЖЁЛЫЙ УДАР"
+theme_override_font_sizes/font_size = 14
+text = "ЗОЛОТО 0"
+horizontal_alignment = 2
+
+[node name="HealthPanel" type="PanelContainer" parent="Margin/Panel"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="HealthBox" type="VBoxContainer" parent="Margin/Panel/HealthPanel"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="HealthRow" type="HBoxContainer" parent="Margin/Panel/HealthPanel/HealthBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeroSide" type="VBoxContainer" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="HeroLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "ГЕРОЙ 120/120"
+
+[node name="HeroHealthBar" type="ProgressBar" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+max_value = 120.0
+value = 120.0
+show_percentage = false
+
+[node name="ShieldBar" type="ProgressBar" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/HeroSide"]
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+max_value = 120.0
+value = 0.0
+show_percentage = false
+
+[node name="SeparatorLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow"]
+custom_minimum_size = Vector2(26, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "×"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EnemySide" type="VBoxContainer" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="EnemyLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "ВРАГ 45/45"
+horizontal_alignment = 2
+
+[node name="EnemyHealthBar" type="ProgressBar" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+max_value = 45.0
+value = 45.0
+show_percentage = false
+
+[node name="EnemyHintLabel" type="Label" parent="Margin/Panel/HealthPanel/HealthBox/HealthRow/EnemySide"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = ""
+horizontal_alignment = 2
+
+[node name="StageNotice" type="Label" parent="Margin/Panel/HealthPanel/HealthBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "ОБЫЧНЫЙ"
+horizontal_alignment = 1
+
+[node name="SkillRow" type="HBoxContainer" parent="Margin/Panel"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="StrikeButton" type="Button" parent="Margin/Panel/SkillRow"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
+text = "УДАР"
+
+[node name="GuardButton" type="Button" parent="Margin/Panel/SkillRow"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
+text = "ЩИТ"
+
+[node name="ActionButton" type="Button" parent="Margin/Panel"]
+visible = false
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 18
+text = "ДАЛЬШЕ"
 
 [node name="LogCard" type="PanelContainer" parent="Margin/Panel"]
+custom_minimum_size = Vector2(0, 142)
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_vertical = 0
 
 [node name="BattleLog" type="Label" parent="Margin/Panel/LogCard"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Лог боя появится здесь"
+theme_override_font_sizes/font_size = 14
+text = ""
 autowrap_mode = 2
 vertical_alignment = 0
 
-[node name="BalanceLabel" type="Label" parent="Margin/Panel"]
+[node name="HintLabel" type="Label" parent="Margin/Panel"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Загрузка..."
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 12
+text = "Автобой · навыки вручную · сохранение появится позже"
 horizontal_alignment = 1

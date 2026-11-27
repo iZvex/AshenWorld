@@ -32,6 +32,14 @@ static func skill_map(balance: Dictionary) -> Dictionary:
 	return balance.get("skills", {}) as Dictionary
 
 
+static func campaign_data(balance: Dictionary) -> Dictionary:
+	return balance.get("campaign", {}) as Dictionary
+
+
+static func campaign_stages(balance: Dictionary) -> Array:
+	return campaign_data(balance).get("stages", []) as Array
+
+
 static func enemy_list(balance: Dictionary) -> Array:
 	var enemies: Dictionary = balance.get("enemies", {}) as Dictionary
 	var keys: Array = enemies.keys()
