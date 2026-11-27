@@ -1,10 +1,54 @@
 {
-  "version": 1,
+  "version": 2,
   "combat": {
     "attack_interval_seconds": 1.0,
     "base_damage": 10,
     "critical_chance": 0.05,
-    "critical_multiplier": 1.5
+    "critical_multiplier": 1.5,
+    "defense_reduction_per_point": 0.02,
+    "max_defense_reduction": 0.6
+  },
+  "hero": {
+    "name": "Пепельный странник",
+    "max_health": 120,
+    "attack": 14,
+    "defense": 4,
+    "crit_chance": 0.05
+  },
+  "enemies": {
+    "ash_walker": {
+      "name": "Пепельный бродяга",
+      "max_health": 45,
+      "attack": 7,
+      "defense": 2,
+      "crit_chance": 0.0
+    },
+    "cinder_hound": {
+      "name": "Угольная гончая",
+      "max_health": 38,
+      "attack": 10,
+      "defense": 1,
+      "crit_chance": 0.0
+    },
+    "ruin_guard": {
+      "name": "Страж руин",
+      "max_health": 90,
+      "attack": 12,
+      "defense": 6,
+      "crit_chance": 0.0
+    }
+  },
+  "skills": {
+    "heavy_strike": {
+      "name": "Тяжёлый удар",
+      "cooldown_seconds": 4.0,
+      "damage_multiplier": 2.2
+    },
+    "ash_guard": {
+      "name": "Пепельный щит",
+      "cooldown_seconds": 6.0,
+      "shield_ratio": 0.25
+    }
   },
   "progression": {
     "base_experience": 100,
