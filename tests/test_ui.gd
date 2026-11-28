@@ -623,7 +623,7 @@ func _assets_exist() -> bool:
 		"res://assets/ui/ember.svg",
 		"res://assets/ui/icons/enemy_wraith.svg",
 		"res://assets/ui/icons/sword.svg",
-		"res://assets/ui/icons/sword_icon.png",
+		"res://assets/ui/icons/crossed_swords_icon.png",
 		"res://assets/ui/icons/shield_icon.png",
 		"res://assets/ui/icons/bag.svg",
 		"res://assets/ui/icons/star.svg",

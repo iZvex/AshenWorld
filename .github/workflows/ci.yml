@@ -303,7 +303,7 @@ jobs:
               assert interface["minimum_sizes"]["StrikeButton"] == [124, 124]
               assert interface["minimum_sizes"]["GuardButton"] == [96, 96]
               overlay = hud["battle_overlay"]
-              assert overlay["icons"]["StrikeButton"].endswith("sword_icon.png")
+              assert overlay["icons"]["StrikeButton"].endswith("crossed_swords_icon.png")
               assert overlay["icons"]["GuardButton"].endswith("shield_icon.png")
               assert overlay["cooldown_ring"]["thickness"] >= 4
               assert overlay["auto_delay_seconds"] >= 0.5
@@ -315,7 +315,7 @@ jobs:
               assert interface["fonts"]["node_sizes"]["StrikeCooldownLabel"] == 18
               assert interface["fonts"]["node_sizes"]["GuardCooldownLabel"] == 18
               assert interface["fonts"]["node_sizes"]["AutoButton"] == 18
-              assert any("sword_icon.png" in name and name.endswith(".ctex") for name in names)
+              assert any("crossed_swords_icon.png" in name and name.endswith(".ctex") for name in names)
               assert any("shield_icon.png" in name and name.endswith(".ctex") for name in names)
               assert any("background_sketch" in name and name.endswith(".ctex") for name in names)
               assert any("hero_portrait" in name and name.endswith(".ctex") for name in names)

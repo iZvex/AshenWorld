@@ -3913,7 +3913,7 @@
           "strike_label": "УДАР",
           "guard_label": "ЩИТ",
           "icons": {
-            "StrikeButton": "res://assets/ui/icons/sword_icon.png",
+            "StrikeButton": "res://assets/ui/icons/crossed_swords_icon.png",
             "GuardButton": "res://assets/ui/icons/shield_icon.png"
           },
           "cooldown_ring": {
