@@ -2779,8 +2779,9 @@
     "swing_arc_life_seconds": 0.2,
     "swing_arc_step_degrees": 26,
       "figure_follow": true,
-      "figure_windup_degrees": -8,
-      "figure_strike_degrees": 6,
+      "figure_pivot": [0.42, 0.6],
+    "figure_windup_degrees": -13,
+      "figure_strike_degrees": 11,
       "characters": {
         "hero": {
           "figure": "res://assets/ui/hero_battle.png",
@@ -2788,7 +2789,12 @@
           "clean_body": "res://assets/ui/hero_battle_clean.png",
           "blade": "res://assets/ui/hero_battle_blade.png",
           "grip": [88, 193],
-          "segments": [{"points": [[100, 204], [236, 300]], "radius": 20}, {"points": [[222, 288], [268, 342]], "radius": 12}],
+          "arm_file": "res://assets/ui/hero_battle_arm.png",
+          "arm_pivot": [66, 126],
+          "arm": {"points": [[64, 150], [72, 172], [80, 196]], "radius": 19},
+          "arm_windup_degrees": -26,
+          "arm_strike_degrees": 20,
+          "segments": [{"points": [[60, 178], [98, 203]], "radius": 11}, {"points": [[100, 204], [236, 300]], "radius": 20}, {"points": [[222, 288], [268, 342]], "radius": 12}],
           "rest_degrees": 38,
           "reach": 196,
           "windup_degrees": -96,
@@ -2800,14 +2806,19 @@
           "clean_body": "res://assets/ui/enemies/bone_legionnaire_clean.png",
           "blade": "res://assets/ui/enemies/bone_legionnaire_blade.png",
           "grip": [70, 152],
+          "arm_file": "res://assets/ui/enemies/bone_legionnaire_arm.png",
+          "arm_pivot": [70, 104],
+          "arm": {"points": [[70, 104], [62, 128], [56, 150]], "radius": 14},
+          "arm_windup_degrees": -20,
+          "arm_strike_degrees": 16,
           "segments": [
             {"points": [[14, 198], [34, 180]], "radius": 17},
             {"points": [[34, 180], [78, 146]], "radius": 10}
           ],
           "rest_degrees": 139,
           "reach": 150,
-          "windup_degrees": -140,
-          "strike_degrees": 30
+          "windup_degrees": -120,
+          "strike_degrees": 24
         }
       }
     },

@@ -77,7 +77,18 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="HeroBlade" type="TextureRect" parent="ArenaHero"]
+[node name="HeroArm" type="TextureRect" parent="ArenaHero"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeroBlade" type="TextureRect" parent="ArenaHero/HeroArm"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -149,7 +160,18 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyBlade1" type="TextureRect" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1/EnemySilhouette1"]
+[node name="EnemyArm1" type="TextureRect" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1/EnemySilhouette1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyBlade1" type="TextureRect" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1/EnemySilhouette1/EnemyArm1"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -200,7 +222,18 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyBlade2" type="TextureRect" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2/EnemySilhouette2"]
+[node name="EnemyArm2" type="TextureRect" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2/EnemySilhouette2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyBlade2" type="TextureRect" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2/EnemySilhouette2/EnemyArm2"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -251,7 +284,18 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyBlade3" type="TextureRect" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3/EnemySilhouette3"]
+[node name="EnemyArm3" type="TextureRect" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3/EnemySilhouette3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyBlade3" type="TextureRect" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3/EnemySilhouette3/EnemyArm3"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -302,7 +346,18 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyBlade4" type="TextureRect" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4/EnemySilhouette4"]
+[node name="EnemyArm4" type="TextureRect" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4/EnemySilhouette4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyBlade4" type="TextureRect" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4/EnemySilhouette4/EnemyArm4"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -353,7 +408,18 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyBlade5" type="TextureRect" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5/EnemySilhouette5"]
+[node name="EnemyArm5" type="TextureRect" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5/EnemySilhouette5"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyBlade5" type="TextureRect" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5/EnemySilhouette5/EnemyArm5"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

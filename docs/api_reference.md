@@ -963,7 +963,9 @@
 - `animation_config: Dictionary`
 - `rig_config: Dictionary`
 - `hero_blade: TextureRect`
+- `hero_arm: TextureRect`
 - `enemy_blades: Array`
+- `enemy_arms: Array`
 - `ui_animations: Array`
 - `auto_advance: bool`
 - `auto_advance_timer: float`

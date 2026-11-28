@@ -103,6 +103,46 @@ def weapon_mask(image: Image.Image, config: dict) -> np.ndarray:
     return drop_small(mask, int(config.get("min_component_pixels", 120)))
 
 
+def arm_mask(image: Image.Image, config: dict) -> np.ndarray:
+    """Маска руки с оружием: предплечье и кисть до локтя.
+
+    Рука вырезается из тела отдельным слоем, чтобы в взмахе участвовала не
+    только сталь, но и кисть. Клинок остаётся дочерним слоем руки.
+    """
+    arm = config.get("arm")
+    if not isinstance(arm, dict) or not arm.get("points"):
+        return np.zeros((image.size[1], image.size[0]), dtype=bool)
+    width, height = image.size
+    alpha = np.asarray(image).astype(np.float32)[:, :, 3]
+    mask = segment_mask(width, height, arm.get("points", []), float(arm.get("radius", 16.0)))
+    mask = mask & (alpha > 24)
+    gate = arm.get("color_gate")
+    if gate:
+        # Плащ тёмный и почти без синего: в слой руки идёт сталь и кожа кисти.
+        array = np.asarray(image).astype(np.float32)
+        value = array[:, :, :3].mean(axis=2)
+        mask = mask & (value > float(gate.get("min_value", 42.0)))
+    return drop_small(mask, int(config.get("min_component_pixels", 120)))
+
+
+def fill_arm_hole(rgb: np.ndarray, mask: np.ndarray, solid: np.ndarray) -> np.ndarray:
+    """Затягивает место, где была рука: отражение второй половины и рост от краёв.
+
+    Затемнение здесь не нужно: под рукой плащ, а не тень от оружия.
+    """
+    filled, done = _mirror_fill(rgb, mask, solid)
+    rest = mask & solid & (~done)
+    if rest.any():
+        grown = _spread_fill(filled, mask, solid)
+        filled = np.where(rest[:, :, None], grown, filled)
+    band = dilate(mask, 1) & solid
+    soft = np.asarray(Image.fromarray(np.clip(filled, 0, 255).astype(np.uint8))
+                      .filter(ImageFilter.GaussianBlur(1.6))).astype(np.float32)
+    seam = band & dilate(mask, 1)
+    filled[seam] = (filled[seam] * 0.6 + soft[seam] * 0.4)
+    return filled
+
+
 def dilate(mask: np.ndarray, steps: int) -> np.ndarray:
     grown = mask.copy()
     for _step in range(steps):
@@ -320,8 +360,20 @@ def build(image: Image.Image, config: dict) -> tuple:
         solid = source[:, :, 3] > 24
         body[:, :, :3] = inpaint_hole(body[:, :, :3], core, solid, config)
     body[:, :, :3] = _fix_alpha_border(body[:, :, :3], body[:, :, 3])
+    arm_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    arm_cut = arm_mask(image, config)
+    if arm_cut.any():
+        # Рука берётся из тела: клинка в ней уже нет, только кисть и предплечье.
+        arm_pixels = body.copy()
+        arm_pixels[:, :, 3] = np.where(arm_cut, body[:, :, 3], 0.0)
+        soft = Image.fromarray((arm_cut * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.7))
+        arm_pixels[:, :, 3] = arm_pixels[:, :, 3] * (np.asarray(soft).astype(np.float32) / 255.0)
+        arm_image = Image.fromarray(np.clip(arm_pixels, 0, 255).astype(np.uint8))
+        solid = body[:, :, 3] > 24
+        body[:, :, :3] = fill_arm_hole(body[:, :, :3], arm_cut, solid)
+        body[:, :, :3] = _fix_alpha_border(body[:, :, :3], body[:, :, 3])
     body_image = Image.fromarray(np.clip(body, 0, 255).astype(np.uint8))
-    return body_image, blade_image, core
+    return body_image, blade_image, core, arm_image
 
 
 def _fix_alpha_border(rgb: np.ndarray, alpha: np.ndarray) -> np.ndarray:
@@ -390,14 +442,21 @@ def main() -> int:
             print(f"  {name}: нет файла {source}")
             continue
         image = Image.open(source).convert("RGBA")
-        body, blade, mask = build(image, config)
+        body, blade, mask, arm = build(image, config)
         body_path = ROOT / str(config["body"]).replace("res://", "")
         blade_path = ROOT / str(config["blade"]).replace("res://", "")
         body_path.parent.mkdir(parents=True, exist_ok=True)
         body.save(body_path, optimize=True)
         blade.save(blade_path, optimize=True)
+        extra = ""
+        arm_path_value = str(config.get("arm_file", "")).replace("res://", "")
+        if arm_path_value:
+            arm_path = ROOT / arm_path_value
+            arm_path.parent.mkdir(parents=True, exist_ok=True)
+            arm.save(arm_path, optimize=True)
+            extra = f", {arm_path.name} {arm_path.stat().st_size // 1024} КБ"
         print(f"  {name}: {body_path.name} {body_path.stat().st_size // 1024} КБ, "
-              f"{blade_path.name} {blade_path.stat().st_size // 1024} КБ")
+              f"{blade_path.name} {blade_path.stat().st_size // 1024} КБ{extra}")
         if show_preview:
             preview(name, image, body, blade, mask, config)
     return 0

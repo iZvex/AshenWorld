@@ -684,9 +684,16 @@ func _tick_swings(delta: float) -> bool:
 
 func _emit_swing_arc(state: Dictionary, angle: float) -> Dictionary:
 	# Дуга растёт вместе с пролётом клинка: от кисти до текущего положения.
-	var center: Vector2 = state.get("trail_center", Vector2.ZERO) as Vector2
 	var color: Color = state.get("trail_color", Color(0, 0, 0, 0)) as Color
-	if center == Vector2.ZERO or color.a <= 0.0:
+	if color.a <= 0.0:
+		return state
+	# Кисть двигается вместе с рукой, поэтому центр дуги считается по текущей
+	# матрице клинка, а не берётся один раз в начале взмаха.
+	var center: Vector2 = state.get("trail_center", Vector2.ZERO) as Vector2
+	var control: Control = state.get("control") as Control
+	if control != null and is_instance_valid(control):
+		center = control.get_global_transform() * (state.get("pivot", Vector2.ZERO) as Vector2)
+	if center == Vector2.ZERO:
 		return state
 	var start: float = rad_to_deg(float(state.get("windup", 0.0)))
 	var step: float = maxf(8.0, float(config.get("swing_arc_step_degrees", 26.0)))

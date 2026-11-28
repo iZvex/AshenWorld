@@ -142,7 +142,9 @@ var responsive_base: Dictionary = {}
 var animation_config: Dictionary = {}
 var rig_config: Dictionary = {}
 var hero_blade: TextureRect
+var hero_arm: TextureRect
 var enemy_blades: Array = []
+var enemy_arms: Array = []
 var ui_animations: Array = []
 var auto_advance: bool = false
 var auto_advance_timer: float = 0.0
@@ -521,9 +523,12 @@ func _bind_nodes() -> void:
 	future_rail = _find("FutureRail") as VBoxContainer
 	arena_hero = _find("ArenaHero") as TextureRect
 	hero_blade = _find("HeroBlade") as TextureRect
+	hero_arm = _find("HeroArm") as TextureRect
 	enemy_blades.clear()
+	enemy_arms.clear()
 	for index in range(1, 6):
 		enemy_blades.append(_find("EnemyBlade%d" % index) as TextureRect)
+		enemy_arms.append(_find("EnemyArm%d" % index) as TextureRect)
 	hero_ground = _find("HeroGround") as Panel
 	enemy_ground = _find("EnemyGround") as Panel
 	arena_enemies = _find("ArenaEnemies") as GridContainer
@@ -647,8 +652,9 @@ func _style_skill_cluster(overlay_config: Dictionary) -> void:
 	var waiting_rgba: Color = _color_from_array(ring.get("waiting_rgba", []), AshenStyle.MUTED)
 	for pair in [[strike_cooldown_ring, strike_button.custom_minimum_size.x], [guard_cooldown_ring, guard_button.custom_minimum_size.x]]:
 		var bar: TextureProgressBar = pair[0] as TextureProgressBar
-		# Кольцо садится внутрь золотого обода, не споря с рамкой кнопки.
-		var diameter: int = int(maxf(24.0, float(pair[1]) - 12.0))
+		# Кольцо идёт по самому ободу: если оно меньше кнопки, внутри читается
+		# вторая, «уменьшенная» кнопка.
+		var diameter: int = int(maxf(24.0, float(pair[1]) - 4.0))
 		if bar == null:
 			continue
 		bar.texture_under = AshenStyle.ring_texture(diameter, thickness, waiting_rgba)
@@ -666,7 +672,10 @@ func _style_skill_cluster(overlay_config: Dictionary) -> void:
 		seconds_label.add_theme_color_override("font_color", AshenStyle.GOLD)
 		seconds_label.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.08, 0.92))
 		seconds_label.add_theme_constant_override("outline_size", 4)
-		seconds_label.add_theme_stylebox_override("normal", AshenStyle.slot_placeholder_style())
+		# Подпись не должна влиять на размер кнопки: только цифры с обводкой.
+		seconds_label.custom_minimum_size = Vector2.ZERO
+		seconds_label.clip_text = false
+		seconds_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	for slot in [skill_slot3, skill_slot4]:
 		var slot_panel: PanelContainer = slot as PanelContainer
 		if slot_panel != null:
@@ -1172,27 +1181,71 @@ func _rig_blade_texture(char_id: String) -> String:
 
 
 func _apply_rig_textures() -> void:
-	# Слой оружия лежит поверх тела с той же сеткой: картинки нарезаны
+	# Слои лежат друг на друге с той же сеткой: картинки нарезаны
 	# с одинаковым размером, поэтому в стойке клинок стоит ровно на месте.
 	var blade_path: String = _rig_blade_texture("hero")
 	if hero_blade != null and blade_path != "" and ResourceLoader.exists(blade_path):
 		hero_blade.texture = load(blade_path)
 		hero_blade.visible = true
+	var arm_path: String = _rig_arm_texture("hero")
+	if hero_arm != null:
+		# Рука — отдельный слой: в взмахе двигается кисть, а не только сталь.
+		# Узел не скрываем никогда: клинок — его дочерний слой, и без руки
+		# он бы пропадал вместе с ней.
+		if arm_path != "" and ResourceLoader.exists(arm_path):
+			hero_arm.texture = load(arm_path)
+		else:
+			hero_arm.texture = null
+
+
+func _rig_arm_texture(char_id: String) -> String:
+	var characters: Dictionary = _rig_characters()
+	var entry_value: Variant = characters.get(char_id, {})
+	if not (entry_value is Dictionary):
+		return ""
+	return str((entry_value as Dictionary).get("arm_file", ""))
 
 
 func _set_enemy_blade(index: int, enemy_id: String) -> void:
 	if index < 0 or index >= enemy_blades.size():
 		return
 	var blade: TextureRect = enemy_blades[index] as TextureRect
+	var character_id: String = _rig_character_for_enemy(enemy_id)
+	var arm: TextureRect = null
+	if index < enemy_arms.size():
+		arm = enemy_arms[index] as TextureRect
+	if arm != null:
+		# Рука не скрывается: клинок лежит внутри неё как дочерний слой.
+		var arm_path: String = _rig_arm_texture(character_id)
+		arm.texture = load(arm_path) if arm_path != "" and ResourceLoader.exists(arm_path) else null
 	if blade == null:
 		return
-	var blade_path: String = _rig_blade_texture(_rig_character_for_enemy(enemy_id))
+	var blade_path: String = _rig_blade_texture(character_id)
 	if blade_path != "" and ResourceLoader.exists(blade_path):
 		blade.texture = load(blade_path)
 		blade.visible = true
 	else:
 		blade.texture = null
 		blade.visible = false
+
+
+func _arm_pivot(node: Control, char_id: String) -> Vector2:
+	# Плечо руки в координатах узла: доля исходной картинки на размер на экране.
+	var characters: Dictionary = _rig_characters()
+	var entry_value: Variant = characters.get(char_id, {})
+	if not (entry_value is Dictionary) or node == null:
+		return node.size * 0.5 if node != null else Vector2.ZERO
+	var entry: Dictionary = entry_value as Dictionary
+	var point: Array = entry.get("arm_pivot", []) as Array
+	var source: Texture2D = null
+	if node is TextureRect:
+		source = (node as TextureRect).texture
+	if point.size() < 2 or source == null or source.get_width() <= 0:
+		return Vector2(node.size.x * 0.5, node.size.y * 0.35)
+	return Vector2(
+		float(point[0]) / float(source.get_width()) * node.size.x,
+		float(point[1]) / float(source.get_height()) * node.size.y
+	)
 
 
 func _swing_pivot(node: Control, char_id: String) -> Vector2:
@@ -1214,8 +1267,18 @@ func _swing_pivot(node: Control, char_id: String) -> Vector2:
 	)
 
 
-func _swing_weapon(char_id: String, node: Control, fallback: Control) -> void:
-	# Взмах: у кого нарезано оружие — крутим клинок, у остальных качаем всю фигуру.
+func _figure_pivot(control: Control) -> Vector2:
+	# Поворот корпуса идёт вокруг пояса: так в взмахе участвует вся фигура,
+	# а не только оружие, и ступни остаются на земле.
+	var share_value: Variant = rig_config.get("figure_pivot", [0.5, 0.62])
+	var share: Array = share_value as Array if share_value is Array else [0.5, 0.62]
+	var x: float = float(share[0]) if share.size() > 0 else 0.5
+	var y: float = float(share[1]) if share.size() > 1 else 0.62
+	return Vector2(control.size.x * clampf(x, 0.1, 0.9), control.size.y * clampf(y, 0.1, 0.95))
+
+
+func _swing_weapon(char_id: String, node: Control, fallback: Control, arm_node: Control = null) -> void:
+	# Взмах: у кого нарезано оружие — крутим клинок и руку, у остальных качаем всю фигуру.
 	if effect_pool == null or node == null:
 		return
 	var characters: Dictionary = _rig_characters()
@@ -1234,6 +1297,14 @@ func _swing_weapon(char_id: String, node: Control, fallback: Control) -> void:
 		var reach: float = float(entry.get("reach", 0.0))
 		if reach <= 0.0:
 			reach = maxf(node.size.x, node.size.y) * 0.46
+		if arm_node != null:
+			# Рука идёт первой: клинок — её дочерний слой и повторяет движение кисти.
+			effect_pool.swing(
+				arm_node,
+				_arm_pivot(arm_node, char_id),
+				float(entry.get("arm_windup_degrees", -18.0)),
+				float(entry.get("arm_strike_degrees", 14.0))
+			)
 		effect_pool.swing(
 			node,
 			pivot,
@@ -1247,9 +1318,11 @@ func _swing_weapon(char_id: String, node: Control, fallback: Control) -> void:
 		)
 		if fallback != null and bool(rig_config.get("figure_follow", true)):
 			# Корпус тоже участвует: короткий замах назад и подача на удар.
+			# Точка поворота — пояс, поэтому вместе с корпусом идёт и рука,
+			# а ступни почти не уезжают.
 			effect_pool.swing(
 				fallback,
-				Vector2(fallback.size.x * 0.5, fallback.size.y),
+				_figure_pivot(fallback),
 				float(rig_config.get("figure_windup_degrees", -8.0)),
 				float(rig_config.get("figure_strike_degrees", 6.0))
 			)
@@ -1258,14 +1331,14 @@ func _swing_weapon(char_id: String, node: Control, fallback: Control) -> void:
 		return
 	effect_pool.swing(
 		fallback,
-		Vector2(fallback.size.x * 0.5, fallback.size.y),
+		_figure_pivot(fallback),
 		float(rig_config.get("figure_windup_degrees", -8.0)),
 		float(rig_config.get("figure_strike_degrees", 6.0))
 	)
 
 
 func _hero_swing() -> void:
-	_swing_weapon("hero", hero_blade, arena_hero)
+	_swing_weapon("hero", hero_blade, arena_hero, hero_arm)
 
 
 func _enemy_swing() -> void:
@@ -1278,8 +1351,11 @@ func _enemy_swing() -> void:
 	var blade: TextureRect = null
 	if index < enemy_blades.size():
 		blade = enemy_blades[index] as TextureRect
+	var arm: TextureRect = null
+	if index < enemy_arms.size():
+		arm = enemy_arms[index] as TextureRect
 	var character_id: String = _rig_character_for_enemy(_current_enemy_character())
-	_swing_weapon(character_id, blade, card)
+	_swing_weapon(character_id, blade, card, arm)
 
 
 func _current_enemy_character() -> String:
@@ -2344,7 +2420,9 @@ func _refresh_skill_button(button: Button, icon: TextureRect, ring: TextureProgr
 		label.visible = waiting and not blocked
 		label.text = "%.1f" % remaining if waiting else ""
 	if icon != null:
-		icon.modulate = Color(1.0, 1.0, 1.0, 0.45 if (blocked or waiting) else 1.0)
+		# Приглушаем цветом, а не прозрачностью: полупрозрачная иконка
+		# выглядит меньше, и кнопка на откате «сжимается» на глазах.
+		icon.modulate = Color(0.55, 0.5, 0.58) if (blocked or waiting) else Color.WHITE
 
 
 func _auto_delay() -> float:

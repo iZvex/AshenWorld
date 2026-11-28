@@ -805,6 +805,15 @@ else:
             err(f"data/balance.json: у рига {character_id} не задан радиус росчерка")
         if not ("rest_degrees" in entry):
             err(f"data/balance.json: у рига {character_id} не задан наклон оружия в стойке")
+        arm_file = str(entry.get("arm_file", "")).replace("res://", "")
+        if arm_file:
+            if not (ROOT / arm_file).is_file() or not (ROOT / (arm_file + ".import")).is_file():
+                err(f"data/balance.json: у рига {character_id} нет слоя руки {arm_file}")
+            arm_pivot = entry.get("arm_pivot", [])
+            if not isinstance(arm_pivot, list) or len(arm_pivot) < 2 or float(arm_pivot[0]) <= 0 or float(arm_pivot[1]) <= 0:
+                err(f"data/balance.json: у рига {character_id} не задано плечо руки")
+            if float(entry.get("arm_strike_degrees", 0)) == float(entry.get("arm_windup_degrees", 0)):
+                err(f"data/balance.json: у рига {character_id} рука не двигается в взмахе")
 figures = hud.get("enemy_figures", {})
 if not isinstance(figures, dict) or len(figures.get("by_id", {})) < 10 or len(figures.get("figures", [])) < 3:
     err("data/balance.json: фигуры войск противника заданы не полностью")

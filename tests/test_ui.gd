@@ -301,6 +301,10 @@ func _test_modes_ui(scene, data: Dictionary) -> void:
 func _test_battle_controls(scene) -> void:
 	_check("Кнопка перехода скрыта в бою", not scene.action_button.visible)
 	_check("Оба навыка доступны", not scene.strike_button.disabled and not scene.guard_button.disabled)
+	var strike_size: Vector2 = scene.strike_button.size
+	var guard_size: Vector2 = scene.guard_button.size
+	var strike_min: Vector2 = scene.strike_button.get_combined_minimum_size()
+	var icon_size: Vector2 = scene.strike_icon.size
 	scene.strike_button.emit_signal("pressed")
 	scene._update_view()
 	_check("Нажатие кнопки применяет удар", scene.campaign.get_cooldown_remaining("heavy_strike") > 0.0)
@@ -309,7 +313,19 @@ func _test_battle_controls(scene) -> void:
 	_check("Кольцо отката показывает восстановление", scene.strike_cooldown_ring.visible and scene.strike_cooldown_ring.value >= 0.0 and scene.strike_cooldown_ring.value < 0.6)
 	_check("Кольцо рисуется по часовой стрелке", scene.strike_cooldown_ring.fill_mode == TextureProgressBar.FILL_CLOCKWISE and scene.strike_cooldown_ring.texture_progress != null)
 	_check("Секунды отката подписаны под кнопкой", scene.strike_cooldown_label.visible and "." in scene.strike_cooldown_label.text)
-	_check("Иконка на откате приглушена", scene.strike_icon.modulate.a < 1.0)
+	_check("Иконка на откате приглушена, но не прозрачна",
+		scene.strike_icon.modulate.r < 1.0 and is_equal_approx(scene.strike_icon.modulate.a, 1.0))
+	_check("Кнопка удара не уменьшается на откате",
+		scene.strike_button.size.is_equal_approx(strike_size)
+		and scene.strike_button.get_combined_minimum_size().is_equal_approx(strike_min))
+	_check("Иконка навыка не уменьшается на откате", scene.strike_icon.size.is_equal_approx(icon_size))
+	_check("Кольцо отката идёт по ободу кнопки",
+		scene.strike_cooldown_ring.texture_under != null
+		and float(scene.strike_cooldown_ring.texture_under.get_width())
+		>= scene.strike_button.custom_minimum_size.x - 8.0)
+	_check("Подпись отката не распирает кнопку",
+		scene.strike_cooldown_label.custom_minimum_size == Vector2.ZERO)
+	_check("Кнопка щита не уменьшается на откате удара", scene.guard_button.size.is_equal_approx(guard_size))
 	_check("Навык записан в лог", "Навык" in scene.battle_log.text)
 	var hero_before: float = scene.hero_health_bar.value
 	var enemy_before: float = scene.enemy_health_bar.value
