@@ -55,6 +55,7 @@ func _initialize() -> void:
 	_check("Тема содержит стиль кнопки", scene.theme != null and scene.theme.has_stylebox("normal", "Button"))
 	_check("Тема содержит стиль панели", scene.theme != null and scene.theme.has_stylebox("panel", "PanelContainer"))
 	_check("Палитра содержит цвет угля", AshenStyle.EMBER != Color.WHITE and AshenStyle.EMBER.a > 0.9)
+	_check("Палитра брифа внедрена", AshenStyle.BACKGROUND == Color("#100D16") and AshenStyle.PANEL == Color("#211724") and AshenStyle.GOLD == Color("#C58B43") and AshenStyle.CRIMSON == Color("#8C263A") and AshenStyle.RUNE == Color("#7545B8") and AshenStyle.PARCHMENT == Color("#B8A7A0"))
 
 	var paths: Array = [
 		"Background",
@@ -227,7 +228,8 @@ func _test_battlefield_layout(scene) -> void:
 	_check("Арена врагов стала выше", _design_rect(scene.arena_enemies).size.y >= 360.0)
 	var action_rect: Rect2 = (scene.action_button as Control).get_global_rect()
 	_check("Кнопка продолжения по центру снизу", absf(action_rect.get_center().x - 360.0) <= 6.0 and action_rect.position.y >= 1000.0)
-	_check("Кнопка продолжения выше навигации", action_rect.end.y <= 1140.0 and str(scene.bottom_bar.offset_top) == "-140.0")
+	_check("Кнопка продолжения выше навигации", action_rect.end.y <= 1140.0 and str(scene.bottom_bar.offset_top) == "-130.0")
+	_check("Панель навигации не выше 130 пикселей", scene.bottom_bar.custom_minimum_size.y <= 130.0 and scene.bottom_tabs.custom_minimum_size.y >= 110.0)
 	_check("Шкал врагов столько же, сколько фигур", scene.enemy_mini_bars.size() == scene.enemy_cards.size() and (scene.enemy_mini_bars[0] as ProgressBar).max_value > 0.0)
 
 
@@ -415,6 +417,15 @@ func _test_quiet_hud(scene) -> void:
 	_check("Карточка возвращения влезает в портретный экран", card_rect.position.x >= 12.0 and card_rect.end.x <= 708.0 and card_rect.position.y >= 120.0 and card_rect.end.y <= 1160.0)
 	_check("Карточка возвращения не шире экрана", card_rect.size.x <= 696.0 and card_rect.size.y >= 260.0)
 	_check("Окно возвращения перекрывает арену", scene.away_window.mouse_filter == Control.MOUSE_FILTER_STOP)
+
+
+func _nav_icon_sizes(scene) -> int:
+	var sizes: Dictionary = {}
+	for raw_id in scene.nav_icons_nodes.keys():
+		var icon: TextureRect = scene.nav_icons_nodes[raw_id] as TextureRect
+		if icon != null:
+			sizes[int(icon.custom_minimum_size.x)] = true
+	return sizes.keys()[0] if sizes.size() == 1 else -1
 
 
 func _design_rect(control: Control) -> Rect2:
@@ -692,6 +703,18 @@ func _test_bottom_navigation(scene, data: Dictionary) -> void:
 	_check("Шесть разделов стоят в один ряд", scene.bottom_tabs is HBoxContainer and scene.bottom_tabs.get_child_count() == 6)
 	_check("Карта разделов заполнена", scene.tabs.size() == 6 and scene.content_panels.size() == 6)
 	_check("Все рабочие подписи увеличены", _min_font_size(scene) >= 18)
+	var active_style: StyleBoxFlat = scene.tabs.get("battle").get_theme_stylebox("normal") as StyleBoxFlat
+	var idle_style: StyleBoxFlat = scene.tabs.get("settings").get_theme_stylebox("normal") as StyleBoxFlat
+	_check("Активная вкладка подсвечивается золотом", active_style != null and active_style.bg_color.is_equal_approx(AshenStyle.GOLD))
+	_check("У активной вкладки мягкое золотое свечение", active_style != null and active_style.shadow_size >= 10.0 and active_style.shadow_color.a > 0.2)
+	_check("Неактивные вкладки спокойнее активной", idle_style != null and idle_style.shadow_size < active_style.shadow_size and idle_style.bg_color.is_equal_approx(Color(AshenStyle.PANEL.r, AshenStyle.PANEL.g, AshenStyle.PANEL.b, 0.92)))
+	var battle_icon: TextureRect = scene.nav_icons_nodes.get("battle") as TextureRect
+	var idle_icon: TextureRect = scene.nav_icons_nodes.get("settings") as TextureRect
+	_check("Иконка активной вкладки контрастна заливке", battle_icon != null and battle_icon.modulate.is_equal_approx(AshenStyle.BACKGROUND))
+	_check("Иконки всех разделов одного размера", _nav_icon_sizes(scene) == 34)
+	_check("У недоступного раздела есть спокойный стиль", AshenStyle.nav_disabled_style().bg_color.a < 0.7)
+	var pressed_style: StyleBoxFlat = scene.tabs.get("battle").get_theme_stylebox("pressed") as StyleBoxFlat
+	_check("У вкладки есть состояние нажатия", pressed_style != null and pressed_style.bg_color != active_style.bg_color)
 	for raw_id in order:
 		var tab_id: String = str(raw_id)
 		var entry_value: Variant = tab_info.get(tab_id, {})

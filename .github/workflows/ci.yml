@@ -317,6 +317,8 @@ jobs:
               assert interface["minimum_sizes"]["SkillSlot3"] == [52, 52]
               assert interface["minimum_sizes"]["SkillSlot4"] == [52, 52]
               assert interface["minimum_sizes"]["AutoButton"] == [160, 44]
+              assert interface["minimum_sizes"]["BottomBar"] == [0, 130]
+              assert interface["minimum_sizes"]["BottomTabs"] == [0, 114]
               assert interface["fonts"]["node_sizes"]["StrikeCooldownLabel"] == 18
               assert interface["fonts"]["node_sizes"]["GuardCooldownLabel"] == 18
               assert interface["fonts"]["node_sizes"]["AutoButton"] == 18

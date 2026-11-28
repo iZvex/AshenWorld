@@ -4,19 +4,25 @@ extends RefCounted
 # полосы заменены одной строкой здоровья; нижняя навигация, рамки и активные
 # вкладки выделены так, чтобы структура экрана читалась с первого взгляда.
 
-const BACKGROUND: Color = Color("#0B0910")
-const PANEL: Color = Color("#17121F")
-const PANEL_BORDER: Color = Color("#4A3A58")
+# Палитра брифа (§8): почти чёрный с фиолетовым оттенком фон, сливовые панели,
+# состаренное золото для акцентов и рамок, тёмный красный для опасности и крови,
+# фиолетовый для магии и тёплый светло-серый для основного текста.
+const BACKGROUND: Color = Color("#100D16")
+const PANEL: Color = Color("#211724")
+const GOLD: Color = Color("#C58B43")
+const CRIMSON: Color = Color("#8C263A")
+const RUNE: Color = Color("#7545B8")
+const PARCHMENT: Color = Color("#B8A7A0")
+# Производные оттенки: вспышка угля для критов, кромка панелей, приглушённый текст,
+# яркая заливка мини-шкал и «золото на тёмном» для крупных чисел.
 const EMBER: Color = Color("#E08A3C")
-const GOLD: Color = Color("#F4C98A")
-const RUNE: Color = Color("#B49AC6")
-const PARCHMENT: Color = Color("#E6DCCB")
-const MUTED: Color = Color("#9A8CA3")
-const CRIMSON: Color = Color("#A63D40")
+const PANEL_BORDER: Color = Color("#4A3A58")
+const MUTED: Color = Color("#8A7C86")
 const STEEL: Color = Color("#6E8CA8")
-const SHIELD_COLOR: Color = Color("#B49AC6")
-const HERO_COLOR: Color = Color("#6E8CA8")
-const ENEMY_COLOR: Color = Color("#A63D40")
+const ENEMY_FILL: Color = Color("#C8464E")
+const SHIELD_COLOR: Color = Color("#7545B8")
+const HERO_COLOR: Color = Color("#C58B43")
+const ENEMY_COLOR: Color = Color("#C8464E")
 
 
 static func panel_style(background: Color = PANEL, border: Color = PANEL_BORDER) -> StyleBoxFlat:
@@ -220,7 +226,7 @@ static func enemy_bar_background() -> StyleBoxFlat:
 
 
 static func enemy_bar_fill() -> StyleBoxFlat:
-	var box: StyleBoxFlat = bar_fill(Color("#C8464E"))
+	var box: StyleBoxFlat = bar_fill(ENEMY_FILL)
 	box.set_border_width_all(1)
 	box.border_color = Color(1.0, 0.72, 0.6, 0.55)
 	return box
@@ -267,16 +273,36 @@ static func vitals_plate_style() -> StyleBoxFlat:
 	return style
 
 
-static func nav_button_style(active: bool) -> StyleBoxFlat:
+static func nav_button_style(active: bool, pressed: bool = false) -> StyleBoxFlat:
+	# Активная вкладка заливается золотом и получает мягкое свечение вокруг,
+	# неактивная остаётся сливовой панелью с тонкой рамкой.
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.78, 0.53, 0.24, 0.94) if active else Color(0.10, 0.07, 0.14, 0.86)
-	style.border_color = GOLD if active else Color(PANEL_BORDER.r, PANEL_BORDER.g, PANEL_BORDER.b, 0.7)
-	style.set_border_width_all(1)
+	if active:
+		style.bg_color = GOLD.darkened(0.06) if pressed else GOLD
+		style.border_color = Color(1.0, 0.87, 0.68, 0.95)
+		style.set_border_width_all(2)
+		style.shadow_color = Color(GOLD.r, GOLD.g, GOLD.b, 0.42)
+		style.shadow_size = 14
+		style.shadow_offset = Vector2(0.0, 2.0)
+	else:
+		style.bg_color = Color(PANEL.r, PANEL.g, PANEL.b, 0.92)
+		style.border_color = Color(PANEL_BORDER.r, PANEL_BORDER.g, PANEL_BORDER.b, 0.7)
+		style.set_border_width_all(1)
+		style.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+		style.shadow_size = 4
 	style.set_corner_radius_all(12)
 	style.content_margin_left = 2.0
 	style.content_margin_right = 2.0
 	style.content_margin_top = 4.0
 	style.content_margin_bottom = 4.0
+	return style
+
+
+static func nav_disabled_style() -> StyleBoxFlat:
+	var style: StyleBoxFlat = nav_button_style(false)
+	style.bg_color = Color(PANEL.r, PANEL.g, PANEL.b, 0.55)
+	style.border_color = Color(MUTED.r, MUTED.g, MUTED.b, 0.3)
+	style.shadow_size = 0
 	return style
 
 

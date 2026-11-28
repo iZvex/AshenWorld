@@ -742,14 +742,18 @@ func _apply_styles() -> void:
 		notice.add_theme_color_override("font_color", AshenStyle.GOLD)
 		notice.add_theme_font_size_override("font_size", int(notice_config.get("font_size", 20)))
 	battle_power_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	# Золото оставлено важным подписям, а заглушки будущих разделов уходят в тёплый серый,
+	# чтобы не спорить с настоящими данными (палитра брифа: золото — только акцент).
 	for raw_name in ["QuestTitleLabel", "QuestSoonLabel", "EventsLabel", "QuestsLabel", "RatingLabel", "StubStripLabel"]:
 		var decor_label: Label = find_child(str(raw_name), true, false) as Label
-		if decor_label != null:
-			decor_label.add_theme_color_override("font_color", AshenStyle.EMBER if str(raw_name).ends_with("SoonLabel") or str(raw_name) == "StubStripLabel" else AshenStyle.GOLD)
+		if decor_label == null:
+			continue
+		var is_soon: bool = str(raw_name).ends_with("SoonLabel") or str(raw_name) == "StubStripLabel"
+		decor_label.add_theme_color_override("font_color", AshenStyle.MUTED if is_soon else AshenStyle.GOLD)
 	for raw_name in ["EventsIcon", "QuestsIcon", "RatingIcon", "PotionStubIcon", "CoinStubIcon", "TowerStubIcon"]:
 		var decor_icon: TextureRect = find_child(str(raw_name), true, false) as TextureRect
 		if decor_icon != null:
-			decor_icon.modulate = Color(0.72, 0.62, 0.72, 0.78)
+			decor_icon.modulate = Color(AshenStyle.MUTED.r, AshenStyle.MUTED.g, AshenStyle.MUTED.b, 0.72)
 	summon_wallet_label.add_theme_color_override("font_color", AshenStyle.MUTED)
 	nickname_label.add_theme_color_override("font_color", AshenStyle.GOLD)
 	rating_label.add_theme_color_override("font_color", AshenStyle.GOLD)
@@ -1487,11 +1491,14 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 			caption_node.add_theme_color_override("font_color", AshenStyle.BACKGROUND if active else AshenStyle.PARCHMENT)
 		var icon_node: TextureRect = nav_icons_nodes.get(key_id, null) as TextureRect
 		if icon_node != null:
-			icon_node.modulate = Color(1.0, 1.0, 1.0, 1.0) if active else Color(1.0, 1.0, 1.0, 0.86)
+			# На золотой заливке иконка тёмная, на сливовой панели — тёплая светлая.
+			icon_node.modulate = AshenStyle.BACKGROUND if active else Color(1.0, 1.0, 1.0, 0.9)
 		button.add_theme_stylebox_override("normal", AshenStyle.nav_button_style(active))
-		button.add_theme_stylebox_override("hover", AshenStyle.nav_button_style(true))
-		button.add_theme_stylebox_override("pressed", AshenStyle.nav_button_style(true))
+		button.add_theme_stylebox_override("hover", AshenStyle.nav_button_style(active, false))
+		button.add_theme_stylebox_override("pressed", AshenStyle.nav_button_style(active, true))
+		button.add_theme_stylebox_override("disabled", AshenStyle.nav_disabled_style())
 		button.add_theme_color_override("font_color", AshenStyle.BACKGROUND if active else AshenStyle.PARCHMENT)
+		button.add_theme_color_override("font_disabled_color", AshenStyle.MUTED)
 	var current: Dictionary = {}
 	var current_value: Variant = tab_info.get(active_tab, {})
 	if current_value is Dictionary:

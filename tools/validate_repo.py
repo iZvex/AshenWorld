@@ -795,6 +795,21 @@ for start_marker, end_marker, label in [
     section = scene_section(start_marker, end_marker)
     if not section or 'type="Button"' in section or 'type="TextureButton"' in section:
         err(f"scenes/main/main.tscn: секция {label} должна быть некликабельным декором без кнопок")
+style_src = (ROOT / "scripts/ui/ashen_style.gd").read_text(encoding="utf-8")
+for palette_name, palette_hex in (("BACKGROUND", "#100D16"), ("PANEL", "#211724"), ("GOLD", "#C58B43"),
+                                  ("CRIMSON", "#8C263A"), ("RUNE", "#7545B8"), ("PARCHMENT", "#B8A7A0")):
+    if f'const {palette_name}: Color = Color("{palette_hex}")' not in style_src:
+        err(f"scripts/ui/ashen_style.gd: палитра брифа требует {palette_name} = {palette_hex}")
+if "nav_button_style(active: bool, pressed: bool = false)" not in style_src or "shadow_size" not in style_src:
+    err("scripts/ui/ashen_style.gd: активная вкладка навигации должна получать золотое свечение")
+if "nav_disabled_style" not in style_src:
+    err("scripts/ui/ashen_style.gd: у недоступного раздела должен быть отдельный стиль")
+bottom_bar_size = minimum_sizes.get("BottomBar", []) if isinstance(minimum_sizes, dict) else []
+bottom_tabs_size = minimum_sizes.get("BottomTabs", []) if isinstance(minimum_sizes, dict) else []
+if not isinstance(bottom_bar_size, list) or len(bottom_bar_size) < 2 or int(bottom_bar_size[1]) > 132 or int(bottom_bar_size[1]) < 118:
+    err("data/balance.json: панель навигации должна быть ниже прежней, но не тесной")
+if not isinstance(bottom_tabs_size, list) or len(bottom_tabs_size) < 2 or int(bottom_tabs_size[1]) < 108:
+    err("data/balance.json: кнопки навигации должны оставаться удобными для нажатия")
 nav_start = scene_src.find('[node name="BottomBar"')
 nav_section = scene_src[nav_start:] if nav_start >= 0 else ""
 if nav_section.count('name="NavLabel"') != 6 or nav_section.count('name="NavIcon"') != 6:

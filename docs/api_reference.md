@@ -682,23 +682,24 @@
 
 - Наследует: `RefCounted`
 - Назначение: Единая палитра и игровые стили тёмного фэнтези. Крупные карточки и высокие полосы заменены одной строкой здоровья; нижняя навигация, рамки и активные вкладки выделены так, чтобы структура экрана читалась с первого взгляда.
-- Публичных методов: 33
+- Публичных методов: 34
 
 **Публичные константы**
 
-- `BACKGROUND: Color = Color("#0B0910")`
-- `PANEL: Color = Color("#17121F")`
-- `PANEL_BORDER: Color = Color("#4A3A58")`
+- `BACKGROUND: Color = Color("#100D16")`
+- `PANEL: Color = Color("#211724")`
+- `GOLD: Color = Color("#C58B43")`
+- `CRIMSON: Color = Color("#8C263A")`
+- `RUNE: Color = Color("#7545B8")`
+- `PARCHMENT: Color = Color("#B8A7A0")`
 - `EMBER: Color = Color("#E08A3C")`
-- `GOLD: Color = Color("#F4C98A")`
-- `RUNE: Color = Color("#B49AC6")`
-- `PARCHMENT: Color = Color("#E6DCCB")`
-- `MUTED: Color = Color("#9A8CA3")`
-- `CRIMSON: Color = Color("#A63D40")`
+- `PANEL_BORDER: Color = Color("#4A3A58")`
+- `MUTED: Color = Color("#8A7C86")`
 - `STEEL: Color = Color("#6E8CA8")`
-- `SHIELD_COLOR: Color = Color("#B49AC6")`
-- `HERO_COLOR: Color = Color("#6E8CA8")`
-- `ENEMY_COLOR: Color = Color("#A63D40")`
+- `ENEMY_FILL: Color = Color("#C8464E")`
+- `SHIELD_COLOR: Color = Color("#7545B8")`
+- `HERO_COLOR: Color = Color("#C58B43")`
+- `ENEMY_COLOR: Color = Color("#C8464E")`
 
 **Методы**
 
@@ -723,7 +724,8 @@
 - `static func level_badge_style() -> StyleBoxFlat`
 - `static func currency_pill_style() -> StyleBoxFlat`
 - `static func vitals_plate_style() -> StyleBoxFlat`
-- `static func nav_button_style(active: bool) -> StyleBoxFlat`
+- `static func nav_button_style(active: bool, pressed: bool = false) -> StyleBoxFlat`
+- `static func nav_disabled_style() -> StyleBoxFlat`
 - `static func quick_icon_style(active: bool) -> StyleBoxFlat`
 - `static func enemy_card_style(active: bool = false) -> StyleBoxFlat`
 - `static func orb_style(active: bool = false, radius: int = 62) -> StyleBoxFlat`
