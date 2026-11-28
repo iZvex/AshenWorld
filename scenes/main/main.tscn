@@ -59,10 +59,10 @@ anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 20.0
-offset_top = 388.0
+offset_left = 16.0
+offset_top = 668.0
 offset_right = 196.0
-offset_bottom = 616.0
+offset_bottom = 952.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
@@ -73,24 +73,42 @@ anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 204.0
-offset_top = 388.0
-offset_right = 586.0
-offset_bottom = 616.0
+offset_left = 210.0
+offset_top = 522.0
+offset_right = 708.0
+offset_bottom = 840.0
 columns = 3
 mouse_filter = 2
 
 [node name="EnemyCard1" type="PanelContainer" parent="ArenaEnemies"]
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 2
 size_flags_vertical = 3
+mouse_filter = 2
 
 [node name="EnemyCardBox1" type="VBoxContainer" parent="ArenaEnemies/EnemyCard1"]
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 2
 size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="EnemyNameLabel1" type="Label" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1"]
+layout_mode = 2
+text = "ВРАГ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
+mouse_filter = 2
+
+[node name="EnemyMiniBar1" type="ProgressBar" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1"]
+custom_minimum_size = Vector2(120, 12)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+max_value = 100.0
+value = 100.0
+show_percentage = false
 
 [node name="EnemySilhouette1" type="TextureRect" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1"]
 layout_mode = 2
@@ -100,25 +118,35 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyMiniBar1" type="ProgressBar" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1"]
+[node name="EnemyCard2" type="PanelContainer" parent="ArenaEnemies"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="EnemyCardBox2" type="VBoxContainer" parent="ArenaEnemies/EnemyCard2"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="EnemyNameLabel2" type="Label" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2"]
+layout_mode = 2
+text = "ВРАГ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
+mouse_filter = 2
+
+[node name="EnemyMiniBar2" type="ProgressBar" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2"]
+custom_minimum_size = Vector2(120, 12)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
 max_value = 100.0
 value = 100.0
 show_percentage = false
-
-[node name="EnemyCard2" type="PanelContainer" parent="ArenaEnemies"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-size_flags_vertical = 3
-
-[node name="EnemyCardBox2" type="VBoxContainer" parent="ArenaEnemies/EnemyCard2"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-size_flags_vertical = 3
 
 [node name="EnemySilhouette2" type="TextureRect" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2"]
 layout_mode = 2
@@ -128,25 +156,35 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyMiniBar2" type="ProgressBar" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2"]
+[node name="EnemyCard3" type="PanelContainer" parent="ArenaEnemies"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="EnemyCardBox3" type="VBoxContainer" parent="ArenaEnemies/EnemyCard3"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="EnemyNameLabel3" type="Label" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3"]
+layout_mode = 2
+text = "ВРАГ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
+mouse_filter = 2
+
+[node name="EnemyMiniBar3" type="ProgressBar" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3"]
+custom_minimum_size = Vector2(120, 12)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
 max_value = 100.0
 value = 100.0
 show_percentage = false
-
-[node name="EnemyCard3" type="PanelContainer" parent="ArenaEnemies"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-size_flags_vertical = 3
-
-[node name="EnemyCardBox3" type="VBoxContainer" parent="ArenaEnemies/EnemyCard3"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-size_flags_vertical = 3
 
 [node name="EnemySilhouette3" type="TextureRect" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3"]
 layout_mode = 2
@@ -156,25 +194,35 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyMiniBar3" type="ProgressBar" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3"]
+[node name="EnemyCard4" type="PanelContainer" parent="ArenaEnemies"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="EnemyCardBox4" type="VBoxContainer" parent="ArenaEnemies/EnemyCard4"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="EnemyNameLabel4" type="Label" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4"]
+layout_mode = 2
+text = "ВРАГ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
+mouse_filter = 2
+
+[node name="EnemyMiniBar4" type="ProgressBar" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4"]
+custom_minimum_size = Vector2(120, 12)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
 max_value = 100.0
 value = 100.0
 show_percentage = false
-
-[node name="EnemyCard4" type="PanelContainer" parent="ArenaEnemies"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-size_flags_vertical = 3
-
-[node name="EnemyCardBox4" type="VBoxContainer" parent="ArenaEnemies/EnemyCard4"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-size_flags_vertical = 3
 
 [node name="EnemySilhouette4" type="TextureRect" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4"]
 layout_mode = 2
@@ -184,25 +232,35 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyMiniBar4" type="ProgressBar" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4"]
+[node name="EnemyCard5" type="PanelContainer" parent="ArenaEnemies"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="EnemyCardBox5" type="VBoxContainer" parent="ArenaEnemies/EnemyCard5"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="EnemyNameLabel5" type="Label" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5"]
+layout_mode = 2
+text = "ВРАГ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
+mouse_filter = 2
+
+[node name="EnemyMiniBar5" type="ProgressBar" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5"]
+custom_minimum_size = Vector2(120, 12)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
 max_value = 100.0
 value = 100.0
 show_percentage = false
-
-[node name="EnemyCard5" type="PanelContainer" parent="ArenaEnemies"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-size_flags_vertical = 3
-
-[node name="EnemyCardBox5" type="VBoxContainer" parent="ArenaEnemies/EnemyCard5"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-size_flags_vertical = 3
 
 [node name="EnemySilhouette5" type="TextureRect" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5"]
 layout_mode = 2
@@ -212,15 +270,7 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyMiniBar5" type="ProgressBar" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5"]
-layout_mode = 2
-size_flags_horizontal = 4
-mouse_filter = 2
-max_value = 100.0
-value = 100.0
-show_percentage = false
-
-[node name="HealthPanel" type="PanelContainer" parent="."]
+[node name="ProfilePanel" type="PanelContainer" parent="."]
 layout_mode = 1
 anchor_left = 0.0
 anchor_top = 0.0
@@ -228,108 +278,129 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 12.0
 offset_top = 12.0
-offset_right = 408.0
-offset_bottom = 220.0
+offset_right = 412.0
+offset_bottom = 140.0
 mouse_filter = 2
 
-[node name="HealthBox" type="VBoxContainer" parent="HealthPanel"]
+[node name="ProfileBox" type="VBoxContainer" parent="ProfilePanel"]
 layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
 
-[node name="HealthRow" type="HBoxContainer" parent="HealthPanel/HealthBox"]
+[node name="ProfileRow" type="HBoxContainer" parent="ProfilePanel/ProfileBox"]
 layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
 
-[node name="PortraitColumn" type="VBoxContainer" parent="HealthPanel/HealthBox/HealthRow"]
+[node name="PortraitColumn" type="VBoxContainer" parent="ProfilePanel/ProfileBox/ProfileRow"]
 layout_mode = 2
 size_flags_vertical = 4
-alignment = 1
 mouse_filter = 2
+theme_override_constants/separation = 2
 
-[node name="PortraitFrame" type="PanelContainer" parent="HealthPanel/HealthBox/HealthRow/PortraitColumn"]
+[node name="PortraitFrame" type="PanelContainer" parent="ProfilePanel/ProfileBox/ProfileRow/PortraitColumn"]
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
 
-[node name="HeroPortrait" type="TextureRect" parent="HealthPanel/HealthBox/HealthRow/PortraitColumn/PortraitFrame"]
+[node name="HeroPortrait" type="TextureRect" parent="ProfilePanel/ProfileBox/ProfileRow/PortraitColumn/PortraitFrame"]
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
 mouse_filter = 2
-texture = ExtResource("3")
-expand_mode = 1
+expand_mode = 2
 stretch_mode = 5
 
-[node name="LevelLabel" type="Label" parent="HealthPanel/HealthBox/HealthRow/PortraitColumn"]
-layout_mode = 2
-text = "УР. 1"
-horizontal_alignment = 1
-
-[node name="BattlePowerLabel" type="Label" parent="HealthPanel/HealthBox/HealthRow/PortraitColumn"]
+[node name="ProfileLines" type="VBoxContainer" parent="ProfilePanel/ProfileBox/ProfileRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
-text = "БМ 0"
-horizontal_alignment = 1
+theme_override_constants/separation = 6
 
-[node name="ExperienceBar" type="ProgressBar" parent="HealthPanel/HealthBox/HealthRow/PortraitColumn"]
+[node name="NicknameLabel" type="Label" parent="ProfilePanel/ProfileBox/ProfileRow/ProfileLines"]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
+text = "ПЕПЕЛЬНЫЙ СТРАННИК"
+autowrap_mode = 0
+clip_text = true
+mouse_filter = 2
+
+[node name="StatsRow" type="HBoxContainer" parent="ProfilePanel/ProfileBox/ProfileRow/ProfileLines"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="LevelLabel" type="Label" parent="ProfilePanel/ProfileBox/ProfileRow/ProfileLines/StatsRow"]
+layout_mode = 2
+text = "УР. 1"
+mouse_filter = 2
+
+[node name="BattlePowerLabel" type="Label" parent="ProfilePanel/ProfileBox/ProfileRow/ProfileLines/StatsRow"]
+layout_mode = 2
+text = "БМ 0"
+mouse_filter = 2
+
+[node name="RatingValueLabel" type="Label" parent="ProfilePanel/ProfileBox/ProfileRow/ProfileLines"]
+layout_mode = 2
+text = "РЕЙТИНГ 0"
+mouse_filter = 2
+
+[node name="ExperienceBar" type="ProgressBar" parent="ProfilePanel/ProfileBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+mouse_filter = 2
+max_value = 100.0
+show_percentage = false
+
+[node name="HeroVitals" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 16.0
+offset_top = 590.0
+offset_right = 196.0
+offset_bottom = 656.0
+mouse_filter = 2
+
+[node name="HeroSide" type="VBoxContainer" parent="HeroVitals"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="HeroLabel" type="Label" parent="HeroVitals/HeroSide"]
+layout_mode = 2
+text = "ГЕРОЙ —"
+mouse_filter = 2
+
+[node name="HeroHealthBar" type="ProgressBar" parent="HeroVitals/HeroSide"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+mouse_filter = 2
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="ShieldBar" type="ProgressBar" parent="HeroVitals/HeroSide"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+mouse_filter = 2
 max_value = 100.0
 value = 0.0
 show_percentage = false
 
-[node name="VitalsBox" type="VBoxContainer" parent="HealthPanel/HealthBox/HealthRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
+[node name="EnemyHintLabel" type="Label" parent="."]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 210.0
+offset_top = 490.0
+offset_right = 708.0
+offset_bottom = 516.0
+text = ""
+horizontal_alignment = 2
 mouse_filter = 2
-
-[node name="HeroSide" type="VBoxContainer" parent="HealthPanel/HealthBox/HealthRow/VitalsBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="HeroLabel" type="Label" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/HeroSide"]
-layout_mode = 2
-text = "ГЕРОЙ 120/120"
-
-[node name="HeroHealthBar" type="ProgressBar" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/HeroSide"]
-layout_mode = 2
-max_value = 120.0
-value = 120.0
-show_percentage = false
-
-[node name="ShieldBar" type="ProgressBar" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/HeroSide"]
-layout_mode = 2
-max_value = 120.0
-value = 0.0
-show_percentage = false
-
-[node name="EnemySide" type="VBoxContainer" parent="HealthPanel/HealthBox/HealthRow/VitalsBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="EnemyLabel" type="Label" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/EnemySide"]
-layout_mode = 2
-text = "ВРАГ 45/45"
-horizontal_alignment = 2
-
-[node name="EnemyHealthBar" type="ProgressBar" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/EnemySide"]
-layout_mode = 2
-max_value = 45.0
-value = 45.0
-show_percentage = false
-
-[node name="EnemyHintLabel" type="Label" parent="HealthPanel/HealthBox/HealthRow/VitalsBox/EnemySide"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 2
-
-[node name="SeparatorLabel" type="Label" parent="HealthPanel/HealthBox"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-vertical_alignment = 1
-visible = false
 
 [node name="CurrencyBar" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -388,9 +459,9 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 12.0
-offset_top = 228.0
+offset_top = 148.0
 offset_right = 382.0
-offset_bottom = 326.0
+offset_bottom = 236.0
 mouse_filter = 2
 
 [node name="QuestBox" type="HBoxContainer" parent="QuestStub"]
@@ -444,9 +515,9 @@ anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 0.0
 offset_left = -110.0
-offset_top = 82.0
+offset_top = 148.0
 offset_right = -10.0
-offset_bottom = 432.0
+offset_bottom = 350.0
 alignment = 1
 mouse_filter = 2
 
@@ -494,28 +565,6 @@ horizontal_alignment = 1
 autowrap_mode = 0
 clip_text = true
 
-[node name="RatingStub" type="VBoxContainer" parent="FutureRail"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-mouse_filter = 2
-
-[node name="RatingIcon" type="TextureRect" parent="FutureRail/RatingStub"]
-layout_mode = 2
-size_flags_horizontal = 4
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="RatingLabel" type="Label" parent="FutureRail/RatingStub"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-text = "РЕЙТИНГ\nСКОРО"
-horizontal_alignment = 1
-autowrap_mode = 0
-clip_text = true
-
 [node name="StubStrip" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchor_left = 0.0
@@ -523,9 +572,9 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 20.0
-offset_top = 332.0
-offset_right = 400.0
-offset_bottom = 384.0
+offset_top = 242.0
+offset_right = 470.0
+offset_bottom = 286.0
 alignment = 1
 mouse_filter = 2
 
@@ -591,10 +640,10 @@ horizontal_alignment = 1
 [node name="LogCard" type="Panel" parent="BattleOverlay"]
 clip_contents = true
 layout_mode = 0
-offset_left = 16.0
-offset_top = 620.0
-offset_right = 384.0
-offset_bottom = 746.0
+offset_left = 12.0
+offset_top = 292.0
+offset_right = 400.0
+offset_bottom = 406.0
 mouse_filter = 2
 
 [node name="BattleLog" type="Label" parent="BattleOverlay/LogCard"]
@@ -614,10 +663,10 @@ vertical_alignment = 0
 
 [node name="HintLabel" type="Label" parent="BattleOverlay"]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 754.0
-offset_right = 620.0
-offset_bottom = 832.0
+offset_left = 12.0
+offset_top = 412.0
+offset_right = 470.0
+offset_bottom = 462.0
 text = "Автобой · локальное сохранение · офлайн до 12 ч"
 autowrap_mode = 2
 mouse_filter = 2
@@ -625,26 +674,26 @@ mouse_filter = 2
 [node name="ActionButton" type="Button" parent="BattleOverlay"]
 visible = false
 layout_mode = 0
-offset_left = 16.0
-offset_top = 840.0
-offset_right = 384.0
-offset_bottom = 888.0
+offset_left = 190.0
+offset_top = 1040.0
+offset_right = 530.0
+offset_bottom = 1102.0
 text = "ДАЛЬШЕ"
 
 [node name="StrikeButton" type="Button" parent="BattleOverlay"]
 layout_mode = 0
-offset_left = 492.0
-offset_top = 880.0
-offset_right = 616.0
-offset_bottom = 1004.0
+offset_left = 556.0
+offset_top = 872.0
+offset_right = 680.0
+offset_bottom = 996.0
 text = "УДАР"
 
 [node name="GuardButton" type="Button" parent="BattleOverlay"]
 layout_mode = 0
-offset_left = 392.0
-offset_top = 920.0
-offset_right = 488.0
-offset_bottom = 1016.0
+offset_left = 444.0
+offset_top = 916.0
+offset_right = 540.0
+offset_bottom = 1012.0
 text = "ЩИТ"
 
 
@@ -655,7 +704,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-anchor_top = 0.48
+offset_top = 470.0
+offset_bottom = -140.0
 mouse_filter = 2
 
 [node name="Panel" type="VBoxContainer" parent="Margin"]
@@ -1193,113 +1243,228 @@ text = "Для слабого устройства выберите 30 кадр�
 autowrap_mode = 2
 horizontal_alignment = 1
 
-[node name="BottomBar" type="PanelContainer" parent="Margin/Panel"]
-layout_mode = 2
-size_flags_vertical = 0
-
-[node name="BottomTabs" type="GridContainer" parent="Margin/Panel/BottomBar"]
-layout_mode = 2
-size_flags_vertical = 4
-
-[node name="BattleButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "БОЙ"
-
-[node name="EquipmentButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "ИНВЕНТАРЬ"
-
-[node name="SummonButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "ПРИЗЫВ"
-
-[node name="ProgressionButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "ПРОГРЕССИЯ"
-
-[node name="ModeButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "РЕЖИМЫ"
-
-[node name="SettingsButton" type="Button" parent="Margin/Panel/BottomBar/BottomTabs"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "НАСТРОЙКИ"
-
-[node name="QuickRail" type="VBoxContainer" parent="."]
+[node name="BottomBar" type="PanelContainer" parent="."]
 layout_mode = 1
-anchor_left = 1.0
-anchor_top = 0.37
+anchor_left = 0.0
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -82.0
-offset_top = 0.0
-offset_right = -10.0
-offset_bottom = -190.0
+offset_left = 8.0
+offset_top = -140.0
+offset_right = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="BottomTabs" type="HBoxContainer" parent="BottomBar"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BattleButton" type="Button" parent="BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+focus_mode = 0
+text = ""
+
+[node name="EquipmentButton" type="Button" parent="BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.06
+focus_mode = 0
+text = ""
+
+[node name="SummonButton" type="Button" parent="BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+focus_mode = 0
+text = ""
+
+[node name="ProgressionButton" type="Button" parent="BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.16
+focus_mode = 0
+text = ""
+
+[node name="ModeButton" type="Button" parent="BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+focus_mode = 0
+text = ""
+
+[node name="SettingsButton" type="Button" parent="BottomBar/BottomTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.1
+focus_mode = 0
+text = ""
+
+[node name="NavBox" type="VBoxContainer" parent="BottomBar/BottomTabs/BattleButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
 alignment = 1
-mouse_filter = 0
 
-[node name="QuickBattleButton" type="Button" parent="QuickRail"]
+[node name="NavIcon" type="TextureRect" parent="BottomBar/BottomTabs/BattleButton/NavBox"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NavLabel" type="Label" parent="BottomBar/BottomTabs/BattleButton/NavBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-focus_mode = 0
-mouse_filter = 0
-text = ""
-tooltip_text = "БОЙ"
-expand_icon = true
-icon_alignment = 1
+mouse_filter = 2
+text = "БОЙ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
 
-[node name="QuickInventoryButton" type="Button" parent="QuickRail"]
+[node name="NavBox" type="VBoxContainer" parent="BottomBar/BottomTabs/EquipmentButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="NavIcon" type="TextureRect" parent="BottomBar/BottomTabs/EquipmentButton/NavBox"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NavLabel" type="Label" parent="BottomBar/BottomTabs/EquipmentButton/NavBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-focus_mode = 0
-mouse_filter = 0
-text = ""
-tooltip_text = "ИНВЕНТАРЬ"
-expand_icon = true
-icon_alignment = 1
+mouse_filter = 2
+text = "ИНВЕНТАРЬ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
 
-[node name="QuickSummonButton" type="Button" parent="QuickRail"]
+[node name="NavBox" type="VBoxContainer" parent="BottomBar/BottomTabs/SummonButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="NavIcon" type="TextureRect" parent="BottomBar/BottomTabs/SummonButton/NavBox"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NavLabel" type="Label" parent="BottomBar/BottomTabs/SummonButton/NavBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-focus_mode = 0
-mouse_filter = 0
-text = ""
-tooltip_text = "ПРИЗЫВ"
-expand_icon = true
-icon_alignment = 1
+mouse_filter = 2
+text = "ПРИЗЫВ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
 
-[node name="QuickProgressionButton" type="Button" parent="QuickRail"]
+[node name="NavBox" type="VBoxContainer" parent="BottomBar/BottomTabs/ProgressionButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="NavIcon" type="TextureRect" parent="BottomBar/BottomTabs/ProgressionButton/NavBox"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NavLabel" type="Label" parent="BottomBar/BottomTabs/ProgressionButton/NavBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-focus_mode = 0
-mouse_filter = 0
-text = ""
-tooltip_text = "ПРОГРЕССИЯ"
-expand_icon = true
-icon_alignment = 1
+mouse_filter = 2
+text = "ПРОГРЕССИЯ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
 
-[node name="QuickModeButton" type="Button" parent="QuickRail"]
+[node name="NavBox" type="VBoxContainer" parent="BottomBar/BottomTabs/ModeButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="NavIcon" type="TextureRect" parent="BottomBar/BottomTabs/ModeButton/NavBox"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NavLabel" type="Label" parent="BottomBar/BottomTabs/ModeButton/NavBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-focus_mode = 0
-mouse_filter = 0
-text = ""
-tooltip_text = "РЕЖИМЫ"
-expand_icon = true
-icon_alignment = 1
+mouse_filter = 2
+text = "РЕЖИМЫ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true
 
-[node name="QuickSettingsButton" type="Button" parent="QuickRail"]
+[node name="NavBox" type="VBoxContainer" parent="BottomBar/BottomTabs/SettingsButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="NavIcon" type="TextureRect" parent="BottomBar/BottomTabs/SettingsButton/NavBox"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NavLabel" type="Label" parent="BottomBar/BottomTabs/SettingsButton/NavBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-focus_mode = 0
-mouse_filter = 0
-text = ""
-tooltip_text = "НАСТРОЙКИ"
-expand_icon = true
-icon_alignment = 1
+mouse_filter = 2
+text = "НАСТРОЙКИ"
+horizontal_alignment = 1
+autowrap_mode = 0
+clip_text = true

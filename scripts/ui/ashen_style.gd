@@ -110,6 +110,32 @@ static func portrait_frame_style() -> StyleBoxFlat:
 	return box
 
 
+static func vitals_plate_style() -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.03, 0.08, 0.72)
+	style.border_color = Color(PANEL_BORDER.r, PANEL_BORDER.g, PANEL_BORDER.b, 0.6)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(12)
+	style.content_margin_left = 10.0
+	style.content_margin_right = 10.0
+	style.content_margin_top = 6.0
+	style.content_margin_bottom = 6.0
+	return style
+
+
+static func nav_button_style(active: bool) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.78, 0.53, 0.24, 0.94) if active else Color(0.10, 0.07, 0.14, 0.86)
+	style.border_color = GOLD if active else Color(PANEL_BORDER.r, PANEL_BORDER.g, PANEL_BORDER.b, 0.7)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(12)
+	style.content_margin_left = 2.0
+	style.content_margin_right = 2.0
+	style.content_margin_top = 4.0
+	style.content_margin_bottom = 4.0
+	return style
+
+
 static func quick_icon_style(active: bool) -> StyleBoxFlat:
 	var background: Color = Color("#3B2418") if active else Color("#181120")
 	var border: Color = GOLD if active else Color("#6E5538")
@@ -119,11 +145,11 @@ static func quick_icon_style(active: bool) -> StyleBoxFlat:
 	return box
 
 
-static func enemy_card_style() -> StyleBoxFlat:
+static func enemy_card_style(active: bool = false) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.03, 0.09, 0.28)
-	style.border_color = Color(0.0, 0.0, 0.0, 0.0)
-	style.set_border_width_all(0)
+	style.bg_color = Color(0.14, 0.04, 0.07, 0.3) if active else Color(0.06, 0.03, 0.09, 0.12)
+	style.border_color = Color(CRIMSON.r, CRIMSON.g, CRIMSON.b, 0.55) if active else Color(0.0, 0.0, 0.0, 0.0)
+	style.set_border_width_all(1 if active else 0)
 	style.set_corner_radius_all(16)
 	style.content_margin_left = 6.0
 	style.content_margin_right = 6.0

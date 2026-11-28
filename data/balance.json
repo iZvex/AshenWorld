@@ -2841,7 +2841,14 @@
           "QuickSummonButton": 18,
           "QuickProgressionButton": 18,
           "QuickModeButton": 18,
-          "QuickSettingsButton": 18
+          "QuickSettingsButton": 18,
+          "NicknameLabel": 20,
+          "RatingValueLabel": 18,
+          "EnemyNameLabel1": 18,
+          "EnemyNameLabel2": 18,
+          "EnemyNameLabel3": 18,
+          "EnemyNameLabel4": 18,
+          "EnemyNameLabel5": 18
         }
       },
       "minimum_sizes": {
@@ -2883,11 +2890,11 @@
         ],
         "BottomBar": [
           0,
-          128
+          140
         ],
         "BottomTabs": [
           0,
-          112
+          124
         ],
         "CampaignModeButton": [
           0,
@@ -3006,8 +3013,8 @@
           0
         ],
         "LevelLabel": [
-          104,
-          0
+          0,
+          22
         ],
         "LockButton": [
           0,
@@ -3286,8 +3293,8 @@
           96
         ],
         "BattlePowerLabel": [
-          104,
-          0
+          0,
+          22
         ],
         "VitalsBox": [
           270,
@@ -3422,12 +3429,12 @@
           0
         ],
         "EnemySilhouette1": [
-          70,
-          150
+          0,
+          220
         ],
         "EnemyMiniBar1": [
-          140,
-          10
+          120,
+          12
         ],
         "EnemyCard2": [
           100,
@@ -3438,12 +3445,12 @@
           0
         ],
         "EnemySilhouette2": [
-          76,
-          66
+          0,
+          220
         ],
         "EnemyMiniBar2": [
-          76,
-          8
+          120,
+          12
         ],
         "EnemyCard3": [
           100,
@@ -3454,12 +3461,12 @@
           0
         ],
         "EnemySilhouette3": [
-          76,
-          66
+          0,
+          220
         ],
         "EnemyMiniBar3": [
-          76,
-          8
+          120,
+          12
         ],
         "EnemyCard4": [
           100,
@@ -3470,12 +3477,12 @@
           0
         ],
         "EnemySilhouette4": [
-          76,
-          66
+          0,
+          220
         ],
         "EnemyMiniBar4": [
-          76,
-          8
+          120,
+          12
         ],
         "EnemyCard5": [
           100,
@@ -3486,12 +3493,12 @@
           0
         ],
         "EnemySilhouette5": [
-          76,
-          66
+          0,
+          220
         ],
         "EnemyMiniBar5": [
-          76,
-          8
+          120,
+          12
         ],
         "QuickBattleButton": [
           64,
@@ -3516,6 +3523,50 @@
         "QuickSettingsButton": [
           64,
           64
+        ],
+        "ProfilePanel": [
+          388,
+          128
+        ],
+        "NicknameLabel": [
+          0,
+          26
+        ],
+        "RatingValueLabel": [
+          0,
+          22
+        ],
+        "StatsRow": [
+          0,
+          22
+        ],
+        "HeroVitals": [
+          0,
+          66
+        ],
+        "EnemyNameLabel1": [
+          0,
+          22
+        ],
+        "EnemyNameLabel2": [
+          0,
+          22
+        ],
+        "EnemyNameLabel3": [
+          0,
+          22
+        ],
+        "EnemyNameLabel4": [
+          0,
+          22
+        ],
+        "EnemyNameLabel5": [
+          0,
+          22
+        ],
+        "ArenaHero": [
+          180,
+          284
         ]
       },
       "spacing": {
@@ -3533,8 +3584,7 @@
           "separation": 10
         },
         "BottomTabs": {
-          "h_separation": 4,
-          "v_separation": 4
+          "separation": 4
         },
         "ContentArea": {
           "separation": 0
@@ -3682,7 +3732,6 @@
       },
       "layout": {
         "grid_columns": {
-          "BottomTabs": 3,
           "AttributeRow": 2,
           "SettingsRow": 2,
           "ModeTopRow": 2,
@@ -3702,7 +3751,15 @@
           0.78,
           0.9,
           1.0
-        ]
+        ],
+        "nav_ratios": {
+          "BattleButton": 1.0,
+          "EquipmentButton": 1.06,
+          "SummonButton": 1.0,
+          "ProgressionButton": 1.16,
+          "ModeButton": 1.0,
+          "SettingsButton": 1.1
+        }
       },
       "navigation": {
         "default_tab": "battle",
@@ -3789,45 +3846,12 @@
         "enemy_texture": "res://assets/ui/icons/enemy_wraith.svg",
         "enemy_cards": 5,
         "stub_text": "СКОРО",
-        "quick_rail": {
-          "battle": {
-            "button": "QuickBattleButton",
-            "icon": "res://assets/ui/icons/sword.svg",
-            "label": "БОЙ"
-          },
-          "inventory": {
-            "button": "QuickInventoryButton",
-            "icon": "res://assets/ui/icons/bag.svg",
-            "label": "ИНВЕНТАРЬ"
-          },
-          "summon": {
-            "button": "QuickSummonButton",
-            "icon": "res://assets/ui/icons/star.svg",
-            "label": "ПРИЗЫВ"
-          },
-          "progression": {
-            "button": "QuickProgressionButton",
-            "icon": "res://assets/ui/icons/runes.svg",
-            "label": "ПРОГРЕССИЯ"
-          },
-          "mode": {
-            "button": "QuickModeButton",
-            "icon": "res://assets/ui/icons/tower.svg",
-            "label": "РЕЖИМЫ"
-          },
-          "settings": {
-            "button": "QuickSettingsButton",
-            "icon": "res://assets/ui/icons/gear.svg",
-            "label": "НАСТРОЙКИ"
-          }
-        },
         "stub_icons": {
           "QuestIcon": "res://assets/ui/icons/quest.svg",
           "CoinIcon": "res://assets/ui/icons/coin.svg",
           "AshIcon": "res://assets/ui/icons/ash.svg",
           "EventsIcon": "res://assets/ui/icons/gift.svg",
           "QuestsIcon": "res://assets/ui/icons/scroll.svg",
-          "RatingIcon": "res://assets/ui/icons/trophy.svg",
           "PotionStubIcon": "res://assets/ui/icons/potion.svg",
           "CoinStubIcon": "res://assets/ui/icons/coin.svg",
           "TowerStubIcon": "res://assets/ui/icons/tower.svg"
@@ -3836,7 +3860,6 @@
           "QuestSoonLabel": "СКОРО",
           "EventsLabel": "СОБЫТИЯ\nСКОРО",
           "QuestsLabel": "ЗАДАНИЯ\nСКОРО",
-          "RatingLabel": "РЕЙТИНГ\nСКОРО",
           "StubStripLabel": "ЛАВКА · ЗЕЛЬЯ · СКОРО"
         },
         "battle_overlay": {
@@ -3873,7 +3896,40 @@
             "ash_lord": "res://assets/ui/enemies/bone_legionnaire.png",
             "abyss_warden": "res://assets/ui/enemies/ash_wraith.png"
           }
-        }
+        },
+        "nav_icons": {
+          "battle": {
+            "button": "BattleButton",
+            "icon": "res://assets/ui/icons/sword.svg",
+            "label": "БОЙ"
+          },
+          "inventory": {
+            "button": "EquipmentButton",
+            "icon": "res://assets/ui/icons/bag.svg",
+            "label": "ИНВЕНТАРЬ"
+          },
+          "summon": {
+            "button": "SummonButton",
+            "icon": "res://assets/ui/icons/star.svg",
+            "label": "ПРИЗЫВ"
+          },
+          "progression": {
+            "button": "ProgressionButton",
+            "icon": "res://assets/ui/icons/runes.svg",
+            "label": "ПРОГРЕССИЯ"
+          },
+          "mode": {
+            "button": "ModeButton",
+            "icon": "res://assets/ui/icons/tower.svg",
+            "label": "РЕЖИМЫ"
+          },
+          "settings": {
+            "button": "SettingsButton",
+            "icon": "res://assets/ui/icons/gear.svg",
+            "label": "НАСТРОЙКИ"
+          }
+        },
+        "nickname": "Пепельный странник"
       }
     }
   }

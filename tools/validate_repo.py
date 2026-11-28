@@ -636,24 +636,27 @@ minimum_sizes = interface.get("minimum_sizes", {})
 if not isinstance(minimum_sizes, dict) or len(minimum_sizes) < 90:
     err("data/balance.json: размеры панелей и кнопок должны быть централизованы")
     minimum_sizes = {}
-for bar_name in ("HeroHealthBar", "EnemyHealthBar"):
+for bar_name, min_height, min_width in (("HeroHealthBar", 26, 0), ("EnemyMiniBar1", 12, 120)):
     value = minimum_sizes.get(bar_name, []) if isinstance(minimum_sizes, dict) else []
-    if not isinstance(value, list) or len(value) < 2 or int(value[1]) < 26:
-        err(f"data/balance.json: {bar_name} должен быть крупной шкалой не ниже 26 пикселей")
+    if not isinstance(value, list) or len(value) < 2 or int(value[1]) < min_height or int(value[0]) < min_width:
+        err(f"data/balance.json: {bar_name} должен быть шкалой над фигурой (не ниже {min_height} пикселей)")
 spacing = interface.get("spacing", {})
 if not isinstance(spacing, dict) or len(spacing) < 30:
     err("data/balance.json: отступы интерфейса должны быть централизованы")
     spacing = {}
 margin_spec = spacing.get("Margin", {}) if isinstance(spacing, dict) else {}
-if not isinstance(margin_spec, dict) or int(margin_spec.get("margin_right", 0)) < 90:
-    err("data/balance.json: справа должен быть зарезервирован отступ под быстрые иконки")
+if not isinstance(margin_spec, dict) or int(margin_spec.get("margin_left", 0)) < 8 or int(margin_spec.get("margin_bottom", 0)) < 8:
+    err("data/balance.json: у экрана разделов должны оставаться отступы от краёв")
 layout = interface.get("layout", {})
 if not isinstance(layout, dict):
     err("data/balance.json: presentation.interface.layout должен быть объектом")
     layout = {}
 grid_columns = layout.get("grid_columns", {})
-if not isinstance(grid_columns, dict) or int(grid_columns.get("BottomTabs", 0)) != 3 or int(grid_columns.get("ArenaEnemies", 0)) != 3:
-    err("data/balance.json: нижнее меню и арена должны содержать по три колонки")
+nav_ratios = layout.get("nav_ratios", {})
+if not isinstance(nav_ratios, dict) or len(nav_ratios) != 6 or any(float(value) <= 0.0 for value in nav_ratios.values()):
+    err("data/balance.json: пропорции кнопок нижней навигации должны быть описаны для шести разделов")
+if not isinstance(grid_columns, dict) or int(grid_columns.get("ArenaEnemies", 0)) != 3 or "BottomTabs" in grid_columns:
+    err("data/balance.json: арена остаётся сеткой на три колонки, а навигация идёт одной полосой")
 navigation = interface.get("navigation", {})
 if not isinstance(navigation, dict):
     err("data/balance.json: presentation.interface.navigation должен быть объектом")
@@ -683,19 +686,25 @@ for rel, label in [
 ]:
     if not (ROOT / rel).is_file() or not (ROOT / (rel + ".import")).is_file():
         err(f"Ассеты {label} и их файлы импорта должны присутствовать в репозитории")
-quick_rail = hud.get("quick_rail", {})
-if not isinstance(quick_rail, dict) or set(quick_rail) != expected_tabs:
-    err("data/balance.json: правая панель должна содержать ровно шесть быстрых иконок реальных разделов")
+nav_icons = hud.get("nav_icons", {})
+nav_buttons = {"battle": "BattleButton", "inventory": "EquipmentButton", "summon": "SummonButton",
+               "progression": "ProgressionButton", "mode": "ModeButton", "settings": "SettingsButton"}
+if not isinstance(nav_icons, dict) or set(nav_icons) != expected_tabs:
+    err("data/balance.json: нижняя навигация должна содержать иконки шести реальных разделов")
 else:
-    for tab_id, spec in quick_rail.items():
+    for tab_id, spec in nav_icons.items():
         if not isinstance(spec, dict) or any(key not in spec for key in ("button", "icon", "label")):
-            err(f"data/balance.json: неполное описание быстрой иконки {tab_id}")
+            err(f"data/balance.json: неполное описание иконки раздела {tab_id}")
             continue
+        if str(spec["button"]) != nav_buttons[tab_id]:
+            err(f"data/balance.json: иконка раздела {tab_id} должна стоять на кнопке {nav_buttons[tab_id]}")
         icon_rel = str(spec["icon"]).removeprefix("res://")
         if not (ROOT / icon_rel).is_file() or not (ROOT / (icon_rel + ".import")).is_file():
-            err(f"Иконка быстрого раздела {tab_id} и её файл импорта отсутствуют")
+            err(f"Иконка раздела {tab_id} и её файл импорта отсутствуют")
+if not str(hud.get("nickname", "")).strip():
+    err("data/balance.json: в карточке профиля должен быть задан никнейм")
 stub_icons = hud.get("stub_icons", {})
-if not isinstance(stub_icons, dict) or len(stub_icons) < 9:
+if not isinstance(stub_icons, dict) or len(stub_icons) < 8:
     err("data/balance.json: должны быть описаны локальные иконки некликабельных заглушек")
 else:
     for node_name, icon_path in stub_icons.items():
@@ -715,7 +724,7 @@ for figure_path in list(figures.get("figures", [])) + [hero_figure]:
     if not (ROOT / rel).is_file():
         err(f"нет файла фигуры боя: {rel}")
 stub_labels = hud.get("stub_labels", {})
-if not isinstance(stub_labels, dict) or len(stub_labels) < 5 or any("СКОРО" not in str(text) for text in stub_labels.values()):
+if not isinstance(stub_labels, dict) or len(stub_labels) < 4 or any("СКОРО" not in str(text) for text in stub_labels.values()):
     err("data/balance.json: все нереализованные элементы должны быть помечены СКОРО")
 if str(hud.get("stub_text", "")) != "СКОРО":
     err("data/balance.json: общая подпись заглушек должна быть СКОРО")
@@ -724,7 +733,7 @@ if str(hud.get("portrait_texture", "")) != "res://assets/ui/hero_portrait.png":
 if str(hud.get("enemy_texture", "")) != "res://assets/ui/icons/enemy_wraith.svg" or int(hud.get("enemy_cards", 0)) != 5:
     err("data/balance.json: силуэты врагов арены должны быть описаны централизованно")
 
-for token in ["background_sketch.png", "hero_portrait.png", "ArenaHero", "HealthPanel", "HeroPortrait", "HeroHealthBar", "EnemyHealthBar", "QuickRail", "FutureRail", "ArenaEnemies", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle", "BattleOverlay", "LogCard", "StrikeButton", "GuardButton"]:
+for token in ["background_sketch.png", "hero_portrait.png", "ArenaHero", "ProfilePanel", "NicknameLabel", "RatingValueLabel", "HeroVitals", "HeroPortrait", "HeroHealthBar", "EnemyMiniBar1", "EnemyNameLabel1", "FutureRail", "ArenaEnemies", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle", "BattleOverlay", "LogCard", "StrikeButton", "GuardButton"]:
     if token not in scene_src:
         err(f"scenes/main/main.tscn: отсутствует узел или ресурс игрового HUD ({token})")
 for forbidden in ["MiniMap", "Minimap", "Joystick", "VirtualJoystick", "MapFrame"]:
@@ -740,25 +749,28 @@ for start_marker, end_marker, label in [
     ('[node name="QuestStub"', '[node name="FutureRail"', "задания"),
     ('[node name="FutureRail"', '[node name="StubStrip"', "будущих разделов"),
     ('[node name="StubStrip"', '[node name="BattleOverlay"', "декоративных заглушек"),
-    ('[node name="ArenaEnemies"', '[node name="HealthPanel"', "арены"),
+    ('[node name="ArenaEnemies"', '[node name="ProfilePanel"', "арены"),
+    ('[node name="HeroVitals"', '[node name="CurrencyBar"', "шкал над фигурой героя"),
 ]:
     section = scene_section(start_marker, end_marker)
     if not section or 'type="Button"' in section or 'type="TextureButton"' in section:
         err(f"scenes/main/main.tscn: секция {label} должна быть некликабельным декором без кнопок")
-quick_start = scene_src.find('[node name="QuickRail"')
-quick_section = scene_src[quick_start:] if quick_start >= 0 else ""
-if quick_section.count('type="Button"') != 6:
-    err("scenes/main/main.tscn: правая быстрая панель должна содержать ровно шесть настоящих кнопок")
-if scene_src.count("СКОРО") < 5:
+nav_start = scene_src.find('[node name="BottomBar"')
+nav_section = scene_src[nav_start:] if nav_start >= 0 else ""
+if nav_section.count('name="NavLabel"') != 6 or nav_section.count('name="NavIcon"') != 6:
+    err("scenes/main/main.tscn: каждая кнопка нижней навигации должна иметь иконку и подпись")
+if "QuickRail" in scene_src:
+    err("scenes/main/main.tscn: боковая колонка иконок заменена нижней навигацией")
+if scene_src.count("СКОРО") < 4:
     err("scenes/main/main.tscn: нереализованные элементы должны быть явно помечены СКОРО")
-for token in ["PresentationCatalog.interface_config", "AshenStyle.build_theme(interface_config)", "_apply_interface_config", "_apply_hud_config", "_setup_quick_navigation", "_on_quick_pressed", "_refresh_arena_enemies", "_on_tab_pressed", "_select_tab"]:
+for token in ["PresentationCatalog.interface_config", "AshenStyle.build_theme(interface_config)", "_apply_interface_config", "_apply_hud_config", "_apply_nav_icons", "_refresh_arena_vitals", "_refresh_arena_enemies", "_rating_value", "_on_tab_pressed", "_select_tab"]:
     if token not in main_src:
         err(f"scripts/main/main.gd: отсутствует подключение игрового HUD ({token})")
 presentation_catalog = (ROOT / "scripts/ui/presentation_catalog.gd").read_text(encoding="utf-8") if (ROOT / "scripts/ui/presentation_catalog.gd").is_file() else ""
 if "static func interface_config" not in presentation_catalog or '"hud": _dict(data, "hud")' not in presentation_catalog:
     err("scripts/ui/presentation_catalog.gd: отсутствует чтение параметров интерфейса или HUD")
 ui_doc = (ROOT / "docs/ui.md").read_text(encoding="utf-8") if (ROOT / "docs/ui.md").is_file() else ""
-for token in ["нижнее меню", "presentation.interface", "портрет", "быстрая", "СКОРО", "мини-карт", "джойстик", "оверле", "БОЙ", "ИНВЕНТАРЬ", "ПРИЗЫВ", "НАСТРОЙКИ"]:
+for token in ["нижнее меню", "presentation.interface", "портрет", "навигаци", "рейтинг", "СКОРО", "мини-карт", "джойстик", "оверле", "БОЙ", "ИНВЕНТАРЬ", "ПРИЗЫВ", "НАСТРОЙКИ"]:
     if token not in ui_doc:
         err(f"docs/ui.md: отсутствует описание игрового интерфейса ({token})")
 ui_tests = (ROOT / "tests/test_ui.gd").read_text(encoding="utf-8") if (ROOT / "tests/test_ui.gd").is_file() else ""
@@ -769,8 +781,8 @@ if 'presentation["interface"]' not in ci_src:
     err(".github/workflows/ci.yml: отсутствует проверка параметров presentation.interface в APK")
 notes.append(
     f"Интерфейс: разделов {len(tabs) if isinstance(tabs, dict) else 0}, "
-    f"быстрых иконок {len(quick_rail) if isinstance(quick_rail, dict) else 0}, "
-    f"шрифт {int(fonts.get('default', 0))}, колонок {int(grid_columns.get('BottomTabs', 0)) if isinstance(grid_columns, dict) else 0}"
+    f"иконок навигации {len(nav_icons) if isinstance(nav_icons, dict) else 0}, "
+    f"шрифт {int(fonts.get('default', 0))}, кнопок навигации {len(nav_ratios) if isinstance(nav_ratios, dict) else 0}"
 )
 
 # --- 6. Скрипты GDScript ---------------------------------------------------

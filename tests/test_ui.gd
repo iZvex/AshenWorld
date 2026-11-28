@@ -41,7 +41,7 @@ func _initialize() -> void:
 	_check("Частота кадров показана", "КАДРОВ/С" in scene.fps_button.text and Engine.max_fps == 60)
 	_check("Режим эффектов показан", "ПОЛНЫЕ" in scene.effects_button.text)
 	_check("Процедурные звуки подготовлены", scene.audio_player.stream_count() == 8 and scene.audio_player.voice_count() == 6)
-	_check("Портрет и две крупные шкалы заменили компактную строку", scene.hero_portrait.texture != null and scene.hero_health_bar.custom_minimum_size.y >= 26.0 and scene.enemy_health_bar.custom_minimum_size.y >= 26.0 and not scene.separator_label.visible)
+	_check("Карточка профиля и шкалы над фигурами на месте", scene.hero_portrait.texture != null and scene.hero_health_bar.custom_minimum_size.y >= 26.0 and scene.enemy_mini_bars.size() >= 1 and scene.nickname_label.text != "")
 	_check("Игровой цикл подключён", scene.campaign != null)
 	if scene.campaign == null:
 		print("Итого: %d проверок пройдено, %d провалено" % [passed, failed])
@@ -63,7 +63,8 @@ func _initialize() -> void:
 		"QuestStub",
 		"FutureRail",
 		"ArenaEnemies",
-		"QuickRail",
+		"HeroVitals",
+		"ProfilePanel",
 		"Margin/Panel/Header/Sigil",
 		"Margin/Panel/Header/Titles/TitleLabel",
 		"Margin/Panel/Header/Titles/StageLabel",
@@ -72,7 +73,7 @@ func _initialize() -> void:
 		"Margin/Panel/StatusRow/ExperienceBar",
 		"Margin/Panel/StatusRow/GoldLabel",
 		"Margin/Panel/StatusRow/MaterialsLabel",
-		"Margin/Panel/HealthPanel/HealthBox/HealthRow",
+		"ProfilePanel/ProfileBox/ProfileRow",
 		"Margin/Panel/MenuRow/EquipmentButton",
 		"Margin/Panel/MenuRow/ProgressionButton",
 		"Margin/Panel/MenuRow/ModeButton",
@@ -147,6 +148,7 @@ func _initialize() -> void:
 
 	_test_sketch_layout(scene)
 	_test_health_row(scene)
+	_test_battlefield_layout(scene)
 	_test_battle_controls(scene)
 	_test_stage_transition(scene)
 	_test_equipment_ui(scene, data)
@@ -168,7 +170,7 @@ func _test_sketch_layout(scene) -> void:
 	_check("Символ уменьшен", scene.sigil.custom_minimum_size.x <= 56.0)
 	_check("Разделитель уменьшен", scene.divider.custom_minimum_size.y <= 24.0)
 	_check("Полоса здоровья героя крупная", scene.hero_health_bar.custom_minimum_size.y >= 26.0)
-	_check("Полоса здоровья врага крупная", scene.enemy_health_bar.custom_minimum_size.y >= 26.0)
+	_check("Шкала здоровья врага над фигурой", scene.enemy_health_bar.custom_minimum_size.x >= 120.0 and scene.enemy_health_bar.custom_minimum_size.y >= 12.0)
 	_check("Кнопки навыков круглые", scene.strike_button.custom_minimum_size == Vector2(124, 124) and scene.guard_button.custom_minimum_size == Vector2(96, 96))
 	_check("Полоса журнала боя компактная", scene.log_card.custom_minimum_size.y <= 130.0)
 	_check("Панель экипировки компактная", scene.equipment_panel.custom_minimum_size.y <= 380.0)
@@ -182,21 +184,47 @@ func _test_sketch_layout(scene) -> void:
 
 
 func _test_health_row(scene) -> void:
-	_check("Верхняя панель использует горизонтальный ряд", scene.health_row is HBoxContainer)
-	_check("Портрет и уровень слева от шкал", scene.portrait_column.get_parent() == scene.health_row and scene.level_label.get_parent() == scene.portrait_column)
-	_check("Две шкалы собраны в вертикальный блок", scene.hero_side.get_parent() == scene.vitals_box and scene.enemy_side.get_parent() == scene.vitals_box)
-	_check("Компактный разделитель удалён", not scene.separator_label.visible and scene.separator_label.text == "")
+	_check("Верхняя карточка собрана в ряд", scene.profile_lines.get_parent() is HBoxContainer)
+	_check("Портрет стоит слева от подписей", scene.hero_portrait.get_parent() == scene.portrait_frame and scene.portrait_frame.get_parent().get_parent() == scene.profile_lines.get_parent())
+	_check("Никнейм, боевая мощь и рейтинг в карточке", not scene.nickname_label.text.is_empty() and "БМ" in scene.battle_power_label.text and "РЕЙТИНГ" in scene.rating_label.text)
+	_check("Уровень и опыт остались в карточке профиля", "УР." in scene.level_label.text and scene.experience_bar.get_parent() == scene.profile_panel.get_child(0))
 	_check("Оригинальный портрет героя загружен", scene.hero_portrait.texture != null and str(scene.hero_portrait.texture.resource_path).ends_with("hero_portrait.png"))
-	_check("Подпись героя показывает здоровье", "ГЕРОЙ" in scene.hero_label.text and "/" in scene.hero_label.text)
-	_check("Подпись врага показывает здоровье", "ВРАГ" in scene.enemy_label.text and "/" in scene.enemy_label.text)
-	_check("Полосы одинаковой крупной высоты", is_equal_approx(scene.hero_health_bar.custom_minimum_size.y, scene.enemy_health_bar.custom_minimum_size.y) and scene.hero_health_bar.custom_minimum_size.y >= 26.0)
+	_check("Здоровье героя показано над его фигурой", "ГЕРОЙ" in scene.hero_label.text and "/" in scene.hero_label.text and _is_above(scene.hero_vitals, scene.arena_hero))
+	_check("Шкалы здоровья врагов стоят над фигурами", scene.enemy_name_labels.size() == scene.enemy_mini_bars.size() and _is_above(scene.enemy_mini_bars[0], scene.find_child("EnemySilhouette1", true, false)))
+	_check("Подпись врага содержит имя противника", not scene.enemy_label.text.is_empty())
+	_check("Шкала героя крупная", scene.hero_health_bar.custom_minimum_size.y >= 26.0)
 	_check("Шкалы здоровья без процентов", not scene.hero_health_bar.show_percentage and not scene.enemy_health_bar.show_percentage)
 	_check("Шкалы инициализированы", scene.hero_health_bar.max_value > 0.0 and scene.enemy_health_bar.max_value > 0.0)
 	_check("Щит имеет отдельную тонкую шкалу", scene.shield_bar.custom_minimum_size.y <= 10.0 and scene.shield_bar.max_value > 0.0)
-	_check("Боевая мощь и опыт показаны под портретом", "БМ" in scene.battle_power_label.text and scene.experience_bar.get_parent() == scene.portrait_column)
 	_check("Этап показан в заголовке", "Пепельные земли" in scene.stage_label.text and "Этап 1/30" in scene.stage_label.text)
 	_check("Уровень, золото и пепел показаны в HUD", "УР." in scene.level_label.text and scene.gold_label.text.is_valid_int() and scene.materials_label.text.is_valid_int() and scene.gold_label.tooltip_text == "Золото" and scene.materials_label.tooltip_text == "Пепел" and scene.gold_label.get_parent() == scene.currency_row)
 	_check("Лог заполнен сразу", not scene.battle_log.text.is_empty())
+
+
+func _test_battlefield_layout(scene) -> void:
+	_check("Боковая колонка иконок убрана", scene.get_node_or_null("QuickRail") == null)
+	var figures_low: bool = (scene.arena_hero as Control).get_global_rect().position.y >= 520.0 and (scene.arena_enemies as Control).get_global_rect().position.y >= 520.0
+	_check("Герой и враги стоят в глубине арены", figures_low)
+	var action_rect: Rect2 = (scene.action_button as Control).get_global_rect()
+	_check("Кнопка продолжения по центру снизу", absf(action_rect.get_center().x - 360.0) <= 6.0 and action_rect.position.y >= 1000.0)
+	_check("Кнопка продолжения выше навигации", action_rect.end.y <= 1140.0 and str(scene.bottom_bar.offset_top) == "-140.0")
+	_check("Шкал врагов столько же, сколько фигур", scene.enemy_mini_bars.size() == scene.enemy_cards.size() and (scene.enemy_mini_bars[0] as ProgressBar).max_value > 0.0)
+
+
+func _nav_caption(scene, tab_id: String) -> String:
+	var button: Button = scene.tabs.get(tab_id) as Button
+	if button == null:
+		return ""
+	var label: Label = button.find_child("NavLabel", true, false) as Label
+	return label.text if label != null else ""
+
+
+func _is_above(top_node, bottom_node) -> bool:
+	if top_node == null or bottom_node == null:
+		return false
+	var top_rect: Rect2 = (top_node as Control).get_global_rect()
+	var bottom_rect: Rect2 = (bottom_node as Control).get_global_rect()
+	return top_rect.end.y <= bottom_rect.position.y + 1.0
 
 
 func _test_modes_ui(scene, data: Dictionary) -> void:
@@ -208,7 +236,7 @@ func _test_modes_ui(scene, data: Dictionary) -> void:
 	scene.mode_button.emit_signal("pressed")
 	_check("Панель режимов открылась", scene.mode_panel.visible)
 	_check("Панель прогрессии скрыта при открытии режимов", not scene.progression_panel.visible)
-	_check("Кнопка режимов изменила подпись", "СКРЫТЬ" in scene.mode_button.text)
+	_check("Кнопка режимов изменила подпись", "СКРЫТЬ" in _nav_caption(scene, "mode"))
 	var campaign_button: Button = scene.mode_buttons["campaign"] as Button
 	var tower_button: Button = scene.mode_buttons["tower"] as Button
 	var dungeon_button: Button = scene.mode_buttons["dungeon"] as Button
@@ -239,7 +267,7 @@ func _test_modes_ui(scene, data: Dictionary) -> void:
 	_check("Цена входа списана из баланса", scene.campaign.gold == gold_before - int(cost.get("gold", 0)) and scene.campaign.materials == materials_before - int(cost.get("materials", 0)))
 	_check("Заголовок показывает подземелье", "ЗОЛОТО" in scene.stage_label.text and "бой 1" in scene.stage_label.text)
 	_check("Заход в подземелье учтён", int(scene.campaign.mode_state_view().get("dungeon_runs", 0)) == 1)
-	_check("Портретный HUD сохранён при смене режимов", scene.hero_portrait.texture != null and "ГЕРОЙ" in scene.hero_label.text and "ВРАГ" in scene.enemy_label.text and not scene.separator_label.visible)
+	_check("Портретный HUD сохранён при смене режимов", scene.hero_portrait.texture != null and "ГЕРОЙ" in scene.hero_label.text and not scene.enemy_label.text.is_empty())
 	campaign_button.emit_signal("pressed")
 	_check("Возврат в кампанию работает", scene.campaign.mode_id() == "campaign")
 	scene.mode_button.emit_signal("pressed")
@@ -290,7 +318,7 @@ func _test_stage_transition(scene) -> void:
 func _test_equipment_ui(scene, data: Dictionary) -> void:
 	scene.equipment_button.emit_signal("pressed")
 	_check("Панель экипировки открылась", scene.equipment_panel.visible)
-	_check("Кнопка переключения изменила подпись", "СКРЫТЬ" in scene.equipment_button.text)
+	_check("Кнопка переключения изменила подпись", "СКРЫТЬ" in _nav_caption(scene, "inventory"))
 	_check("Раскрытая панель остаётся компактной", scene.equipment_panel.get_combined_minimum_size().y <= 620.0)
 	_check("Экран помещается в портретное окно", scene.get_node("Margin/Panel").get_combined_minimum_size().y <= 1100.0)
 	_check("Фильтр слотов содержит все девять слотов", scene.slot_filter.get_item_count() == 10)
@@ -392,7 +420,7 @@ func _test_progression_ui(scene, data: Dictionary) -> void:
 	scene.progression_button.emit_signal("pressed")
 	_check("Панель прогрессии открылась", scene.progression_panel.visible)
 	_check("Панель экипировки скрыта при открытии прогрессии", not scene.equipment_panel.visible)
-	_check("Кнопка прогрессии изменила подпись", "СКРЫТЬ" in scene.progression_button.text)
+	_check("Кнопка прогрессии изменила подпись", "СКРЫТЬ" in _nav_caption(scene, "progression"))
 	_check("Раскрытая панель прогрессии компактна", scene.progression_panel.get_combined_minimum_size().y <= 620.0)
 	_check("Экран с прогрессией помещается в портретное окно", scene.get_node("Margin/Panel").get_combined_minimum_size().y <= 1100.0)
 	_check("Базовый класс показан", "Пепельный" in scene.progression_wallet_label.text)
@@ -497,8 +525,8 @@ func _test_bottom_navigation(scene, data: Dictionary) -> void:
 	var order_value: Variant = nav.get("tab_order", [])
 	var order: Array = order_value as Array if order_value is Array else []
 	_check("Все шесть разделов описаны в balance.json", order.size() == 6 and tab_info.size() == 6)
-	_check("Нижнее меню закреплено последним элементом экрана", scene.bottom_bar.get_parent() == scene.get_node("Margin/Panel") and scene.bottom_bar.get_index() == scene.get_node("Margin/Panel").get_child_count() - 1)
-	_check("Вкладки образуют сетку три на две", scene.bottom_tabs is GridContainer and scene.bottom_tabs.columns == 3)
+	_check("Навигация закреплена у нижнего края экрана", scene.bottom_bar.get_parent() == scene and is_equal_approx(scene.bottom_bar.anchor_top, 1.0) and is_equal_approx(scene.bottom_bar.anchor_bottom, 1.0) and scene.bottom_bar.offset_top <= -120.0)
+	_check("Шесть разделов стоят в один ряд", scene.bottom_tabs is HBoxContainer and scene.bottom_tabs.get_child_count() == 6)
 	_check("Карта разделов заполнена", scene.tabs.size() == 6 and scene.content_panels.size() == 6)
 	_check("Все рабочие подписи увеличены", _min_font_size(scene) >= 18)
 	for raw_id in order:
@@ -519,7 +547,7 @@ func _test_bottom_navigation(scene, data: Dictionary) -> void:
 		_check("Раздел %s открыт и подписан" % tab_id, scene.active_tab == tab_id and panel.visible and scene.section_title.text == str(entry.get("section_title", "")))
 		_check("Раздел %s показан без наложения" % tab_id, visible_panels == 1)
 		if tab_id != scene.default_tab:
-			_check("Активная вкладка %s показывает возврат" % tab_id, scene.hide_label in button.text)
+			_check("Активная вкладка %s показывает возврат" % tab_id, scene.hide_label in _nav_caption(scene, tab_id))
 	var settings_button: Button = scene.tabs.get("settings") as Button
 	if settings_button != null:
 		settings_button.emit_signal("pressed")
@@ -530,17 +558,18 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 	var config: Dictionary = PresentationCatalog.interface_config(data)
 	var hud_value: Variant = config.get("hud", {})
 	var hud: Dictionary = hud_value as Dictionary if hud_value is Dictionary else {}
-	var quick_value: Variant = hud.get("quick_rail", {})
+	var quick_value: Variant = hud.get("nav_icons", {})
 	var quick_nav: Dictionary = quick_value as Dictionary if quick_value is Dictionary else {}
 	_check("Оригинальный фон наброска задан централизованно", str(scene.background.texture.resource_path).ends_with("background_sketch.png") and not str(scene.background.texture.resource_path).contains("uploads"))
-	_check("Шесть быстрых иконок описаны в balance.json", quick_nav.size() == 6 and scene.quick_buttons.size() == 6)
-	var quick_ready: bool = scene.quick_rail.get_child_count() == 6
-	for raw_id in scene.quick_buttons.keys():
-		var button: Button = scene.quick_buttons[raw_id] as Button
-		if button == null or button.icon == null or not button.text.is_empty() or button.tooltip_text.is_empty():
+	_check("Иконки шести разделов описаны в balance.json", quick_nav.size() == 6 and scene.nav_icons_nodes.size() == 6)
+	var quick_ready: bool = scene.bottom_tabs.get_child_count() == 6
+	for raw_id in scene.nav_icons_nodes.keys():
+		var icon_node: TextureRect = scene.nav_icons_nodes[raw_id] as TextureRect
+		var caption: String = _nav_caption(scene, str(raw_id))
+		if icon_node == null or icon_node.texture == null or caption.is_empty():
 			quick_ready = false
-	_check("Быстрые иконки содержат реальные кнопки разделов", quick_ready)
-	var inventory_quick: Button = scene.quick_buttons.get("inventory") as Button
+	_check("Каждая кнопка навигации подписана и с иконкой", quick_ready)
+	var inventory_quick: Button = scene.tabs.get("inventory") as Button
 	if inventory_quick != null:
 		inventory_quick.emit_signal("pressed")
 		_check("Быстрая иконка открывает настоящий инвентарь", scene.active_tab == "inventory" and scene.inventory_panel.visible)
@@ -550,7 +579,7 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 		_check("Повторное нажатие возвращает на поле боя", scene.active_tab == scene.default_tab and scene.battle_panel.visible)
 		_check("Возврат в бой снова показывает оверлей и арену", hidden_overlay != null and hidden_overlay.visible and scene.arena_enemies.visible)
 	var stubs_ok: bool = scene.future_rail.mouse_filter == 2 and not _has_button(scene.future_rail) and not _has_button(scene.quest_stub) and not _has_button(scene.stub_strip) and not _has_button(scene.arena_enemies)
-	for label_name in ["QuestSoonLabel", "EventsLabel", "QuestsLabel", "RatingLabel", "StubStripLabel"]:
+	for label_name in ["QuestSoonLabel", "EventsLabel", "QuestsLabel", "StubStripLabel"]:
 		var label: Label = scene.find_child(label_name, true, false) as Label
 		if label == null or "СКОРО" not in label.text:
 			stubs_ok = false
@@ -566,7 +595,7 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 		if card != null and card.visible:
 			visible_enemies += 1
 	_check("Силуэты врагов показаны на арене", scene.arena_enemies.columns == visible_enemies and scene.arena_enemies.columns <= 3 and scene.enemy_cards.size() == 5 and visible_enemies > 0 and visible_enemies <= 5)
-	_check("Нижнее меню 3 × 2 сохранено", scene.bottom_tabs.columns == 3 and scene.tabs.size() == 6)
+	_check("Навигация идёт одной полосой в шесть разделов", scene.bottom_tabs is HBoxContainer and scene.tabs.size() == 6 and scene.bottom_tabs.get_child_count() == 6)
 	var overlay: Control = scene.find_child("BattleOverlay", true, false) as Control
 	var strike: Button = scene.find_child("StrikeButton", true, false) as Button
 	var guard: Button = scene.find_child("GuardButton", true, false) as Button
@@ -617,7 +646,7 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 		order_ok = names == ["CoinIcon", "GoldLabel", "AshIcon", "MaterialsLabel"]
 	_check("Валюта идёт парами иконка-значение", order_ok)
 	var rail_ok: bool = true
-	for label_name in ["EventsLabel", "QuestsLabel", "RatingLabel"]:
+	for label_name in ["EventsLabel", "QuestsLabel"]:
 		var rail_label: Label = scene.find_child(label_name, true, false) as Label
 		if rail_label == null or not rail_label.text.contains("\n") or "СКОРО" not in rail_label.text:
 			rail_ok = false

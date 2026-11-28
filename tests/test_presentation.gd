@@ -45,18 +45,19 @@ func _test_balance(data: Dictionary) -> void:
 	var navigation: Dictionary = interface.get("navigation", {}) as Dictionary
 	var tabs: Dictionary = navigation.get("tabs", {}) as Dictionary
 	_check("Читаемые шрифты заданы централизованно", int(fonts.get("default", 0)) >= 20 and node_sizes.size() >= 80)
-	_check("Размеры панелей заданы централизованно", minimum_sizes.size() >= 90 and int(grid_columns.get("BottomTabs", 0)) == 3)
+	var nav_ratios: Dictionary = layout.get("nav_ratios", {}) as Dictionary
+	_check("Размеры панелей заданы централизованно", minimum_sizes.size() >= 90 and nav_ratios.size() == 6 and not grid_columns.has("BottomTabs"))
 	_check("Шесть разделов нижнего меню заданы в балансе", tabs.size() == 6 and (navigation.get("tab_order", []) as Array).size() == 6)
 	_check("Оригинальный фон наброска задан в балансе", str(layout.get("background_texture", "")).ends_with("background_sketch.png"))
 	var hud: Dictionary = interface.get("hud", {}) as Dictionary
-	var quick_rail: Dictionary = hud.get("quick_rail", {}) as Dictionary
+	var nav_icons: Dictionary = hud.get("nav_icons", {}) as Dictionary
 	var stub_icons: Dictionary = hud.get("stub_icons", {}) as Dictionary
 	var stub_labels: Dictionary = hud.get("stub_labels", {}) as Dictionary
 	var overlay_value: Variant = hud.get("battle_overlay", {})
 	var overlay: Dictionary = overlay_value as Dictionary if overlay_value is Dictionary else {}
 	var radius_value: Variant = overlay.get("orb_radius", {})
 	var radii: Dictionary = radius_value as Dictionary if radius_value is Dictionary else {}
-	_check("Конфигурация HUD наброска централизована", quick_rail.size() == 6 and stub_icons.size() >= 9 and stub_labels.size() >= 5 and str(hud.get("stub_text", "")) == "СКОРО")
+	_check("Конфигурация HUD наброска централизована", nav_icons.size() == 6 and not str(hud.get("nickname", "")).is_empty() and stub_icons.size() >= 8 and stub_labels.size() >= 4 and str(hud.get("stub_text", "")) == "СКОРО")
 	_check("Боевой оверлей описан в balance.json", int(radii.get("StrikeButton", 0)) >= 56 and int(radii.get("GuardButton", 0)) >= 44 and int(overlay.get("log_lines", 0)) >= 3)
 	var figures_value: Variant = hud.get("enemy_figures", {})
 	var figures: Dictionary = figures_value as Dictionary if figures_value is Dictionary else {}
@@ -122,7 +123,7 @@ func _test_scene(data: Dictionary) -> void:
 	var interface: Dictionary = PresentationCatalog.interface_config(data)
 	var fonts: Dictionary = interface.get("fonts", {}) as Dictionary
 	_check("Базовый шрифт применён из баланса", scene.theme.default_font_size == int(fonts.get("default", 0)))
-	_check("Нижние вкладки крупные и образуют три колонки", scene.bottom_tabs.columns == 3 and scene.battle_button.get_theme_font_size("font_size") >= 18)
+	_check("Нижние вкладки идут одной полосой и остаются крупными", scene.bottom_tabs.get_child_count() == 6 and scene.battle_button.get_theme_font_size("font_size") >= 18)
 	_check("Экран боя открыт по умолчанию", scene.active_tab == "battle" and scene.battle_panel.visible and not scene.summon_panel.visible)
 	_check("Пул голосов создан один раз", scene.audio_player.voice_count() == 6 and scene.audio_player.stream_count() == 8)
 	_check("Пул подписей создан один раз", scene.effect_pool.pool_size() == 8)
@@ -151,7 +152,7 @@ func _test_scene(data: Dictionary) -> void:
 	_check("Упрощённый режим показан кнопкой", "ПРОСТЫЕ" in scene.effects_button.text)
 	_check("Упрощённый режим выключил частицы", not scene.particles_effect.emitting and not scene.particles_effect.visible)
 	scene._flash(scene.hero_side, AshenStyle.CRIMSON)
-	scene._spawn_floating_number("100", scene.enemy_side, AshenStyle.GOLD)
+	scene._spawn_floating_number("100", scene.enemy_cards[0], AshenStyle.GOLD)
 	_check("Упрощённый режим отключил анимации", scene.effect_pool.active_count() == 0 and scene.effect_pool.active_flash_count() == 0)
 	scene._on_effects_pressed()
 	_check("Полные эффекты возвращены", bool(scene.profile_manager.settings().get("effects_enabled", false)) and "ПОЛНЫЕ" in scene.effects_button.text and scene.particles_effect.emitting)
@@ -163,7 +164,7 @@ func _test_scene(data: Dictionary) -> void:
 	_check("Перерисовка выполняется по интервалу из баланса", "Этап" in scene.stage_label.text and "КАДРЫ" in scene.hint_label.text)
 	scene._process(1.0)
 	_check("Замер частоты кадров не отрицательный", scene.measured_fps >= 0.0)
-	_check("Портретный HUD сохранён при упрощённых эффектах", scene.hero_portrait.texture != null and "ГЕРОЙ" in scene.hero_label.text and "ВРАГ" in scene.enemy_label.text and not scene.separator_label.visible)
+	_check("Портретный HUD сохранён при упрощённых эффектах", scene.hero_portrait.texture != null and "ГЕРОЙ" in scene.hero_label.text and not scene.enemy_label.text.is_empty() and scene.nickname_label.text != "")
 
 	root.remove_child(scene)
 	scene.free()

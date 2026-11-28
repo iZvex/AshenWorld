@@ -277,13 +277,15 @@ jobs:
               assert min(interface["fonts"]["node_sizes"].values()) >= 18
               assert len(interface["navigation"]["tabs"]) == 6
               assert len(interface["navigation"]["tab_order"]) == 6
-              assert interface["layout"]["grid_columns"]["BottomTabs"] == 3
+              assert "BottomTabs" not in interface["layout"]["grid_columns"]
+              assert len(interface["layout"]["nav_ratios"]) == 6
               assert interface["layout"]["grid_columns"]["ArenaEnemies"] == 3
               assert interface["layout"]["background_texture"] == "res://assets/ui/background_sketch.png"
-              assert min(interface["minimum_sizes"]["HeroHealthBar"][1], interface["minimum_sizes"]["EnemyHealthBar"][1]) >= 26
-              assert len(hud["quick_rail"]) == 6
-              assert len(hud["stub_icons"]) >= 9
-              assert len(hud["stub_labels"]) >= 5 and hud["stub_text"] == "СКОРО"
+              assert interface["minimum_sizes"]["HeroHealthBar"][1] >= 26
+              assert interface["minimum_sizes"]["EnemyMiniBar1"] == [120, 12]
+              assert len(hud["nav_icons"]) == 6 and hud["nickname"].strip() != ""
+              assert len(hud["stub_icons"]) >= 8
+              assert len(hud["stub_labels"]) >= 4 and hud["stub_text"] == "СКОРО"
               assert hud["portrait_texture"] == "res://assets/ui/hero_portrait.png"
               assert hud["enemy_texture"] == "res://assets/ui/icons/enemy_wraith.svg"
               assert hud["hero_figure"].endswith("hero_battle.png")

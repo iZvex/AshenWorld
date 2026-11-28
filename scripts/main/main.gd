@@ -24,16 +24,12 @@ var level_label: Label
 var experience_bar: ProgressBar
 var gold_label: Label
 var materials_label: Label
-var health_panel: PanelContainer
-var health_row: HBoxContainer
 var hero_side: VBoxContainer
-var enemy_side: VBoxContainer
 var hero_label: Label
 var enemy_label: Label
 var hero_health_bar: ProgressBar
 var enemy_health_bar: ProgressBar
 var shield_bar: ProgressBar
-var separator_label: Label
 var enemy_hint_label: Label
 var stage_notice: Label
 var battle_overlay: Control
@@ -118,27 +114,33 @@ var settings_title: Label
 var settings_info_label: Label
 var performance_label: Label
 var settings_hint_label: Label
-var bottom_tabs: GridContainer
+var bottom_tabs: BoxContainer
 var background: TextureRect
 var dim_overlay: ColorRect
 var hero_portrait: TextureRect
 var portrait_frame: PanelContainer
-var portrait_column: VBoxContainer
-var vitals_box: VBoxContainer
+var profile_panel: PanelContainer
+var profile_lines: VBoxContainer
+var stats_row: HBoxContainer
+var nickname_label: Label
+var rating_label: Label
+var hero_vitals: PanelContainer
 var battle_power_label: Label
 var currency_bar: PanelContainer
 var currency_row: HBoxContainer
 var quest_stub: PanelContainer
 var future_rail: VBoxContainer
-var quick_rail: VBoxContainer
 var arena_enemies: GridContainer
 var stub_strip: HBoxContainer
 var enemy_cards: Array = []
 var enemy_figure_by_id: Dictionary = {}
 var enemy_figure_default: String = ""
 var enemy_figure_pool: Array = []
-var quick_buttons: Dictionary = {}
-var quick_nav: Dictionary = {}
+var nav_icons: Dictionary = {}
+var nav_icons_nodes: Dictionary = {}
+var nav_labels: Dictionary = {}
+var enemy_name_labels: Array = []
+var enemy_mini_bars: Array = []
 var hud_config: Dictionary = {}
 var interface_config: Dictionary = {}
 var navigation_config: Dictionary = {}
@@ -333,8 +335,10 @@ func _apply_interface_config() -> void:
 
 
 func _apply_hud_config() -> void:
-	var quick_value: Variant = hud_config.get("quick_rail", {})
-	quick_nav = quick_value as Dictionary if quick_value is Dictionary else {}
+	var nav_value: Variant = hud_config.get("nav_icons", {})
+	nav_icons = nav_value as Dictionary if nav_value is Dictionary else {}
+	if nickname_label != null and hud_config.has("nickname"):
+		nickname_label.text = str(hud_config.get("nickname", "")).to_upper()
 	var portrait_path: String = str(hud_config.get("portrait_texture", ""))
 	if hero_portrait != null and portrait_path != "" and ResourceLoader.exists(portrait_path):
 		hero_portrait.texture = load(portrait_path)
@@ -351,22 +355,23 @@ func _apply_hud_config() -> void:
 			var label_node: Label = find_child(str(raw_name), true, false) as Label
 			if label_node != null:
 				label_node.text = str((label_value as Dictionary)[raw_name])
-	for raw_id in quick_nav.keys():
+	for raw_id in nav_icons.keys():
 		var tab_id: String = str(raw_id)
-		var entry_value: Variant = quick_nav.get(tab_id, {})
+		var entry_value: Variant = nav_icons.get(tab_id, {})
 		if not entry_value is Dictionary:
 			continue
 		var entry: Dictionary = entry_value as Dictionary
-		var button: Button = find_child(str(entry.get("button", "")), true, false) as Button
-		if button == null:
+		var nav_button: Button = find_child(str(entry.get("button", "")), true, false) as Button
+		if nav_button == null:
 			continue
-		var icon_path: String = str(entry.get("icon", ""))
-		if icon_path != "" and ResourceLoader.exists(icon_path):
-			button.icon = load(icon_path)
-		button.expand_icon = true
-		button.text = ""
-		button.tooltip_text = str(entry.get("label", tab_id.to_upper()))
-		button.add_theme_stylebox_override("normal", AshenStyle.quick_icon_style(false))
+		var nav_icon: String = str(entry.get("icon", ""))
+		var icon_node: TextureRect = nav_icons_nodes.get(tab_id, null) as TextureRect
+		if icon_node != null and nav_icon != "" and ResourceLoader.exists(nav_icon):
+			icon_node.texture = load(nav_icon)
+		nav_button.tooltip_text = str(entry.get("label", tab_id.to_upper()))
+		nav_button.add_theme_stylebox_override("normal", AshenStyle.nav_button_style(false))
+		nav_button.add_theme_stylebox_override("hover", AshenStyle.nav_button_style(true))
+		nav_button.add_theme_stylebox_override("pressed", AshenStyle.nav_button_style(true))
 	var hero_figure_path: String = str(hud_config.get("hero_figure", ""))
 	if arena_hero != null and hero_figure_path != "" and ResourceLoader.exists(hero_figure_path):
 		arena_hero.texture = load(hero_figure_path)
@@ -383,6 +388,8 @@ func _apply_hud_config() -> void:
 			for raw_path in list_value as Array:
 				enemy_figure_pool.append(str(raw_path))
 	enemy_cards.clear()
+	enemy_name_labels.clear()
+	enemy_mini_bars.clear()
 	var enemy_texture_path: String = str(hud_config.get("enemy_texture", ""))
 	var count: int = clampi(int(hud_config.get("enemy_cards", 5)), 1, 8)
 	for index in range(1, count + 1):
@@ -395,8 +402,13 @@ func _apply_hud_config() -> void:
 		if silhouette != null and enemy_texture_path != "" and ResourceLoader.exists(enemy_texture_path):
 			silhouette.texture = load(enemy_texture_path)
 			silhouette.modulate = Color(0.92, 0.78, 0.9, 0.9)
+		var name_label: Label = find_child("EnemyNameLabel%d" % index, true, false) as Label
+		if name_label != null:
+			enemy_name_labels.append(name_label)
+			name_label.add_theme_color_override("font_color", AshenStyle.CRIMSON)
 		var mini_bar: ProgressBar = find_child("EnemyMiniBar%d" % index, true, false) as ProgressBar
 		if mini_bar != null:
+			enemy_mini_bars.append(mini_bar)
 			mini_bar.add_theme_stylebox_override("background", AshenStyle.bar_background())
 			mini_bar.add_theme_stylebox_override("fill", AshenStyle.bar_fill(AshenStyle.CRIMSON))
 	for raw_name in ["QuestStub", "FutureRail", "StubStrip", "ArenaEnemies"]:
@@ -420,16 +432,12 @@ func _bind_nodes() -> void:
 	experience_bar = _find("ExperienceBar") as ProgressBar
 	gold_label = _find("GoldLabel") as Label
 	materials_label = _find("MaterialsLabel") as Label
-	health_panel = _find("HealthPanel") as PanelContainer
-	health_row = _find("HealthRow") as HBoxContainer
 	hero_side = _find("HeroSide") as VBoxContainer
-	enemy_side = _find("EnemySide") as VBoxContainer
 	hero_label = _find("HeroLabel") as Label
-	enemy_label = _find("EnemyLabel") as Label
+	enemy_label = _find("EnemyNameLabel1") as Label
 	hero_health_bar = _find("HeroHealthBar") as ProgressBar
-	enemy_health_bar = _find("EnemyHealthBar") as ProgressBar
+	enemy_health_bar = _find("EnemyMiniBar1") as ProgressBar
 	shield_bar = _find("ShieldBar") as ProgressBar
-	separator_label = _find("SeparatorLabel") as Label
 	enemy_hint_label = _find("EnemyHintLabel") as Label
 	stage_notice = _find("StageNotice") as Label
 	header_frame = _find("HeaderFrame") as PanelContainer
@@ -440,19 +448,22 @@ func _bind_nodes() -> void:
 	summon_panel = _find("SummonPanel") as PanelContainer
 	settings_panel = _find("SettingsPanel") as PanelContainer
 	bottom_bar = _find("BottomBar") as PanelContainer
-	bottom_tabs = _find("BottomTabs") as GridContainer
+	bottom_tabs = _find("BottomTabs") as BoxContainer
 	background = _find("Background") as TextureRect
 	dim_overlay = _find("DimOverlay") as ColorRect
 	hero_portrait = _find("HeroPortrait") as TextureRect
 	portrait_frame = _find("PortraitFrame") as PanelContainer
-	portrait_column = _find("PortraitColumn") as VBoxContainer
-	vitals_box = _find("VitalsBox") as VBoxContainer
+	profile_panel = _find("ProfilePanel") as PanelContainer
+	profile_lines = _find("ProfileLines") as VBoxContainer
+	stats_row = _find("StatsRow") as HBoxContainer
+	nickname_label = _find("NicknameLabel") as Label
+	rating_label = _find("RatingValueLabel") as Label
+	hero_vitals = _find("HeroVitals") as PanelContainer
 	battle_power_label = _find("BattlePowerLabel") as Label
 	currency_bar = _find("CurrencyBar") as PanelContainer
 	currency_row = _find("CurrencyRow") as HBoxContainer
 	quest_stub = _find("QuestStub") as PanelContainer
 	future_rail = _find("FutureRail") as VBoxContainer
-	quick_rail = _find("QuickRail") as VBoxContainer
 	arena_hero = _find("ArenaHero") as TextureRect
 	arena_enemies = _find("ArenaEnemies") as GridContainer
 	stub_strip = _find("StubStrip") as HBoxContainer
@@ -539,7 +550,8 @@ func _load_data() -> Dictionary:
 func _apply_styles() -> void:
 	header_frame.add_theme_stylebox_override("panel", AshenStyle.header_style())
 	bottom_bar.add_theme_stylebox_override("panel", AshenStyle.bottom_bar_style())
-	health_panel.add_theme_stylebox_override("panel", AshenStyle.hud_panel_style())
+	profile_panel.add_theme_stylebox_override("panel", AshenStyle.hud_panel_style())
+	hero_vitals.add_theme_stylebox_override("panel", AshenStyle.vitals_plate_style())
 	currency_bar.add_theme_stylebox_override("panel", AshenStyle.muted_panel_style())
 	quest_stub.add_theme_stylebox_override("panel", AshenStyle.muted_panel_style())
 	portrait_frame.add_theme_stylebox_override("panel", AshenStyle.portrait_frame_style())
@@ -580,6 +592,11 @@ func _apply_styles() -> void:
 		if decor_icon != null:
 			decor_icon.modulate = Color(0.72, 0.62, 0.72, 0.78)
 	summon_wallet_label.add_theme_color_override("font_color", AshenStyle.MUTED)
+	nickname_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	rating_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	nickname_label.add_theme_color_override("font_shadow_color", AshenStyle.EMBER)
+	nickname_label.add_theme_constant_override("shadow_offset_x", 0)
+	nickname_label.add_theme_constant_override("shadow_offset_y", 2)
 	title_label.add_theme_color_override("font_color", AshenStyle.GOLD)
 	stage_label.add_theme_color_override("font_color", AshenStyle.PARCHMENT)
 	level_label.add_theme_color_override("font_color", AshenStyle.STEEL)
@@ -587,7 +604,6 @@ func _apply_styles() -> void:
 	materials_label.add_theme_color_override("font_color", AshenStyle.EMBER)
 	hero_label.add_theme_color_override("font_color", AshenStyle.STEEL)
 	enemy_label.add_theme_color_override("font_color", AshenStyle.CRIMSON)
-	separator_label.add_theme_color_override("font_color", AshenStyle.RUNE)
 	enemy_hint_label.add_theme_color_override("font_color", AshenStyle.EMBER)
 	stage_notice.add_theme_color_override("font_color", AshenStyle.GOLD)
 	equipment_power_label.add_theme_color_override("font_color", AshenStyle.GOLD)
@@ -768,38 +784,73 @@ func _format_amount(value: Variant) -> String:
 	return str(number)
 
 
+func _refresh_arena_vitals(battle) -> void:
+	if battle == null:
+		hero_label.text = "ГЕРОЙ —"
+		hero_health_bar.max_value = 1.0
+		hero_health_bar.value = 0.0
+		shield_bar.max_value = 1.0
+		shield_bar.value = 0.0
+		for index in range(enemy_mini_bars.size()):
+			var idle_bar: ProgressBar = enemy_mini_bars[index] as ProgressBar
+			if idle_bar != null:
+				idle_bar.max_value = 1.0
+				idle_bar.value = 0.0
+		return
+	hero_label.text = "ГЕРОЙ %d/%d" % [int(round(battle.hero.health)), int(round(battle.hero.max_health))]
+	hero_health_bar.max_value = maxf(1.0, battle.hero.max_health)
+	hero_health_bar.value = clampf(battle.hero.health, 0.0, hero_health_bar.max_value)
+	shield_bar.max_value = hero_health_bar.max_value
+	shield_bar.value = clampf(battle.hero.shield, 0.0, hero_health_bar.max_value)
+	var current_index: int = int(battle.enemy_index)
+	for index in range(enemy_mini_bars.size()):
+		var bar: ProgressBar = enemy_mini_bars[index] as ProgressBar
+		if bar == null:
+			continue
+		var total: float = 1.0
+		var current: float = 0.0
+		if index < battle.enemies.size():
+			var data: Dictionary = battle.enemies[index] as Dictionary
+			total = maxf(1.0, float(data.get("max_health", 1.0)))
+			if index < enemy_name_labels.size():
+				var name_label: Label = enemy_name_labels[index] as Label
+				if name_label != null:
+					var enemy_name: String = str(data.get("name", "ВРАГ")).to_upper()
+					name_label.text = ("БОСС · " if bool(data.get("is_boss", false)) else "") + enemy_name
+			if index > current_index:
+				current = total
+			elif index == current_index and battle.enemy != null:
+				total = maxf(1.0, battle.enemy.max_health)
+				current = battle.enemy.health
+		bar.max_value = total
+		bar.value = clampf(current, 0.0, total)
+		var card: Control = enemy_cards[index] as Control if index < enemy_cards.size() else null
+		if card != null:
+			var active_card: bool = index == current_index and battle.enemy != null
+			card.add_theme_stylebox_override("panel", AshenStyle.enemy_card_style(active_card))
+
+
+func _rating_value(summary: Dictionary) -> int:
+	var level: int = maxi(1, int(summary.get("level", 1)))
+	var stage: int = maxi(1, int(summary.get("highest_stage", 1)))
+	return level * 100 + stage * 10 + int(round(float(summary.get("equipment_power", 0.0))))
+
+
 func _update_view() -> void:
 	var summary: Dictionary = campaign.get_summary()
 	var battle = campaign.system
 	stage_label.text = str(summary["mode_progress"])
 	level_label.text = "УР. %d" % int(summary["level"])
 	battle_power_label.text = "БМ %.0f" % float(summary["equipment_power"])
+	rating_label.text = "РЕЙТИНГ %d" % _rating_value(summary)
+	if nickname_label != null and str(nickname_label.text).strip_edges() == "":
+		nickname_label.text = str(summary.get("class_name", "Пепельный странник")).to_upper()
 	experience_bar.max_value = float(summary["experience_to_next"])
 	experience_bar.value = float(summary["experience"])
 	gold_label.text = _format_amount(summary["gold"])
 	materials_label.text = _format_amount(summary["materials"])
 	equipment_power_label.text = "СИЛА %.0f" % float(summary["equipment_power"])
-	if battle == null:
-		hero_label.text = "ГЕРОЙ —"
-		enemy_label.text = "ВРАГ —"
-		hero_health_bar.value = 0.0
-		enemy_health_bar.value = 0.0
-		shield_bar.value = 0.0
-	else:
-		hero_label.text = "ГЕРОЙ %d/%d" % [int(round(battle.hero.health)), int(round(battle.hero.max_health))]
-		hero_health_bar.max_value = battle.hero.max_health
-		hero_health_bar.value = battle.hero.health
-		shield_bar.max_value = battle.hero.max_health
-		shield_bar.value = battle.hero.shield
-		if battle.enemy != null:
-			var prefix: String = "БОСС" if bool(summary["boss"]) else "ВРАГ"
-			enemy_label.text = "%s %d/%d" % [prefix, int(round(battle.enemy.health)), int(round(battle.enemy.max_health))]
-			enemy_health_bar.max_value = battle.enemy.max_health
-			enemy_health_bar.value = battle.enemy.health
-		else:
-			enemy_label.text = "ВРАГ —"
-			enemy_health_bar.max_value = 1.0
-			enemy_health_bar.value = 0.0
+	_refresh_arena_vitals(battle)
 	if bool(summary["boss_phase_active"]):
 		enemy_hint_label.text = str(summary["boss_phase_name"]).to_upper()
 	elif bool(summary["boss"]):
@@ -1205,29 +1256,35 @@ func _setup_navigation() -> void:
 			continue
 		tabs[tab_id] = button
 		content_panels[tab_id] = panel
-		button.text = str(entry.get("label", tab_id.to_upper()))
+		nav_icons_nodes[tab_id] = button.find_child("NavIcon", true, false) as TextureRect
+		nav_labels[tab_id] = button.find_child("NavLabel", true, false) as Label
+		button.text = ""
+		var nav_label_node: Label = nav_labels.get(tab_id, null) as Label
+		if nav_label_node != null:
+			nav_label_node.text = str(entry.get("label", tab_id.to_upper()))
 		var title_node: Label = _find(str(entry.get("panel_title_node", ""))) as Label
 		if title_node != null:
 			title_node.text = str(entry.get("panel_title", ""))
 		button.pressed.connect(_on_tab_pressed.bind(tab_id))
-	_setup_quick_navigation()
+	_apply_nav_icons()
 	active_tab = default_tab
 	_select_tab(default_tab, false)
 
 
-func _setup_quick_navigation() -> void:
-	quick_buttons.clear()
-	for raw_id in tab_order:
+func _apply_nav_icons() -> void:
+	for raw_id in nav_icons.keys():
 		var tab_id: String = str(raw_id)
-		var entry_value: Variant = quick_nav.get(tab_id, {})
+		var entry_value: Variant = nav_icons.get(tab_id, {})
 		if not entry_value is Dictionary:
 			continue
 		var entry: Dictionary = entry_value as Dictionary
-		var button: Button = find_child(str(entry.get("button", "")), true, false) as Button
-		if button == null:
-			continue
-		quick_buttons[tab_id] = button
-		button.pressed.connect(_on_quick_pressed.bind(tab_id))
+		var icon_path: String = str(entry.get("icon", ""))
+		var icon_node: TextureRect = nav_icons_nodes.get(tab_id, null) as TextureRect
+		if icon_node != null and icon_path != "" and ResourceLoader.exists(icon_path):
+			icon_node.texture = load(icon_path)
+		var button: Button = tabs.get(tab_id, null) as Button
+		if button != null:
+			button.tooltip_text = str(entry.get("label", tab_id.to_upper()))
 
 
 func _select_tab(tab_id: String, with_sound: bool = true) -> void:
@@ -1242,6 +1299,12 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 		battle_overlay.visible = battle_active
 	if arena_enemies != null:
 		arena_enemies.visible = battle_active
+	if arena_hero != null:
+		arena_hero.visible = battle_active
+	if hero_vitals != null:
+		hero_vitals.visible = battle_active
+	if enemy_hint_label != null:
+		enemy_hint_label.visible = battle_active
 	for key in content_panels.keys():
 		var panel: Control = content_panels[key] as Control
 		if panel != null:
@@ -1256,17 +1319,18 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 		if entry_value is Dictionary:
 			entry = entry_value as Dictionary
 		var active: bool = key_id == active_tab
-		button.text = hide_label if active and key_id != default_tab else str(entry.get("label", key_id.to_upper()))
-		button.add_theme_stylebox_override("normal", AshenStyle.active_tab_style() if active else AshenStyle.inactive_tab_style())
+		var caption: String = hide_label if active and key_id != default_tab else str(entry.get("label", key_id.to_upper()))
+		var caption_node: Label = nav_labels.get(key_id, null) as Label
+		if caption_node != null:
+			caption_node.text = caption
+			caption_node.add_theme_color_override("font_color", AshenStyle.BACKGROUND if active else AshenStyle.PARCHMENT)
+		var icon_node: TextureRect = nav_icons_nodes.get(key_id, null) as TextureRect
+		if icon_node != null:
+			icon_node.modulate = Color(1.0, 1.0, 1.0, 1.0) if active else Color(1.0, 1.0, 1.0, 0.86)
+		button.add_theme_stylebox_override("normal", AshenStyle.nav_button_style(active))
+		button.add_theme_stylebox_override("hover", AshenStyle.nav_button_style(true))
+		button.add_theme_stylebox_override("pressed", AshenStyle.nav_button_style(true))
 		button.add_theme_color_override("font_color", AshenStyle.BACKGROUND if active else AshenStyle.PARCHMENT)
-	for key in quick_buttons.keys():
-		var quick_button: Button = quick_buttons[key] as Button
-		if quick_button == null:
-			continue
-		var quick_active: bool = str(key) == active_tab
-		quick_button.add_theme_stylebox_override("normal", AshenStyle.quick_icon_style(quick_active))
-		quick_button.add_theme_stylebox_override("hover", AshenStyle.quick_icon_style(true))
-		quick_button.add_theme_stylebox_override("pressed", AshenStyle.quick_icon_style(true))
 	var current: Dictionary = {}
 	var current_value: Variant = tab_info.get(active_tab, {})
 	if current_value is Dictionary:
@@ -1280,8 +1344,6 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 		var source_button: Button = null
 		if tabs.has(source_id):
 			source_button = tabs[source_id] as Button
-		if source_button == null and quick_buttons.has(source_id):
-			source_button = quick_buttons[source_id] as Button
 		if source_button != null:
 			_pulse_button(source_button)
 	if equipment_visible:
@@ -1295,10 +1357,6 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 
 func _on_tab_pressed(tab_id: String, with_sound: bool = true) -> void:
 	_select_tab(tab_id, with_sound)
-
-
-func _on_quick_pressed(tab_id: String) -> void:
-	_on_tab_pressed(tab_id, true)
 
 
 func _populate_modes() -> void:
@@ -1691,11 +1749,22 @@ func _on_stage_finished() -> void:
 	_save("итог этапа")
 
 
+func _enemy_anchor() -> Control:
+	var index: int = 0
+	if campaign != null and campaign.system != null:
+		index = clampi(int(campaign.system.enemy_index), 0, maxi(0, enemy_cards.size() - 1))
+	if index < enemy_cards.size():
+		var card: Control = enemy_cards[index] as Control
+		if card != null and card.visible:
+			return card
+	return arena_enemies
+
+
 func _on_damage_dealt(target_name: String, amount: float, is_critical: bool) -> void:
 	var suffix: String = " · крит" if is_critical else ""
 	_add_log("%s: −%.0f%s" % [target_name, amount, suffix])
 	var hit_hero: bool = target_name == campaign.system.hero.display_name
-	var side: Control = hero_side if hit_hero else enemy_side
+	var side: Control = hero_side if hit_hero else _enemy_anchor()
 	var color: Color = AshenStyle.CRIMSON if hit_hero else AshenStyle.GOLD
 	if is_critical and not hit_hero:
 		color = AshenStyle.EMBER
