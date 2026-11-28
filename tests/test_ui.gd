@@ -888,6 +888,51 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 			if rail_font.get_string_size(line_text, HORIZONTAL_ALIGNMENT_LEFT, -1, rail_size).x > 96.0:
 				rail_ok = false
 	_check("Подписи правой колонки не обрезаются", rail_ok)
+	_test_responsive_layout(scene)
+
+
+func _test_responsive_layout(scene) -> void:
+	# §11: на любом портретном разрешении композиция сохраняется, боевая группа
+	# держится у нижнего края, арена тянется по ширине, а действия — в одной руке.
+	var design: Vector2 = Vector2(720.0, 1280.0)
+	var design_offsets: Array = _offsets(scene.auto_button) + _offsets(scene.arena_enemies)
+	scene._apply_responsive_layout(design)
+	_check("Дизайнерский размер оставляет боевую группу на месте",
+		_offsets(scene.auto_button) + _offsets(scene.arena_enemies) == design_offsets)
+
+	scene._apply_responsive_layout(Vector2(720.0, 1560.0))
+	var tall_gap: float = 1560.0 - 130.0 - scene.auto_button.offset_bottom
+	_check("На вытянутом экране кнопки придвинуты к навигации", tall_gap >= 6.0 and tall_gap <= 40.0)
+	_check("На вытянутом экране высота кнопки боя сохранена",
+		is_equal_approx(scene.strike_button.offset_bottom - scene.strike_button.offset_top, 124.0))
+	_check("На вытянутом экране герой опускается вместе с кнопками",
+		is_equal_approx(scene.arena_hero.offset_bottom - 1024.0, scene.auto_button.offset_bottom - 1134.0))
+	_check("На вытянутом экране шкала героя остаётся над фигурой",
+		scene.hero_vitals.offset_bottom < scene.arena_hero.offset_top + 60.0)
+
+	scene._apply_responsive_layout(Vector2(960.0, 1280.0))
+	_check("На широком экране арена тянется по ширине",
+		is_equal_approx(scene.arena_enemies.offset_right - scene.arena_enemies.offset_left, 498.0 + 240.0))
+	_check("На широком экране кластер навыков у правого края",
+		scene.auto_button.offset_right <= 960.0 - 8.0 and scene.auto_button.offset_right >= 960.0 - 40.0)
+	_check("На широком экране кнопка удара не вылезает за экран",
+		scene.strike_button.offset_right <= 960.0 - 8.0)
+	_check("На широком экране шкала героя не перекрывает удар",
+		not Rect2(scene.strike_button.offset_left, scene.strike_button.offset_top,
+			scene.strike_button.offset_right - scene.strike_button.offset_left,
+			scene.strike_button.offset_bottom - scene.strike_button.offset_top).intersects(
+			Rect2(scene.hero_vitals.offset_left, scene.hero_vitals.offset_top,
+				scene.hero_vitals.offset_right - scene.hero_vitals.offset_left,
+				scene.hero_vitals.offset_bottom - scene.hero_vitals.offset_top)))
+
+	scene._apply_responsive_layout(Vector2(360.0, 640.0))
+	_check("На компактном экране остаётся дизайнерская раскладка",
+		_offsets(scene.auto_button) + _offsets(scene.arena_enemies) == design_offsets)
+	scene._apply_responsive_layout(design)
+
+
+func _offsets(control: Control) -> Array:
+	return [control.offset_left, control.offset_top, control.offset_right, control.offset_bottom]
 
 
 func _has_button(node: Node) -> bool:

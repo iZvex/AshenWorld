@@ -414,6 +414,12 @@ static func build_theme(config: Dictionary = {}) -> Theme:
 	theme.set_color("font_color", "Button", PARCHMENT)
 	theme.set_color("font_hover_color", "Button", GOLD)
 	theme.set_color("font_disabled_color", "Button", MUTED)
+	# Тёмный ореол вокруг букв: подписи читаются и поверх яркой арены, и в тёмных панелях.
+	for type_name in ["Label", "Button", "OptionButton"]:
+		theme.set_color("font_shadow_color", type_name, Color(0.04, 0.03, 0.06, 0.85))
+		theme.set_constant("shadow_offset_x", type_name, 0)
+		theme.set_constant("shadow_offset_y", type_name, 0)
+		theme.set_constant("shadow_outline_size", type_name, 2)
 	theme.set_stylebox("panel", "PanelContainer", hud_panel_style())
 	theme.set_stylebox("normal", "Button", button_style(Color("#241A30"), EMBER))
 	theme.set_stylebox("hover", "Button", button_style(Color("#33203A"), GOLD))

@@ -137,6 +137,8 @@ var skill_slot3: PanelContainer
 var skill_slot4: PanelContainer
 var skills_soon_label: Label
 var auto_button: Button
+const DESIGN_SCREEN: Vector2 = Vector2(720.0, 1280.0)
+var responsive_base: Dictionary = {}
 var animation_config: Dictionary = {}
 var ui_animations: Array = []
 var auto_advance: bool = false
@@ -270,6 +272,7 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 	_setup_navigation()
 	_apply_settings()
 	_announce_startup(startup_report)
+	_apply_responsive_layout()
 	_update_view()
 	_refresh_away_window()
 	var startup_summary: Dictionary = campaign.get_summary()
@@ -813,6 +816,7 @@ func _configure_particles() -> void:
 func _on_viewport_resized() -> void:
 	if particles_effect != null:
 		particles_effect.position = size * 0.5
+	_apply_responsive_layout()
 
 
 func _connect_battle_signals() -> void:
@@ -1498,6 +1502,11 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 		if caption_node != null:
 			caption_node.text = caption
 			caption_node.add_theme_color_override("font_color", AshenStyle.BACKGROUND if active else AshenStyle.PARCHMENT)
+			# На золотой заливке тёмной подписи нужен светлый ореол, иначе ореол темы её съедает.
+			caption_node.add_theme_color_override(
+				"font_shadow_color",
+				Color(1.0, 0.94, 0.84, 0.75) if active else Color(0.04, 0.03, 0.06, 0.85)
+			)
 		var icon_node: TextureRect = nav_icons_nodes.get(key_id, null) as TextureRect
 		if icon_node != null:
 			# На золотой заливке иконка тёмная, на сливовой панели — тёплая светлая.
@@ -2358,6 +2367,58 @@ func _tick_ui_animations(delta: float) -> void:
 			ui_animations.remove_at(index)
 			continue
 		index += 1
+
+
+func _capture_responsive_base() -> void:
+	# Запоминаем дизайнерские смещения один раз: дальше от них считаем адаптацию.
+	responsive_base.clear()
+	for node in [arena_enemies, arena_hero, hero_ground, enemy_ground, hero_vitals,
+			strike_button, guard_button, skill_slot3, skill_slot4, skills_soon_label,
+			auto_button, action_button]:
+		var control: Control = node as Control
+		if control == null:
+			continue
+		responsive_base[control.get_instance_id()] = {
+			"node": control,
+			"left": control.offset_left,
+			"top": control.offset_top,
+			"right": control.offset_right,
+			"bottom": control.offset_bottom,
+		}
+
+
+func _apply_responsive_layout(screen: Vector2 = Vector2.ZERO) -> void:
+	# Портретные экраны отличаются по высоте и ширине: боевая группа и кластер навыков
+	# держатся у нижнего края, арена тянется по ширине, а на дизайнерском размере
+	# 720 × 1280 всё остаётся ровно там, где нарисовано.
+	if responsive_base.is_empty():
+		_capture_responsive_base()
+	if responsive_base.is_empty():
+		return
+	var target: Vector2 = screen
+	if target.x <= 0.0 or target.y <= 0.0:
+		target = size
+	if target.x <= 0.0 or target.y <= 0.0:
+		target = DESIGN_SCREEN
+	var extra_width: float = maxf(0.0, target.x - DESIGN_SCREEN.x)
+	var extra_height: float = maxf(0.0, target.y - DESIGN_SCREEN.y)
+	for key in responsive_base.keys():
+		var base: Dictionary = responsive_base[key] as Dictionary
+		var node: Control = base.get("node") as Control
+		if node == null or not is_instance_valid(node):
+			continue
+		var shift_x: float = 0.0
+		var grow_width: float = 0.0
+		if node == arena_enemies or node == enemy_ground:
+			# Арена тянется вправо: на широком экране войска не жмутся к левому краю.
+			grow_width = extra_width
+		elif node == strike_button or node == guard_button or node == skill_slot3 				or node == skill_slot4 or node == skills_soon_label or node == auto_button:
+			# Кластер навыков прижат к правому нижнему углу.
+			shift_x = extra_width
+		node.offset_left = float(base.get("left", 0.0)) + shift_x
+		node.offset_right = float(base.get("right", 0.0)) + shift_x + grow_width
+		node.offset_top = float(base.get("top", 0.0)) + extra_height
+		node.offset_bottom = float(base.get("bottom", 0.0)) + extra_height
 
 
 func _arena_anchor() -> Control:

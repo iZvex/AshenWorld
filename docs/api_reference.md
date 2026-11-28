@@ -818,6 +818,7 @@
 
 **Публичные константы**
 
+- `DESIGN_SCREEN: Vector2 = Vector2(720.0, 1280.0)`
 - `FORCE_DISMANTLE_WINDOW_MS: int = 5000`
 
 **Публичное состояние**
@@ -943,6 +944,7 @@
 - `skill_slot4: PanelContainer`
 - `skills_soon_label: Label`
 - `auto_button: Button`
+- `responsive_base: Dictionary`
 - `animation_config: Dictionary`
 - `ui_animations: Array`
 - `auto_advance: bool`
