@@ -278,19 +278,19 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 12.0
 offset_top = 12.0
-offset_right = 412.0
-offset_bottom = 140.0
+offset_right = 424.0
+offset_bottom = 152.0
 mouse_filter = 2
 
 [node name="ProfileBox" type="VBoxContainer" parent="ProfilePanel"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="ProfileRow" type="HBoxContainer" parent="ProfilePanel/ProfileBox"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="PortraitColumn" type="VBoxContainer" parent="ProfilePanel/ProfileBox/ProfileRow"]
 layout_mode = 2
@@ -298,17 +298,51 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/separation = 2
 
-[node name="PortraitFrame" type="PanelContainer" parent="ProfilePanel/ProfileBox/ProfileRow/PortraitColumn"]
+[node name="PortraitHolder" type="Control" parent="ProfilePanel/ProfileBox/ProfileRow/PortraitColumn"]
+custom_minimum_size = Vector2(68, 68)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
 
-[node name="HeroPortrait" type="TextureRect" parent="ProfilePanel/ProfileBox/ProfileRow/PortraitColumn/PortraitFrame"]
+[node name="PortraitFrame" type="PanelContainer" parent="ProfilePanel/ProfileBox/ProfileRow/PortraitColumn/PortraitHolder"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HeroPortrait" type="TextureRect" parent="ProfilePanel/ProfileBox/ProfileRow/PortraitColumn/PortraitHolder/PortraitFrame"]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 mouse_filter = 2
 expand_mode = 2
 stretch_mode = 5
+
+[node name="LevelBadge" type="PanelContainer" parent="ProfilePanel/ProfileBox/ProfileRow/PortraitColumn/PortraitHolder"]
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -32.0
+offset_top = -30.0
+offset_right = 4.0
+offset_bottom = 2.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="LevelLabel" type="Label" parent="ProfilePanel/ProfileBox/ProfileRow/PortraitColumn/PortraitHolder/LevelBadge"]
+layout_mode = 2
+text = "1"
+tooltip_text = "Уровень"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
 
 [node name="ProfileLines" type="VBoxContainer" parent="ProfilePanel/ProfileBox/ProfileRow"]
 layout_mode = 2
@@ -326,16 +360,21 @@ mouse_filter = 2
 [node name="StatsRow" type="HBoxContainer" parent="ProfilePanel/ProfileBox/ProfileRow/ProfileLines"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
-[node name="LevelLabel" type="Label" parent="ProfilePanel/ProfileBox/ProfileRow/ProfileLines/StatsRow"]
+[node name="PowerIcon" type="TextureRect" parent="ProfilePanel/ProfileBox/ProfileRow/ProfileLines/StatsRow"]
+custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
-text = "УР. 1"
+size_flags_vertical = 4
 mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="BattlePowerLabel" type="Label" parent="ProfilePanel/ProfileBox/ProfileRow/ProfileLines/StatsRow"]
 layout_mode = 2
+size_flags_vertical = 4
 text = "БМ 0"
+tooltip_text = "Боевая мощь"
 mouse_filter = 2
 
 [node name="RatingValueLabel" type="Label" parent="ProfilePanel/ProfileBox/ProfileRow/ProfileLines"]
@@ -344,7 +383,7 @@ text = "РЕЙТИНГ 0"
 mouse_filter = 2
 
 [node name="ExperienceBar" type="ProgressBar" parent="ProfilePanel/ProfileBox"]
-custom_minimum_size = Vector2(0, 8)
+custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 mouse_filter = 2
 max_value = 100.0
@@ -408,10 +447,10 @@ anchor_left = 1.0
 anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 0.0
-offset_left = -298.0
+offset_left = -292.0
 offset_top = 12.0
 offset_right = -12.0
-offset_bottom = 66.0
+offset_bottom = 68.0
 mouse_filter = 2
 
 [node name="CurrencyRow" type="HBoxContainer" parent="CurrencyBar"]
@@ -419,38 +458,69 @@ layout_mode = 2
 size_flags_vertical = 4
 alignment = 1
 mouse_filter = 2
+theme_override_constants/separation = 8
 
-[node name="CoinIcon" type="TextureRect" parent="CurrencyBar/CurrencyRow"]
+[node name="GoldPill" type="PanelContainer" parent="CurrencyBar/CurrencyRow"]
+custom_minimum_size = Vector2(124, 44)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="GoldPillRow" type="HBoxContainer" parent="CurrencyBar/CurrencyRow/GoldPill"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="CoinIcon" type="TextureRect" parent="CurrencyBar/CurrencyRow/GoldPill/GoldPillRow"]
+custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
-custom_minimum_size = Vector2(28, 28)
 
-[node name="GoldLabel" type="Label" parent="CurrencyBar/CurrencyRow"]
+[node name="GoldLabel" type="Label" parent="CurrencyBar/CurrencyRow/GoldPill/GoldPillRow"]
 layout_mode = 2
-text = "ЗОЛОТО 0"
+size_flags_horizontal = 3
+text = "0"
 horizontal_alignment = 1
+vertical_alignment = 1
 clip_text = true
 autowrap_mode = 0
 tooltip_text = "Золото"
+mouse_filter = 2
 
-[node name="AshIcon" type="TextureRect" parent="CurrencyBar/CurrencyRow"]
+[node name="AshPill" type="PanelContainer" parent="CurrencyBar/CurrencyRow"]
+custom_minimum_size = Vector2(124, 44)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="AshPillRow" type="HBoxContainer" parent="CurrencyBar/CurrencyRow/AshPill"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AshIcon" type="TextureRect" parent="CurrencyBar/CurrencyRow/AshPill/AshPillRow"]
+custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
-custom_minimum_size = Vector2(28, 28)
 
-[node name="MaterialsLabel" type="Label" parent="CurrencyBar/CurrencyRow"]
+[node name="MaterialsLabel" type="Label" parent="CurrencyBar/CurrencyRow/AshPill/AshPillRow"]
 layout_mode = 2
-text = "ПЕПЕЛ 0"
+size_flags_horizontal = 3
+text = "0"
 horizontal_alignment = 1
+vertical_alignment = 1
 clip_text = true
 autowrap_mode = 0
 tooltip_text = "Пепел"
+mouse_filter = 2
 
 [node name="QuestStub" type="PanelContainer" parent="."]
 layout_mode = 1

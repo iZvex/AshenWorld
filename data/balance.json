@@ -2868,7 +2868,12 @@
           "AwayClaimButton": 22,
           "Notice1": 20,
           "Notice2": 20,
-          "Notice3": 20
+          "Notice3": 20,
+          "BattlePowerLabel": 24,
+          "LevelLabel": 20,
+          "NicknameLabel": 19,
+          "GoldLabel": 20,
+          "MaterialsLabel": 20
         }
       },
       "minimum_sizes": {
@@ -3863,6 +3868,7 @@
       },
       "hud": {
         "portrait_texture": "res://assets/ui/hero_portrait.png",
+      "power_icon": "res://assets/ui/icons/sword.svg",
         "enemy_texture": "res://assets/ui/icons/enemy_wraith.svg",
         "enemy_cards": 5,
         "stub_text": "СКОРО",

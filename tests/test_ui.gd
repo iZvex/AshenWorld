@@ -188,9 +188,13 @@ func _test_sketch_layout(scene) -> void:
 
 func _test_health_row(scene) -> void:
 	_check("Верхняя карточка собрана в ряд", scene.profile_lines.get_parent() is HBoxContainer)
-	_check("Портрет стоит слева от подписей", scene.hero_portrait.get_parent() == scene.portrait_frame and scene.portrait_frame.get_parent().get_parent() == scene.profile_lines.get_parent())
+	_check("Портрет стоит слева от подписей", scene.hero_portrait.get_parent() == scene.portrait_frame and scene.portrait_holder.is_ancestor_of(scene.portrait_frame) and scene.profile_panel.is_ancestor_of(scene.portrait_holder) and scene.profile_panel.is_ancestor_of(scene.profile_lines))
+	_check("На портрете маркер уровня", scene.level_badge.is_ancestor_of(scene.level_label) and scene.level_badge.visible and int(scene.level_badge.anchor_left) == 1 and int(scene.level_badge.anchor_top) == 1)
+	_check("Боевая мощь выделена иконкой и крупнее уровня", scene.power_icon.texture != null and "БМ" in scene.battle_power_label.text and scene.battle_power_label.get_theme_font_size("font_size") > scene.level_label.get_theme_font_size("font_size"))
+	_check("Никнейм отделён от показателей", scene.nickname_label.get_parent() == scene.profile_lines and scene.stats_row.get_parent() == scene.profile_lines and scene.stats_row != scene.nickname_label.get_parent())
 	_check("Никнейм, боевая мощь и рейтинг в карточке", not scene.nickname_label.text.is_empty() and "БМ" in scene.battle_power_label.text and "РЕЙТИНГ" in scene.rating_label.text)
-	_check("Уровень и опыт остались в карточке профиля", "УР." in scene.level_label.text and scene.experience_bar.get_parent() == scene.profile_panel.get_child(0))
+	_check("Уровень и опыт остались в карточке профиля", scene.level_label.text.is_valid_int() and scene.profile_panel.is_ancestor_of(scene.level_badge) and scene.experience_bar.get_parent() == scene.profile_panel.get_child(0))
+	_check("Полоса опыта тонкая", scene.experience_bar.custom_minimum_size.y >= 4.0 and scene.experience_bar.custom_minimum_size.y <= 8.0)
 	_check("Оригинальный портрет героя загружен", scene.hero_portrait.texture != null and str(scene.hero_portrait.texture.resource_path).ends_with("hero_portrait.png"))
 	_check("Здоровье героя показано над его фигурой", "ГЕРОЙ" in scene.hero_label.text and "/" in scene.hero_label.text and _is_above(scene.hero_vitals, scene.arena_hero))
 	_check("Шкалы здоровья врагов стоят над фигурами", scene.enemy_name_labels.size() == scene.enemy_mini_bars.size() and _is_above(scene.enemy_mini_bars[0], scene.find_child("EnemySilhouette1", true, false)))
@@ -200,7 +204,8 @@ func _test_health_row(scene) -> void:
 	_check("Шкалы инициализированы", scene.hero_health_bar.max_value > 0.0 and scene.enemy_health_bar.max_value > 0.0)
 	_check("Щит имеет отдельную тонкую шкалу", scene.shield_bar.custom_minimum_size.y <= 10.0 and scene.shield_bar.max_value > 0.0)
 	_check("Этап показан в заголовке", "Пепельные земли" in scene.stage_label.text and "Этап 1/30" in scene.stage_label.text)
-	_check("Уровень, золото и пепел показаны в HUD", "УР." in scene.level_label.text and scene.gold_label.text.is_valid_int() and scene.materials_label.text.is_valid_int() and scene.gold_label.tooltip_text == "Золото" and scene.materials_label.tooltip_text == "Пепел" and scene.gold_label.get_parent() == scene.currency_row)
+	_check("Уровень, золото и пепел показаны в HUD", scene.level_label.text.is_valid_int() and scene.gold_label.text.is_valid_int() and scene.materials_label.text.is_valid_int() and scene.gold_label.tooltip_text == "Золото" and scene.materials_label.tooltip_text == "Пепел" and scene.gold_pill.is_ancestor_of(scene.gold_label) and scene.ash_pill.is_ancestor_of(scene.materials_label))
+	_check("Валюты оформлены одинаковыми пилюлями", scene.gold_pill.custom_minimum_size == scene.ash_pill.custom_minimum_size and scene.gold_pill.custom_minimum_size.y >= 40.0 and scene.currency_row.alignment == 1)
 	_check("Журнал боя не засорён служебными строками", scene.log_lines.is_empty() and not ("Профиль" in scene.battle_log.text or "версия" in scene.battle_log.text or "автосохранение" in scene.battle_log.text))
 	_check("Пустой журнал не висит над ареной", not scene.log_card.visible)
 
@@ -711,7 +716,17 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 		var names: Array = []
 		for child in currency_row.get_children():
 			names.append(str(child.name))
-		order_ok = names == ["CoinIcon", "GoldLabel", "AshIcon", "MaterialsLabel"]
+		order_ok = names == ["GoldPill", "AshPill"]
+		for pill_name in names:
+			var pill: PanelContainer = currency_row.get_node_or_null(str(pill_name)) as PanelContainer
+			if pill == null or pill.get_child_count() != 1:
+				order_ok = false
+				continue
+			var pair_names: Array = []
+			for pair_child in pill.get_child(0).get_children():
+				pair_names.append(str(pair_child.name))
+			if pair_names.size() != 2 or not (pair_names[0] in ["CoinIcon", "AshIcon"]) or not (pair_names[1] in ["GoldLabel", "MaterialsLabel"]):
+				order_ok = false
 	_check("Валюта идёт парами иконка-значение", order_ok)
 	var rail_ok: bool = true
 	for label_name in ["EventsLabel", "QuestsLabel"]:

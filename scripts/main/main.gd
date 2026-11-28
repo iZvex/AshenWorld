@@ -134,6 +134,11 @@ var background: TextureRect
 var dim_overlay: ColorRect
 var hero_portrait: TextureRect
 var portrait_frame: PanelContainer
+var portrait_holder: Control
+var level_badge: PanelContainer
+var power_icon: TextureRect
+var gold_pill: PanelContainer
+var ash_pill: PanelContainer
 var profile_panel: PanelContainer
 var profile_lines: VBoxContainer
 var stats_row: HBoxContainer
@@ -357,6 +362,9 @@ func _apply_hud_config() -> void:
 	var portrait_path: String = str(hud_config.get("portrait_texture", ""))
 	if hero_portrait != null and portrait_path != "" and ResourceLoader.exists(portrait_path):
 		hero_portrait.texture = load(portrait_path)
+	var power_icon_path: String = str(hud_config.get("power_icon", ""))
+	if power_icon != null and power_icon_path != "" and ResourceLoader.exists(power_icon_path):
+		power_icon.texture = load(power_icon_path)
 	var icon_value: Variant = hud_config.get("stub_icons", {})
 	if icon_value is Dictionary:
 		for raw_name in (icon_value as Dictionary).keys():
@@ -468,6 +476,11 @@ func _bind_nodes() -> void:
 	dim_overlay = _find("DimOverlay") as ColorRect
 	hero_portrait = _find("HeroPortrait") as TextureRect
 	portrait_frame = _find("PortraitFrame") as PanelContainer
+	portrait_holder = _find("PortraitHolder") as Control
+	level_badge = _find("LevelBadge") as PanelContainer
+	power_icon = _find("PowerIcon") as TextureRect
+	gold_pill = _find("GoldPill") as PanelContainer
+	ash_pill = _find("AshPill") as PanelContainer
 	profile_panel = _find("ProfilePanel") as PanelContainer
 	profile_lines = _find("ProfileLines") as VBoxContainer
 	stats_row = _find("StatsRow") as HBoxContainer
@@ -584,6 +597,10 @@ func _apply_styles() -> void:
 	currency_bar.add_theme_stylebox_override("panel", AshenStyle.muted_panel_style())
 	quest_stub.add_theme_stylebox_override("panel", AshenStyle.muted_panel_style())
 	portrait_frame.add_theme_stylebox_override("panel", AshenStyle.portrait_frame_style())
+	level_badge.add_theme_stylebox_override("panel", AshenStyle.level_badge_style())
+	for pill in [gold_pill, ash_pill]:
+		var pill_panel: PanelContainer = pill as PanelContainer
+		pill_panel.add_theme_stylebox_override("panel", AshenStyle.currency_pill_style())
 	battle_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	for panel in [inventory_panel, summon_panel, progression_panel, mode_panel, settings_panel]:
 		panel.add_theme_stylebox_override("panel", AshenStyle.content_panel_style())
@@ -883,9 +900,11 @@ func _update_view() -> void:
 	var summary: Dictionary = campaign.get_summary()
 	var battle = campaign.system
 	stage_label.text = str(summary["mode_progress"])
-	level_label.text = "УР. %d" % int(summary["level"])
+	level_label.text = str(int(summary["level"]))
 	battle_power_label.text = "БМ %.0f" % float(summary["equipment_power"])
 	rating_label.text = "РЕЙТИНГ %d" % _rating_value(summary)
+	if level_label != null and level_label.text.strip_edges() == "":
+		level_label.text = str(int(summary["level"]))
 	if nickname_label != null and str(nickname_label.text).strip_edges() == "":
 		nickname_label.text = str(summary.get("class_name", "Пепельный странник")).to_upper()
 	experience_bar.max_value = float(summary["experience_to_next"])

@@ -106,7 +106,37 @@ static func circle_button_style(background: Color = Color("#1B1020"), border: Co
 static func portrait_frame_style() -> StyleBoxFlat:
 	var box: StyleBoxFlat = circle_button_style(Color(0.0, 0.0, 0.0, 0.0), GOLD)
 	box.set_border_width_all(4)
-	box.shadow_size = 6
+	box.shadow_size = 8
+	# Тёплое свечение вокруг портрета вместо жёсткой тени.
+	box.shadow_color = Color(GOLD.r, GOLD.g, GOLD.b, 0.28)
+	return box
+
+
+static func level_badge_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = Color(0.08, 0.05, 0.12, 0.96)
+	box.set_border_width_all(2)
+	box.border_color = GOLD
+	box.set_corner_radius_all(999)
+	box.content_margin_left = 2
+	box.content_margin_right = 2
+	box.content_margin_top = 0
+	box.content_margin_bottom = 0
+	box.shadow_color = Color(0.0, 0.0, 0.0, 0.6)
+	box.shadow_size = 4
+	return box
+
+
+static func currency_pill_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = Color(0.09, 0.06, 0.13, 0.88)
+	box.set_border_width_all(1)
+	box.border_color = Color(PANEL_BORDER.r, PANEL_BORDER.g, PANEL_BORDER.b, 0.8)
+	box.set_corner_radius_all(12)
+	box.content_margin_left = 10
+	box.content_margin_right = 10
+	box.content_margin_top = 6
+	box.content_margin_bottom = 6
 	return box
 
 
