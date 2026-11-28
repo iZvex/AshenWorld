@@ -101,7 +101,7 @@ jobs:
         if: needs.detect.outputs.has_project == 'true'
         run: |
           set -euo pipefail
-          for test_script in tests/test_combat.gd tests/test_campaign.gd tests/test_equipment.gd tests/test_progression.gd tests/test_saves.gd tests/test_modes.gd tests/test_ui.gd tests/test_presentation.gd; do
+          for test_script in tests/test_combat.gd tests/test_campaign.gd tests/test_equipment.gd tests/test_progression.gd tests/test_saves.gd tests/test_modes.gd tests/test_ui.gd tests/test_presentation.gd tests/test_input.gd; do
             name="$(basename "$test_script")"
             log="/tmp/${name}.log"
             echo "::group::$name"
@@ -286,6 +286,12 @@ jobs:
               assert len(hud["stub_labels"]) >= 5 and hud["stub_text"] == "СКОРО"
               assert hud["portrait_texture"] == "res://assets/ui/hero_portrait.png"
               assert hud["enemy_texture"] == "res://assets/ui/icons/enemy_wraith.svg"
+              assert hud["hero_figure"].endswith("hero_battle.png")
+              assert len(hud["enemy_figures"]["figures"]) >= 3
+              assert len(hud["enemy_figures"]["by_id"]) >= 10
+              assert any("hero_battle" in name and name.endswith(".ctex") for name in names)
+              for figure in ["ash_wraith", "bone_legionnaire", "ash_hound"]:
+                  assert any(figure in name and name.endswith(".ctex") for name in names), figure
               assert hud["battle_overlay"]["orb_radius"]["StrikeButton"] >= 56
               assert hud["battle_overlay"]["orb_radius"]["GuardButton"] >= 44
               assert interface["minimum_sizes"]["StrikeButton"] == [124, 124]
@@ -297,6 +303,7 @@ jobs:
               assert any(name.endswith("presentation_catalog.gdc") for name in names)
               assert any(name.endswith("test_presentation.gdc") for name in names)
               assert any(name.endswith("test_ui.gdc") for name in names)
+              assert any(name.endswith("test_input.gdc") for name in names)
           print("APK содержит баланс v8, HUD наброска, шесть разделов, офлайн-настройки и скрипты полировки")
           PY
           sdk_path="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"

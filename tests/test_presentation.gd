@@ -58,6 +58,13 @@ func _test_balance(data: Dictionary) -> void:
 	var radii: Dictionary = radius_value as Dictionary if radius_value is Dictionary else {}
 	_check("Конфигурация HUD наброска централизована", quick_rail.size() == 6 and stub_icons.size() >= 9 and stub_labels.size() >= 5 and str(hud.get("stub_text", "")) == "СКОРО")
 	_check("Боевой оверлей описан в balance.json", int(radii.get("StrikeButton", 0)) >= 56 and int(radii.get("GuardButton", 0)) >= 44 and int(overlay.get("log_lines", 0)) >= 3)
+	var figures_value: Variant = hud.get("enemy_figures", {})
+	var figures: Dictionary = figures_value as Dictionary if figures_value is Dictionary else {}
+	var by_id_value: Variant = figures.get("by_id", {})
+	var by_id: Dictionary = by_id_value as Dictionary if by_id_value is Dictionary else {}
+	var pool_value: Variant = figures.get("figures", [])
+	var pool: Array = pool_value as Array if pool_value is Array else []
+	_check("Фигуры героя и войск заданы централизованно", str(hud.get("hero_figure", "")).ends_with("hero_battle.png") and pool.size() >= 3 and by_id.size() >= 10)
 	_check("Портрет и силуэты врагов заданы локальными ресурсами", str(hud.get("portrait_texture", "")).ends_with("hero_portrait.png") and str(hud.get("enemy_texture", "")).ends_with("enemy_wraith.svg") and int(hud.get("enemy_cards", 0)) == 5)
 	_check("Шкалы здоровья укрупнены централизованно", int((minimum_sizes.get("HeroHealthBar", [0, 0]) as Array)[1]) >= 26 and int((minimum_sizes.get("EnemyHealthBar", [0, 0]) as Array)[1]) >= 26)
 	_check("Версия баланса восьмого этапа", int(data.get("version", 0)) == 8)

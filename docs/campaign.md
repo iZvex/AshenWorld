@@ -125,6 +125,7 @@ godot --headless --path . --script tests/test_progression.gd
 godot --headless --path . --script tests/test_saves.gd
 godot --headless --path . --script tests/test_modes.gd
 godot --headless --path . --script tests/test_ui.gd
+godot --headless --path . --script tests/test_input.gd
 godot --headless --path . --quit-after 120
 ```
 

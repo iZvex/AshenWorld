@@ -37,6 +37,7 @@ var separator_label: Label
 var enemy_hint_label: Label
 var stage_notice: Label
 var battle_overlay: Control
+var arena_hero: TextureRect
 var equipment_button: Button
 var equipment_power_label: Label
 var equipment_panel: PanelContainer
@@ -133,6 +134,9 @@ var quick_rail: VBoxContainer
 var arena_enemies: GridContainer
 var stub_strip: HBoxContainer
 var enemy_cards: Array = []
+var enemy_figure_by_id: Dictionary = {}
+var enemy_figure_default: String = ""
+var enemy_figure_pool: Array = []
 var quick_buttons: Dictionary = {}
 var quick_nav: Dictionary = {}
 var hud_config: Dictionary = {}
@@ -363,6 +367,21 @@ func _apply_hud_config() -> void:
 		button.text = ""
 		button.tooltip_text = str(entry.get("label", tab_id.to_upper()))
 		button.add_theme_stylebox_override("normal", AshenStyle.quick_icon_style(false))
+	var hero_figure_path: String = str(hud_config.get("hero_figure", ""))
+	if arena_hero != null and hero_figure_path != "" and ResourceLoader.exists(hero_figure_path):
+		arena_hero.texture = load(hero_figure_path)
+	var figures_value: Variant = hud_config.get("enemy_figures", {})
+	if figures_value is Dictionary:
+		var figures: Dictionary = figures_value as Dictionary
+		var by_id_value: Variant = figures.get("by_id", {})
+		if by_id_value is Dictionary:
+			enemy_figure_by_id = by_id_value as Dictionary
+		enemy_figure_default = str(figures.get("default", ""))
+		var list_value: Variant = figures.get("figures", [])
+		if list_value is Array:
+			enemy_figure_pool.clear()
+			for raw_path in list_value as Array:
+				enemy_figure_pool.append(str(raw_path))
 	enemy_cards.clear()
 	var enemy_texture_path: String = str(hud_config.get("enemy_texture", ""))
 	var count: int = clampi(int(hud_config.get("enemy_cards", 5)), 1, 8)
@@ -434,6 +453,7 @@ func _bind_nodes() -> void:
 	quest_stub = _find("QuestStub") as PanelContainer
 	future_rail = _find("FutureRail") as VBoxContainer
 	quick_rail = _find("QuickRail") as VBoxContainer
+	arena_hero = _find("ArenaHero") as TextureRect
 	arena_enemies = _find("ArenaEnemies") as GridContainer
 	stub_strip = _find("StubStrip") as HBoxContainer
 	equipment_panel = inventory_panel
@@ -853,10 +873,45 @@ func _refresh_arena_enemies() -> void:
 			else:
 				count += 1
 	count = clampi(count, 1, enemy_cards.size())
+	if arena_enemies != null:
+		arena_enemies.columns = clampi(count, 1, 6)
+	var enemy_ids: Array = _arena_enemy_ids(stage)
 	for index in range(enemy_cards.size()):
 		var card: Control = enemy_cards[index] as Control
 		if card != null:
 			card.visible = index < count
+		if index < count:
+			var figure: String = _enemy_figure_for(index, enemy_ids)
+			var silhouette: TextureRect = find_child("EnemySilhouette%d" % (index + 1), true, false) as TextureRect
+			if silhouette != null and figure != "" and ResourceLoader.exists(figure):
+				silhouette.texture = load(figure)
+
+
+func _arena_enemy_ids(stage: Dictionary) -> Array:
+	var ids: Array = []
+	var enemies_value: Variant = stage.get("enemies", [])
+	if enemies_value is Array:
+		for entry_value in enemies_value as Array:
+			if entry_value is Dictionary:
+				var entry: Dictionary = entry_value as Dictionary
+				var enemy_id: String = str(entry.get("id", ""))
+				var amount: int = maxi(1, int(entry.get("count", 1)))
+				for _index in range(amount):
+					ids.append(enemy_id)
+			else:
+				ids.append(str(entry_value))
+	return ids
+
+
+func _enemy_figure_for(index: int, enemy_ids: Array) -> String:
+	var figure: String = ""
+	if index < enemy_ids.size():
+		figure = str(enemy_figure_by_id.get(str(enemy_ids[index]), ""))
+	if figure == "" and not enemy_figure_pool.is_empty():
+		figure = str(enemy_figure_pool[index % enemy_figure_pool.size()])
+	if figure == "":
+		figure = enemy_figure_default
+	return figure
 
 
 func _on_summon_type_pressed() -> void:

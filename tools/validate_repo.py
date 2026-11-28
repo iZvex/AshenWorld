@@ -533,6 +533,8 @@ for token in ["ModeCatalog.stage_at", "ModeCatalog.state_from_snapshot", "select
 ci_src = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8") if (ROOT / ".github/workflows/ci.yml").is_file() else ""
 if "tests/test_modes.gd" not in ci_src:
     err(".github/workflows/ci.yml: отсутствует точечная проверка режимов")
+if "tests/test_input.gd" not in ci_src:
+    err("автоматическая сборка не запускает tests/test_input.gd")
 if "tests/test_presentation.gd" not in ci_src:
     err(".github/workflows/ci.yml: отсутствует точечная проверка полировки")
 notes.append(f"Режимы: {len(mode_list)}, ярусов {len(tower_floors)}, подземелий {len(dungeon_runs)}")
@@ -580,6 +582,7 @@ stage8_files = [
     "scripts/ui/ashen_audio.gd",
     "scripts/ui/effect_pool.gd",
     "tests/test_presentation.gd",
+    "tests/test_input.gd",
     "docs/android.md",
 ]
 for rel in stage8_files:
@@ -701,6 +704,16 @@ else:
             err(f"data/balance.json: иконка {node_name} должна быть локальным ресурсом")
         elif not (ROOT / icon_rel).is_file() or not (ROOT / (icon_rel + ".import")).is_file():
             err(f"Иконка заглушки {node_name} и её файл импорта отсутствуют")
+hero_figure = str(hud.get("hero_figure", ""))
+if not hero_figure.endswith("hero_battle.png"):
+    err("data/balance.json: фигура героя на поле боя не задана")
+figures = hud.get("enemy_figures", {})
+if not isinstance(figures, dict) or len(figures.get("by_id", {})) < 10 or len(figures.get("figures", [])) < 3:
+    err("data/balance.json: фигуры войск противника заданы не полностью")
+for figure_path in list(figures.get("figures", [])) + [hero_figure]:
+    rel = str(figure_path).replace("res://", "")
+    if not (ROOT / rel).is_file():
+        err(f"нет файла фигуры боя: {rel}")
 stub_labels = hud.get("stub_labels", {})
 if not isinstance(stub_labels, dict) or len(stub_labels) < 5 or any("СКОРО" not in str(text) for text in stub_labels.values()):
     err("data/balance.json: все нереализованные элементы должны быть помечены СКОРО")
@@ -711,7 +724,7 @@ if str(hud.get("portrait_texture", "")) != "res://assets/ui/hero_portrait.png":
 if str(hud.get("enemy_texture", "")) != "res://assets/ui/icons/enemy_wraith.svg" or int(hud.get("enemy_cards", 0)) != 5:
     err("data/balance.json: силуэты врагов арены должны быть описаны централизованно")
 
-for token in ["background_sketch.png", "hero_portrait.png", "HealthPanel", "HeroPortrait", "HeroHealthBar", "EnemyHealthBar", "QuickRail", "FutureRail", "ArenaEnemies", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle", "BattleOverlay", "LogCard", "StrikeButton", "GuardButton"]:
+for token in ["background_sketch.png", "hero_portrait.png", "ArenaHero", "HealthPanel", "HeroPortrait", "HeroHealthBar", "EnemyHealthBar", "QuickRail", "FutureRail", "ArenaEnemies", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle", "BattleOverlay", "LogCard", "StrikeButton", "GuardButton"]:
     if token not in scene_src:
         err(f"scenes/main/main.tscn: отсутствует узел или ресурс игрового HUD ({token})")
 for forbidden in ["MiniMap", "Minimap", "Joystick", "VirtualJoystick", "MapFrame"]:

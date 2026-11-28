@@ -120,15 +120,16 @@ static func quick_icon_style(active: bool) -> StyleBoxFlat:
 
 
 static func enemy_card_style() -> StyleBoxFlat:
-	var box: StyleBoxFlat = muted_panel_style()
-	box.bg_color = Color(0.035, 0.022, 0.055, 0.55)
-	box.border_color = Color(0.55, 0.28, 0.35, 0.7)
-	box.set_corner_radius_all(16)
-	box.content_margin_left = 4
-	box.content_margin_right = 4
-	box.content_margin_top = 4
-	box.content_margin_bottom = 4
-	return box
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.03, 0.09, 0.28)
+	style.border_color = Color(0.0, 0.0, 0.0, 0.0)
+	style.set_border_width_all(0)
+	style.set_corner_radius_all(16)
+	style.content_margin_left = 6.0
+	style.content_margin_right = 6.0
+	style.content_margin_top = 6.0
+	style.content_margin_bottom = 6.0
+	return style
 
 
 static func orb_style(active: bool = false, radius: int = 62) -> StyleBoxFlat:

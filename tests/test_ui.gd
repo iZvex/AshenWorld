@@ -565,7 +565,7 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 		var card: Control = item as Control
 		if card != null and card.visible:
 			visible_enemies += 1
-	_check("Силуэты врагов показаны на арене", scene.arena_enemies.columns == 3 and scene.enemy_cards.size() == 5 and visible_enemies > 0 and visible_enemies <= 5)
+	_check("Силуэты врагов показаны на арене", scene.arena_enemies.columns == visible_enemies and scene.arena_enemies.columns <= 3 and scene.enemy_cards.size() == 5 and visible_enemies > 0 and visible_enemies <= 5)
 	_check("Нижнее меню 3 × 2 сохранено", scene.bottom_tabs.columns == 3 and scene.tabs.size() == 6)
 	var overlay: Control = scene.find_child("BattleOverlay", true, false) as Control
 	var strike: Button = scene.find_child("StrikeButton", true, false) as Button
@@ -585,6 +585,29 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 		if scene.find_child(overlay_name, true, false) == null:
 			overlay_nodes = false
 	_check("Журнал, подсказка и кнопка этапа живут в оверлее", overlay_nodes)
+	var arena_hero: TextureRect = scene.find_child("ArenaHero", true, false) as TextureRect
+	_check("Герой стоит на поле боя", arena_hero != null and arena_hero.texture != null and str(arena_hero.texture.resource_path).ends_with("hero_battle.png"))
+	var figure_pool: Array = []
+	var figures_value: Variant = hud.get("enemy_figures", {})
+	if figures_value is Dictionary:
+		var figures_list: Variant = (figures_value as Dictionary).get("figures", [])
+		if figures_list is Array:
+			figure_pool = figures_list as Array
+	var silhouettes_ok: bool = figure_pool.size() >= 3
+	for index in range(scene.enemy_cards.size()):
+		var card: Control = scene.enemy_cards[index] as Control
+		if card == null or not card.visible:
+			continue
+		var silhouette: TextureRect = scene.find_child("EnemySilhouette%d" % (index + 1), true, false) as TextureRect
+		if silhouette == null or silhouette.texture == null or not figure_pool.has(str(silhouette.texture.resource_path)):
+			silhouettes_ok = false
+	_check("Войска противника используют фигуры врагов", silhouettes_ok)
+	var bars_ok: bool = true
+	for index in range(scene.enemy_cards.size()):
+		var bar: ProgressBar = scene.find_child("EnemyMiniBar%d" % (index + 1), true, false) as ProgressBar
+		if bar == null:
+			bars_ok = false
+	_check("У войск противника остались мини-шкалы здоровья", bars_ok)
 	var currency_row: HBoxContainer = scene.currency_bar.get_node_or_null("CurrencyRow") as HBoxContainer
 	var order_ok: bool = false
 	if currency_row != null:
