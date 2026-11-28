@@ -136,7 +136,7 @@ CampaignState.new(balance: Dictionary, initial_seed: int = 12345)
 - `export_state()` / `import_state(snapshot)` — ключи: `level`, `attribute_points`, `skill_points`, `allocated`, `skill_levels`, `skill_variants`, `skill_auto_use`, `passive_levels`, `pet_levels`, `selected_pet_id`.
 - `get_summary()` — сводка для панели прогрессии.
 
-## 9. Режимы, сохраняемое состояние и профиль
+## 9. Сохраняемое состояние и профиль
 
 `SaveManager` (`scripts/save/save_manager.gd`) — единственная точка записи на диск.
 
