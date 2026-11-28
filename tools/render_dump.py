@@ -137,6 +137,22 @@ for n in d['nodes']:
             if bd[3] > 0 and bw > 0:
                 lay.rounded_rectangle(b, radius=r, outline=bd, width=bw)
             img.alpha_composite(layer)
+    if t == 'Ring' and n.get('under_key'):
+        bw, bh = max(1, int(b[2]-b[0])), max(1, int(b[3]-b[1]))
+        under = tex(n['under_key']).resize((bw, bh), Image.LANCZOS)
+        layer = Image.new('RGBA', img.size, (0, 0, 0, 0))
+        layer.alpha_composite(under, (int(round(b[0])), int(round(b[1]))))
+        if n.get('prog_key'):
+            prog = tex(n['prog_key']).resize((bw, bh), Image.LANCZOS)
+            pie = Image.new('L', (bw, bh), 0)
+            # Godot FILL_CLOCKWISE: дуга начинается сверху и идёт по часовой.
+            pie_draw = ImageDraw.Draw(pie)
+            pie_draw.pieslice([0, 0, bw - 1, bh - 1], start=-90,
+                              end=-90 + 360.0 * float(n.get('value', 0.0)), fill=255)
+            filled = prog.copy()
+            filled.putalpha(Image.composite(filled.split()[3], Image.new('L', (bw, bh), 0), pie))
+            layer.alpha_composite(filled, (int(round(b[0])), int(round(b[1]))))
+        img.alpha_composite(layer)
     if t == 'ProgressBar' and 'bar' in n:
         mn, mx, val = n['bar']
         frac = 0.0 if mx <= mn else max(0.0, min(1.0, (val-mn)/(mx-mn)))
