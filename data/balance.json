@@ -2767,9 +2767,18 @@
     "interface": {
 
     "rig": {
-      "swing_windup_seconds": 0.1,
-      "swing_strike_seconds": 0.11,
-      "swing_recover_seconds": 0.16,
+      "swing_windup_seconds": 0.18,
+      "swing_strike_seconds": 0.08,
+      "swing_overshoot_seconds": 0.05,
+      "swing_overshoot": 1.14,
+      "swing_recover_seconds": 0.26,
+    "swing_arc_capacity": 4,
+    "swing_arc_sweeps": [70, 120, 170],
+    "swing_arc_radius": 164,
+    "swing_arc_thickness": 32,
+    "swing_arc_life_seconds": 0.2,
+    "swing_arc_step_degrees": 26,
+      "figure_follow": true,
       "figure_windup_degrees": -8,
       "figure_strike_degrees": 6,
       "characters": {
@@ -2780,8 +2789,10 @@
           "blade": "res://assets/ui/hero_battle_blade.png",
           "grip": [88, 193],
           "segments": [{"points": [[100, 204], [236, 300]], "radius": 20}, {"points": [[222, 288], [268, 342]], "radius": 12}],
-          "windup_degrees": -62,
-          "strike_degrees": 30
+          "rest_degrees": 38,
+          "reach": 196,
+          "windup_degrees": -96,
+          "strike_degrees": 48
         },
         "bone_legionnaire": {
           "figure": "res://assets/ui/enemies/bone_legionnaire.png",
@@ -2793,8 +2804,10 @@
             {"points": [[14, 198], [34, 180]], "radius": 17},
             {"points": [[34, 180], [78, 146]], "radius": 10}
           ],
-          "windup_degrees": -55,
-          "strike_degrees": 25
+          "rest_degrees": 139,
+          "reach": 150,
+          "windup_degrees": -140,
+          "strike_degrees": 30
         }
       }
     },

@@ -1222,12 +1222,37 @@ func _swing_weapon(char_id: String, node: Control, fallback: Control) -> void:
 	var entry_value: Variant = characters.get(char_id, {})
 	if entry_value is Dictionary and not (entry_value as Dictionary).is_empty():
 		var entry: Dictionary = entry_value as Dictionary
+		var pivot: Vector2 = _swing_pivot(node, char_id)
+		var trail_center: Vector2 = Vector2.ZERO
+		var trail_color: Color = Color(0, 0, 0, 0)
+		var trail_base: float = 0.0
+		if fallback != null:
+			# Росчерк идёт по дуге клинка: центр — кисть, радиус — длина оружия.
+			trail_center = node.get_global_transform() * pivot
+			trail_color = AshenStyle.EMBER if char_id == "hero" else AshenStyle.CRIMSON
+			trail_base = float(entry.get("rest_degrees", 42.0))
+		var reach: float = float(entry.get("reach", 0.0))
+		if reach <= 0.0:
+			reach = maxf(node.size.x, node.size.y) * 0.46
 		effect_pool.swing(
 			node,
-			_swing_pivot(node, char_id),
+			pivot,
 			float(entry.get("windup_degrees", -55.0)),
-			float(entry.get("strike_degrees", 30.0))
+			float(entry.get("strike_degrees", 30.0)),
+			0.0, 0.0, 0.0,
+			trail_center,
+			trail_color,
+			trail_base,
+			reach
 		)
+		if fallback != null and bool(rig_config.get("figure_follow", true)):
+			# Корпус тоже участвует: короткий замах назад и подача на удар.
+			effect_pool.swing(
+				fallback,
+				Vector2(fallback.size.x * 0.5, fallback.size.y),
+				float(rig_config.get("figure_windup_degrees", -8.0)),
+				float(rig_config.get("figure_strike_degrees", 6.0))
+			)
 		return
 	if fallback == null:
 		return

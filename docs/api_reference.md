@@ -682,7 +682,7 @@
 
 - Наследует: `RefCounted`
 - Назначение: Единая палитра и игровые стили тёмного фэнтези. Крупные карточки и высокие полосы заменены одной строкой здоровья; нижняя навигация, рамки и активные вкладки выделены так, чтобы структура экрана читалась с первого взгляда.
-- Публичных методов: 34
+- Публичных методов: 35
 
 **Публичные константы**
 
@@ -715,6 +715,7 @@
 - `static func portrait_frame_style() -> StyleBoxFlat`
 - `static func ring_texture(diameter: int, thickness: float, color: Color) -> ImageTexture`
 - `static func slash_texture(width: int, height: int, color: Color) -> ImageTexture`
+- `static func trail_arc_texture(radius: float, thickness: float, sweep_degrees: float, color: Color, resolution: float = 0.5) -> ImageTexture`
 - `static func slot_placeholder_style() -> StyleBoxFlat`
 - `static func auto_button_style(active: bool) -> StyleBoxFlat`
 - `static func ground_shadow_style() -> StyleBoxFlat`
@@ -742,7 +743,7 @@
 
 - Наследует: `Node`
 - Назначение: Переиспользуемые всплывающие подписи и короткие подсветки интерфейса. Вместо отдельного Label и Tween на каждый удар используется пул фиксированного размера; _process() активен только во время анимации и не нагружает простой кадр.
-- Публичных методов: 25
+- Публичных методов: 29
 
 **Публичное состояние**
 
@@ -753,6 +754,7 @@
 - `flashes: Dictionary`
 - `sparks: Array`
 - `slash_nodes: Array`
+- `trail_nodes: Array`
 - `punches: Dictionary`
 - `lunges: Dictionary`
 - `swings: Dictionary`
@@ -770,12 +772,16 @@
 - `func spawn_slash(center: Vector2, color: Color, angle: float = -0.6) -> void`
 - `func punch(control: Control, amount: float = 0.0) -> void`
 - `func lunge(control: Control, offset: Vector2, lean: float = 0.0, duration: float = 0.0) -> void`
-- `func swing(control: Control, pivot: Vector2, windup_degrees: float, strike_degrees: float, windup: float = 0.0, strike: float = 0.0, recover: float = 0.0) -> void`
+- `func swing(control: Control, pivot: Vector2, windup_degrees: float, strike_degrees: float, windup: float = 0.0, strike: float = 0.0, recover: float = 0.0, trail_center: Vector2 = Vector2.ZERO, trail_color: Color = Color(0, 0, 0, 0), trail_angle: float = 0.0, trail_radius: float = 0.0) -> void`
 - `func cancel_swings() -> void`
 - `func swing_count() -> int`
 - `func cancel_lunges() -> void`
 - `func lunge_count() -> int`
 - `func fade_to(control: Control, tint: Color) -> void`
+- `func spawn_trail_arc(center: Vector2, color: Color, mid_angle: float, sweep_degrees: float, radius: float = 164.0, alpha: float = 0.6) -> void`
+- `func trail_pool_size() -> int`
+- `func trail_count() -> int`
+- `func ease_in_out(value: float) -> float`
 - `func ease_out(value: float) -> float`
 - `func spark_count() -> int`
 - `func slash_count() -> int`

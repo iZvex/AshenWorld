@@ -404,11 +404,16 @@ func _test_attack_motion(scene) -> void:
 	var card: Control = scene._enemy_unit()
 	scene._on_damage_dealt(str(scene.campaign.current_stage().get("name", "")), 30.0, false)
 	_check("Удар героя запускает шаг атакующего", pool.lunge_count() >= 1)
+	var windup_seconds: float = float(scene.rig_config.get("swing_windup_seconds", 0.18))
+	var strike_seconds: float = float(scene.rig_config.get("swing_strike_seconds", 0.08))
 	pool._process(0.08)
 	_check("Герой шагает в сторону врага", hero.position.x > hero_base.x + 4.0)
-	_check("Герой наклоняется в замахе", hero.rotation > 0.01)
+	_check("Герой отводит корпус в замахе", hero.rotation < -0.01)
 	_check("Карточка врага отшатывается от удара", card == null or card.position.x > 0.5)
-	pool._process(0.5)
+	# Корпус подаётся вперёд уже на самом ударе, а не в замахе.
+	pool._process(windup_seconds + strike_seconds)
+	_check("Герой подаётся корпусом в удар", hero.rotation > 0.01)
+	pool._process(0.8)
 	_check("Герой возвращается на место после шага", hero.position.is_equal_approx(hero_base) and is_zero_approx(hero.rotation))
 	_check("Шаги снимаются с пула сами", pool.lunge_count() == 0)
 
@@ -460,12 +465,25 @@ func _test_weapon_swing(scene) -> void:
 	scene.hero_blade.size = saved_size
 	scene._on_damage_dealt(str(scene.campaign.current_stage().get("name", "")), 30.0, false)
 	_check("Удар запускает взмах оружия", pool.swing_count() >= 1)
-	pool._process(0.06)
+	var windup_seconds: float = float(scene.rig_config.get("swing_windup_seconds", 0.18))
+	pool._process(windup_seconds * 0.9)
 	_check("Клинок уходит в замах", scene.hero_blade.rotation < -0.05)
-	pool._process(0.1)
-	_check("Клинок идёт в удар", scene.hero_blade.rotation > -0.05)
-	pool._process(0.5)
+	pool._process(windup_seconds * 0.1)
+	var windup_angle: float = scene.hero_blade.rotation
+	pool._process(float(scene.rig_config.get("swing_strike_seconds", 0.08)))
+	var strike_angle: float = scene.hero_blade.rotation
+	_check("Клинок идёт в удар", strike_angle > windup_angle)
+	_check("Размах взмаха не меньше 110 градусов",
+		rad_to_deg(strike_angle - windup_angle) > 110.0)
+	pool._process(float(scene.rig_config.get("swing_overshoot_seconds", 0.05)))
+	_check("Клинок проскакивает точку удара", scene.hero_blade.rotation > strike_angle)
+	_check("За клинком тянется росчерк", pool.trail_count() >= 1)
+	_check("Пул росчерка подготовлен", pool.trail_pool_size() >= 2)
+	_check("Корпус участвует в ударе", not is_zero_approx(scene.arena_hero.rotation))
+	pool._process(float(scene.rig_config.get("swing_recover_seconds", 0.26)) + 0.1)
 	_check("Клинок возвращается в стойку", is_zero_approx(scene.hero_blade.rotation) and pool.swing_count() == 0)
+	pool._process(float(scene.rig_config.get("swing_arc_life_seconds", 0.2)) + 0.2)
+	_check("Росчерк гаснет сам", pool.trail_count() == 0)
 	_check("Тело героя остаётся управляемым шагом", scene.arena_hero.scale.is_equal_approx(Vector2.ONE))
 
 	# Противник с оружием: у латника нарезан топор.
@@ -475,10 +493,10 @@ func _test_weapon_swing(scene) -> void:
 	_check("Оружие врага находится по его фигуре",
 		scene._rig_character_for_enemy("ash_walker") == "bone_legionnaire")
 	_check("Слой оружия врага подставлен", enemy_blade != null and enemy_blade.texture != null)
-	pool.swing(enemy_blade, Vector2(10.0, 10.0), -55.0, 25.0)
+	pool.swing(enemy_blade, Vector2(10.0, 10.0), -80.0, 45.0)
 	pool._process(0.05)
 	_check("Оружие врага тоже замахивается", enemy_blade.rotation < -0.05)
-	pool._process(0.5)
+	pool._process(0.62)
 	_check("Оружие врага возвращается в стойку", is_zero_approx(enemy_blade.rotation))
 	scene._set_enemy_blade(0, "cinder_hound")
 	_check("У зверя без оружия слой оружия скрыт", scene.enemy_blades[0].texture == null or not scene.enemy_blades[0].visible)

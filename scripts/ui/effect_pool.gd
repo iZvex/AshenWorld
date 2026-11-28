@@ -13,6 +13,7 @@ var slots: Array = []
 var flashes: Dictionary = {}
 var sparks: Array = []
 var slash_nodes: Array = []
+var trail_nodes: Array = []
 var punches: Dictionary = {}
 var lunges: Dictionary = {}
 var swings: Dictionary = {}
@@ -69,6 +70,36 @@ func _build_fx_pools() -> void:
 		slash.stretch_mode = TextureRect.STRETCH_SCALE
 		canvas.add_child(slash)
 		slash_nodes.append({"node": slash, "active": false, "elapsed": 0.0})
+	# Росчерк взмаха: полоса по дуге вокруг кисти. Дуги трёх размахов,
+	# поэтому за клинком тянется растущий след, а не одна чёрточка.
+	var arc_capacity: int = clampi(int(config.get("swing_arc_capacity", 4)), 1, 8)
+	var arc_radius: float = maxf(40.0, float(config.get("swing_arc_radius", 164.0)))
+	var arc_thickness: float = maxf(8.0, float(config.get("swing_arc_thickness", 36.0)))
+	var arc_sweeps: Array = config.get("swing_arc_sweeps", [70, 120, 170])
+	for index in range(arc_capacity):
+		var sweep_value: float = 70.0
+		if not arc_sweeps.is_empty():
+			sweep_value = float(arc_sweeps[index % arc_sweeps.size()])
+		var arc_texture: ImageTexture = AshenStyle.trail_arc_texture(
+			arc_radius, arc_thickness, sweep_value, Color.WHITE)
+		var arc: TextureRect = TextureRect.new()
+		arc.visible = false
+		arc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		arc.z_index = 9
+		arc.texture = arc_texture
+		arc.size = Vector2(arc_texture.get_width(), arc_texture.get_height())
+		arc.pivot_offset = arc.size * 0.5
+		arc.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		arc.stretch_mode = TextureRect.STRETCH_SCALE
+		canvas.add_child(arc)
+		trail_nodes.append({
+			"node": arc,
+			"active": false,
+			"elapsed": 0.0,
+			"alpha": 1.0,
+			"radius": arc_radius,
+			"sweep": sweep_value,
+		})
 
 
 func set_full_effects(value: bool) -> void:
@@ -247,22 +278,31 @@ func lunge(control: Control, offset: Vector2, lean: float = 0.0, duration: float
 
 
 func swing(control: Control, pivot: Vector2, windup_degrees: float, strike_degrees: float,
-		windup: float = 0.0, strike: float = 0.0, recover: float = 0.0) -> void:
-	# Взмах оружия по готовой картинке: замах, удар и возврат.
+		windup: float = 0.0, strike: float = 0.0, recover: float = 0.0,
+		trail_center: Vector2 = Vector2.ZERO, trail_color: Color = Color(0, 0, 0, 0),
+		trail_angle: float = 0.0, trail_radius: float = 0.0) -> void:
+	# Взмах оружия по готовой картинке: замах, удар с перелётом и возврат.
 	# pivot — точка хвата в координатах узла (масштабируется под текущий размер).
 	if not full_effects or control == null:
 		return
-	var markup: float = windup if windup > 0.0 else float(config.get("swing_windup_seconds", 0.1))
-	var hit: float = strike if strike > 0.0 else float(config.get("swing_strike_seconds", 0.11))
-	var back: float = recover if recover > 0.0 else float(config.get("swing_recover_seconds", 0.16))
+	var markup: float = windup if windup > 0.0 else float(config.get("swing_windup_seconds", 0.18))
+	var hit: float = strike if strike > 0.0 else float(config.get("swing_strike_seconds", 0.08))
+	var over: float = float(config.get("swing_overshoot_seconds", 0.05))
+	var back: float = recover if recover > 0.0 else float(config.get("swing_recover_seconds", 0.26))
 	var key: int = control.get_instance_id()
 	swings[key] = {
 		"control": control,
 		"pivot": pivot,
 		"windup": deg_to_rad(windup_degrees),
 		"strike": deg_to_rad(strike_degrees),
-		"stages": [maxf(0.02, markup), maxf(0.02, hit), maxf(0.02, back)],
+		"overshoot": maxf(1.0, float(config.get("swing_overshoot", 1.14))),
+		"stages": [maxf(0.02, markup), maxf(0.02, hit), maxf(0.02, over), maxf(0.05, back)],
 		"elapsed": 0.0,
+		"trail_center": trail_center,
+		"trail_color": trail_color,
+		"trail_angle": trail_angle,
+		"trail_radius": maxf(0.0, trail_radius),
+		"trail_angle_last": windup_degrees,
 	}
 	control.pivot_offset = pivot
 	set_process(true)
@@ -319,6 +359,94 @@ func _take_spark_slot() -> Dictionary:
 		if not bool(slot.get("active", false)):
 			return slot
 	return sparks[0] as Dictionary
+
+
+func spawn_trail_arc(center: Vector2, color: Color, mid_angle: float, sweep_degrees: float,
+		radius: float = 164.0, alpha: float = 0.6) -> void:
+	# Полоса росчерка: центр дуги — кисть, поэтому след летит вместе с клинком.
+	if not full_effects or canvas == null or trail_nodes.is_empty():
+		return
+	if color.a <= 0.0 or sweep_degrees < 6.0:
+		return
+	var slot: Dictionary = _take_trail_slot(sweep_degrees)
+	var trail: TextureRect = slot.get("node") as TextureRect
+	if trail == null:
+		return
+	var fit: float = clampf(radius / maxf(1.0, float(slot.get("radius", 164.0))), 0.3, 2.5)
+	trail.pivot_offset = trail.size * 0.5
+	# Масштаб вокруг pivot_offset не сдвигает центр: смещение считается по размеру.
+	trail.position = center - trail.size * 0.5
+	trail.rotation = mid_angle
+	trail.scale = Vector2(fit, fit)
+	trail.modulate = Color(color.r, color.g, color.b, color.a * alpha)
+	trail.visible = true
+	slot["active"] = true
+	slot["elapsed"] = 0.0
+	slot["alpha"] = color.a * alpha
+	slot["base_scale"] = fit
+	set_process(true)
+
+
+func trail_pool_size() -> int:
+	return trail_nodes.size()
+
+
+func trail_count() -> int:
+	var total: int = 0
+	for slot_value in trail_nodes:
+		var slot: Dictionary = slot_value as Dictionary
+		if bool(slot.get("active", false)):
+			total += 1
+	return total
+
+
+func _take_trail_slot(sweep_degrees: float = 0.0) -> Dictionary:
+	var life: float = maxf(0.05, float(config.get("swing_arc_life_seconds", 0.2)))
+	var best: Dictionary = {}
+	var best_sweep: float = 100000.0
+	for slot_value in trail_nodes:
+		var slot: Dictionary = slot_value as Dictionary
+		var sweep: float = float(slot.get("sweep", 0.0))
+		if not bool(slot.get("active", false)) and sweep >= sweep_degrees and sweep < best_sweep:
+			best = slot
+			best_sweep = sweep
+	if not best.is_empty():
+		return best
+	var oldest: Dictionary = trail_nodes[0] as Dictionary
+	var oldest_progress: float = -1.0
+	for slot_value in trail_nodes:
+		var slot: Dictionary = slot_value as Dictionary
+		var progress: float = float(slot.get("elapsed", 0.0)) / life
+		if bool(slot.get("active", false)) and progress > oldest_progress:
+			oldest = slot
+			oldest_progress = progress
+	return oldest
+
+
+func _tick_trails(delta: float) -> bool:
+	var active: bool = false
+	var life: float = maxf(0.05, float(config.get("swing_arc_life_seconds", 0.2)))
+	for slot_value in trail_nodes:
+		var slot: Dictionary = slot_value as Dictionary
+		if not bool(slot.get("active", false)):
+			continue
+		var trail: TextureRect = slot.get("node") as TextureRect
+		var elapsed: float = float(slot.get("elapsed", 0.0)) + delta
+		var progress: float = clampf(elapsed / life, 0.0, 1.0)
+		var base_alpha: float = float(slot.get("alpha", 0.6))
+		var tint: Color = trail.modulate
+		tint.a = base_alpha * (1.0 - progress)
+		trail.modulate = tint
+		var base_scale: float = float(slot.get("base_scale", 1.0))
+		trail.scale = Vector2.ONE * (base_scale * (1.0 + 0.08 * progress))
+		slot["elapsed"] = elapsed
+		if progress >= 1.0:
+			slot["active"] = false
+			trail.visible = false
+			trail.modulate = Color.WHITE
+		else:
+			active = true
+	return active
 
 
 func _take_slash_slot() -> Dictionary:
@@ -389,6 +517,7 @@ func _process(delta: float) -> void:
 			active = true
 	active = _tick_sparks(delta) or active
 	active = _tick_slashes(delta) or active
+	active = _tick_trails(delta) or active
 	active = _tick_punches(delta) or active
 	active = _tick_lunges(delta) or active
 	active = _tick_swings(delta) or active
@@ -516,22 +645,32 @@ func _tick_swings(delta: float) -> bool:
 		var elapsed: float = float(state.get("elapsed", 0.0)) + delta
 		var windup: float = rad_to_deg(float(state.get("windup", 0.0)))
 		var strike: float = rad_to_deg(float(state.get("strike", 0.0)))
-		var first: float = float(stages[0]) if stages.size() > 0 else 0.1
-		var second: float = float(stages[1]) if stages.size() > 1 else 0.1
-		var third: float = float(stages[2]) if stages.size() > 2 else 0.16
+		var overshoot: float = float(state.get("overshoot", 1.14))
+		var first: float = float(stages[0]) if stages.size() > 0 else 0.18
+		var second: float = float(stages[1]) if stages.size() > 1 else 0.08
+		var third: float = float(stages[2]) if stages.size() > 2 else 0.05
+		var fourth: float = float(stages[3]) if stages.size() > 3 else 0.26
 		var angle: float = 0.0
 		if elapsed <= first:
-			# Замах: плавно отводим оружие назад.
+			# Замах: оружие медленно уходит назад, к концу замаха почти замирает.
 			var phase: float = elapsed / first
-			angle = lerpf(0.0, windup, ease_out(phase))
+			angle = lerpf(0.0, windup, ease_in_out(phase))
 		elif elapsed <= first + second:
-			# Удар: быстрое движение вперёд.
+			# Удар: разгон от нуля, к концу фазы оружие летит быстрее всего.
 			var phase: float = (elapsed - first) / second
-			angle = lerpf(windup, strike, ease_out(phase))
+			angle = lerpf(windup, strike, phase * phase)
+			# Росчерк набирается по мере пролёта: каждый следующий серп встаёт
+			# на новое место дуги, поэтому за клинком тянется полоса.
+			state = _emit_swing_arc(state, angle)
 		elif elapsed <= first + second + third:
-			# Возврат в стойку.
+			# Перелёт: оружие проскакивает точку удара и чуть отыгрывает назад.
 			var phase: float = (elapsed - first - second) / third
-			angle = lerpf(strike, 0.0, phase * phase)
+			angle = lerpf(strike, strike * overshoot, ease_out(phase))
+			state = _emit_swing_arc(state, angle)
+		elif elapsed <= first + second + third + fourth:
+			# Возврат в стойку.
+			var phase: float = (elapsed - first - second - third) / fourth
+			angle = lerpf(strike * overshoot, 0.0, ease_in_out(phase))
 		else:
 			control.rotation = 0.0
 			swings.erase(key)
@@ -541,6 +680,31 @@ func _tick_swings(delta: float) -> bool:
 		swings[key] = state
 		active = true
 	return active
+
+
+func _emit_swing_arc(state: Dictionary, angle: float) -> Dictionary:
+	# Дуга растёт вместе с пролётом клинка: от кисти до текущего положения.
+	var center: Vector2 = state.get("trail_center", Vector2.ZERO) as Vector2
+	var color: Color = state.get("trail_color", Color(0, 0, 0, 0)) as Color
+	if center == Vector2.ZERO or color.a <= 0.0:
+		return state
+	var start: float = rad_to_deg(float(state.get("windup", 0.0)))
+	var step: float = maxf(8.0, float(config.get("swing_arc_step_degrees", 26.0)))
+	var last: float = float(state.get("trail_angle_last", start))
+	var swept: float = absf(angle - start)
+	if swept < step or absf(angle - last) < step:
+		return state
+	state["trail_angle_last"] = angle
+	var rest: float = float(state.get("trail_angle", 0.0))
+	var mid: float = deg_to_rad(rest + (start + angle) * 0.5)
+	var radius: float = float(state.get("trail_radius", 0.0))
+	spawn_trail_arc(center, color, mid, minf(swept, 175.0), radius, 0.6)
+	return state
+
+
+func ease_in_out(value: float) -> float:
+	var t: float = clampf(value, 0.0, 1.0)
+	return t * t * (3.0 - 2.0 * t)
 
 
 func ease_out(value: float) -> float:
@@ -628,6 +792,13 @@ func reset() -> void:
 		if slash != null:
 			slash.visible = false
 			slash.modulate = Color.WHITE
+	for slot_value in trail_nodes:
+		var slot: Dictionary = slot_value as Dictionary
+		slot["active"] = false
+		var trail: TextureRect = slot.get("node") as TextureRect
+		if trail != null:
+			trail.visible = false
+			trail.modulate = Color.WHITE
 	for key in punches.keys():
 		var state: Dictionary = punches[key] as Dictionary
 		var control: Control = state.get("control") as Control

@@ -774,6 +774,17 @@ else:
         err("data/balance.json: у героя нет нарезанного клинка")
     if float(rig.get("swing_strike_seconds", 0)) <= 0.0 or float(rig.get("swing_windup_seconds", 0)) <= 0.0:
         err("data/balance.json: у взмаха должны быть замах и удар")
+    if float(rig.get("swing_overshoot_seconds", 0)) <= 0.0 or float(rig.get("swing_overshoot", 1.0)) <= 1.0:
+        err("data/balance.json: у взмаха должен быть перелёт после удара")
+    if float(rig.get("swing_windup_seconds", 0)) < float(rig.get("swing_strike_seconds", 0)):
+        err("data/balance.json: замах должен быть медленнее удара")
+    if float(rig.get("swing_arc_thickness", 0)) <= 0.0 or float(rig.get("swing_arc_life_seconds", 0)) <= 0.0:
+        err("data/balance.json: росчерк взмаха должен иметь толщину и время жизни")
+    if int(rig.get("swing_arc_capacity", 0)) < 2:
+        err("data/balance.json: для росчерка нужен пул хотя бы из двух полос")
+    arc_sweeps = rig.get("swing_arc_sweeps", [])
+    if not isinstance(arc_sweeps, list) or len(arc_sweeps) < 2 or any(float(v) < 30.0 for v in arc_sweeps):
+        err("data/balance.json: росчерк должен расти по размаху")
     for character_id, entry in rig_characters.items():
         if not isinstance(entry, dict):
             err(f"data/balance.json: риг {character_id} должен быть объектом")
@@ -787,6 +798,13 @@ else:
             err(f"data/balance.json: у рига {character_id} не задана точка хвата")
         if float(entry.get("strike_degrees", 0)) == float(entry.get("windup_degrees", 0)):
             err(f"data/balance.json: у рига {character_id} замах совпадает с ударом")
+        sweep = abs(float(entry.get("strike_degrees", 0)) - float(entry.get("windup_degrees", 0)))
+        if sweep < 100.0:
+            err(f"data/balance.json: у рига {character_id} слишком короткий размах ({sweep:.0f}°)")
+        if float(entry.get("reach", 0)) <= 0.0:
+            err(f"data/balance.json: у рига {character_id} не задан радиус росчерка")
+        if not ("rest_degrees" in entry):
+            err(f"data/balance.json: у рига {character_id} не задан наклон оружия в стойке")
 figures = hud.get("enemy_figures", {})
 if not isinstance(figures, dict) or len(figures.get("by_id", {})) < 10 or len(figures.get("figures", [])) < 3:
     err("data/balance.json: фигуры войск противника заданы не полностью")

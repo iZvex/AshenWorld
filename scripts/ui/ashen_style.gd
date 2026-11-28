@@ -169,6 +169,41 @@ static func slash_texture(width: int, height: int, color: Color) -> ImageTexture
 	return ImageTexture.create_from_image(image)
 
 
+static func trail_arc_texture(radius: float, thickness: float, sweep_degrees: float,
+		color: Color, resolution: float = 0.5) -> ImageTexture:
+	# Росчерк взмаха: полоса по дуге вокруг кисти. Дуга симметрична оси +X,
+	# края мягкие, поэтому след читается как движение, а не как заливка.
+	var reach: float = maxf(16.0, radius + thickness)
+	var step: float = clampf(resolution, 0.25, 1.0)
+	var size: int = maxi(16, int(round(reach * 2.0 * step)))
+	var image: Image = Image.create_empty(size, size, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var mid: float = float(size) * 0.5
+	var arc_radius: float = radius * step
+	var half: float = maxf(1.0, thickness * 0.5 * step)
+	var sweep: float = deg_to_rad(clampf(sweep_degrees, 8.0, 300.0))
+	var taper: float = minf(sweep * 0.22, 0.5)
+	for y in range(size):
+		var dy: float = float(y) + 0.5 - mid
+		for x in range(size):
+			var dx: float = float(x) + 0.5 - mid
+			var distance: float = sqrt(dx * dx + dy * dy)
+			var offset: float = absf(distance - arc_radius)
+			if offset >= half:
+				continue
+			var angle: float = absf(atan2(dy, dx))
+			if angle > sweep * 0.5:
+				continue
+			var alpha: float = 1.0 - offset / half
+			alpha = alpha * alpha
+			var edge: float = clampf((sweep * 0.5 - angle) / maxf(0.001, taper), 0.0, 1.0)
+			alpha *= edge
+			if alpha <= 0.01:
+				continue
+			image.set_pixel(x, y, Color(color.r, color.g, color.b, color.a * alpha))
+	return ImageTexture.create_from_image(image)
+
+
 static func slot_placeholder_style() -> StyleBoxFlat:
 	var box: StyleBoxFlat = StyleBoxFlat.new()
 	box.bg_color = Color(0.07, 0.05, 0.1, 0.72)
