@@ -156,6 +156,7 @@ func _initialize() -> void:
 	_test_stage_transition(scene)
 	_test_auto_advance(scene, data)
 	_test_hit_effects(scene)
+	_test_attack_motion(scene)
 	_test_ui_animations(scene)
 	_test_equipment_ui(scene, data)
 	_test_progression_ui(scene, data)
@@ -390,6 +391,54 @@ func _test_hit_effects(scene) -> void:
 	_check("Режим минимальных эффектов выключает искры", pool.spark_count() == 0 and pool.slash_count() == 0)
 	pool.set_full_effects(true)
 	_check("Подписи уклонения и щита остаются читаемыми", scene.effect_pool.pool_size() == 8)
+	scene._update_view()
+
+
+func _test_attack_motion(scene) -> void:
+	# Атака читается по движению самих фигур: атакующий подаётся вперёд,
+	# защитник отшатывается, а всплывающие подписи не наезжают друг на друга.
+	var pool = scene.effect_pool
+	pool.reset()
+	var hero: Control = scene.arena_hero
+	var hero_base: Vector2 = hero.position
+	var card: Control = scene._enemy_unit()
+	scene._on_damage_dealt(str(scene.campaign.current_stage().get("name", "")), 30.0, false)
+	_check("Удар героя запускает шаг атакующего", pool.lunge_count() >= 1)
+	pool._process(0.08)
+	_check("Герой шагает в сторону врага", hero.position.x > hero_base.x + 4.0)
+	_check("Герой наклоняется в замахе", hero.rotation > 0.01)
+	_check("Карточка врага отшатывается от удара", card == null or card.position.x > 0.5)
+	pool._process(0.5)
+	_check("Герой возвращается на место после шага", hero.position.is_equal_approx(hero_base) and is_zero_approx(hero.rotation))
+	_check("Шаги снимаются с пула сами", pool.lunge_count() == 0)
+
+	scene._on_damage_dealt(str(scene.campaign.system.hero.display_name), 9.0, false)
+	pool._process(0.08)
+	_check("Враг шагает к герою", card == null or card.position.x < -0.5)
+	_check("Герой отшатывается от удара", hero.position.x < hero_base.x)
+	pool._process(0.5)
+	_check("После удара врага герой тоже вернулся", hero.position.is_equal_approx(hero_base))
+
+	pool.reset()
+	pool.spawn_text("−42", scene.hero_vitals, AshenStyle.CRIMSON, 24)
+	pool.spawn_text("КРИТ 88", scene.hero_vitals, AshenStyle.EMBER, 24)
+	pool.spawn_text("−42", scene.hero_vitals, AshenStyle.CRIMSON, 24)
+	var first: Label = pool.labels[0]
+	var second: Label = pool.labels[1]
+	var third: Label = pool.labels[2]
+	_check("Одновременные подписи урона идут по разным дорожкам",
+		absf(first.position.y - second.position.y) >= 20.0 and absf(second.position.y - third.position.y) >= 20.0)
+	_check("Подписи урона встают выше шкалы героя и не закрывают её",
+		first.position.y < scene.hero_vitals.get_global_rect().position.y)
+	_check("Подписи урона не сливаются в одну строку",
+		absf(first.position.x - second.position.x) > 0.0 or absf(second.position.x - third.position.x) > 0.0)
+	pool.reset()
+	_check("Сброс пула снимает шаги и подписи", pool.lunge_count() == 0 and pool.active_count() == 0)
+
+	pool.set_full_effects(false)
+	scene._on_damage_dealt(str(scene.campaign.current_stage().get("name", "")), 12.0, false)
+	_check("Упрощённый режим выключает шаг атакующего", pool.lunge_count() == 0)
+	pool.set_full_effects(true)
 	scene._update_view()
 
 

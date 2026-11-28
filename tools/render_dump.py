@@ -14,6 +14,9 @@ OUT = sys.argv[3] if len(sys.argv) > 3 else '/home/user/hud_preview.png'
 SW, SH = (int(v) for v in SCREEN.split('x'))
 W, H = SW * S, SH * S
 d = json.load(open(DUMP))
+# Порядок отрисовки как в Godot: сначала меньший z, внутри одного z — порядок дерева.
+if d.get("nodes"):
+    d["nodes"] = sorted(d["nodes"], key=lambda item: item.get("z_eff", item.get("z_index", 0)) or 0)
 TEX = '/tmp/hud_tex'
 FONT_B = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 FONT_R = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'

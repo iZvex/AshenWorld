@@ -77,6 +77,12 @@ static func effect_pool_config(balance: Dictionary) -> Dictionary:
 		"label_font_size": clampi(int(data.get("label_font_size", 24)), 10, 48),
 		"skill_font_size": clampi(int(data.get("skill_font_size", 15)), 10, 48),
 		"flash_duration_seconds": clampf(float(data.get("flash_duration_seconds", 0.28)), 0.05, 2.0),
+		"lunge_seconds": clampf(float(data.get("lunge_seconds", 0.24)), 0.08, 1.0),
+		"lunge_pixels": clampf(float(data.get("lunge_pixels", 26.0)), 4.0, 96.0),
+		"recoil_pixels": clampf(float(data.get("recoil_pixels", 12.0)), 2.0, 64.0),
+		"lunge_lean_degrees": clampf(float(data.get("lunge_lean_degrees", 4.0)), 0.0, 20.0),
+		"label_lane_gap": clampf(float(data.get("label_lane_gap", 4.0)), 0.0, 24.0),
+		"label_inside_anchor_height": clampf(float(data.get("label_inside_anchor_height", 220.0)), 40.0, 800.0),
 	}
 
 

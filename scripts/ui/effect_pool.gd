@@ -14,6 +14,7 @@ var flashes: Dictionary = {}
 var sparks: Array = []
 var slash_nodes: Array = []
 var punches: Dictionary = {}
+var lunges: Dictionary = {}
 var fades: Dictionary = {}
 var full_effects: bool = true
 
@@ -28,6 +29,9 @@ func configure(target: Control, data: Dictionary) -> void:
 		var label: Label = Label.new()
 		label.visible = false
 		label.add_theme_font_size_override("font_size", default_font_size)
+		# Тёмная обводка: числа читаются и поверх тёмной мантии босса, и поверх портала.
+		label.add_theme_color_override("font_outline_color", Color(0.04, 0.03, 0.06, 0.92))
+		label.add_theme_constant_override("outline_size", 5)
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		label.z_index = 10
 		canvas.add_child(label)
@@ -82,18 +86,61 @@ func spawn_text(text: String, near: Control, color: Color, font_size: int) -> vo
 	label.add_theme_font_size_override("font_size", font_size)
 	label.modulate = Color(color.r, color.g, color.b, 1.0)
 	var area: Rect2 = near.get_global_rect()
-	var width: float = label.get_combined_minimum_size().x
-	# Число всплывает над верхней частью фигуры, чтобы не спорить со следом оружия.
-	label.position = Vector2(area.get_center().x - width * 0.5, area.position.y + area.size.y * 0.26)
+	var span: Vector2 = label.get_combined_minimum_size()
+	var width: float = maxf(span.x, 12.0)
+	var line_height: float = maxf(span.y, float(font_size) * 1.2) + float(config.get("label_lane_gap", 4.0))
+	# У невысоких блоков (карточка врага, шкала героя) подпись встаёт над блоком,
+	# чтобы не закрывать имя и полосу здоровья; у большой арены — внутри верхней части.
+	var inside_height: float = float(config.get("label_inside_anchor_height", 220.0))
+	# Арена и высокие карточки: число всплывает у корпуса фигуры, ниже строки с именем.
+	# Невысокие блоки (шкала героя): подпись встаёт над блоком, не закрывая цифры здоровья.
+	var base_y: float = area.position.y + area.size.y * 0.62
+	if area.size.y < inside_height:
+		base_y = area.position.y - line_height * 0.6
+	var center_x: float = area.get_center().x
+	var placement: Vector2 = _free_spot(center_x, base_y, width, line_height, index)
+	label.position = placement
 	label.visible = true
 	var slot: Dictionary = {
 		"active": true,
 		"elapsed": 0.0,
 		"start_y": label.position.y,
+		"start_x": label.position.x,
 		"color": Color(color.r, color.g, color.b, 1.0),
 	}
 	slots[index] = slot
 	set_process(true)
+
+
+func _free_spot(center_x: float, base_y: float, width: float, height: float, skip: int) -> Vector2:
+	# Свободное место под подпись: если точка занята другой живой подписью,
+	# строка поднимается выше. Так одновременные числа урона, навык и щит
+	# видны по отдельности, а не наезжают друг на друга.
+	var step: float = height + 2.0
+	var best: Vector2 = Vector2(center_x - width * 0.5, base_y)
+	var best_overlap: float = 1e12
+	for row in range(6):
+		var candidate: Vector2 = Vector2(center_x - width * 0.5, base_y - step * row)
+		var rect: Rect2 = Rect2(candidate, Vector2(width, height))
+		var overlap: float = 0.0
+		for index in range(labels.size()):
+			if index == skip:
+				continue
+			var slot: Dictionary = slots[index] as Dictionary
+			if not bool(slot.get("active", false)):
+				continue
+			var other: Label = labels[index] as Label
+			var other_span: Vector2 = other.get_combined_minimum_size()
+			var other_rect: Rect2 = Rect2(other.position, Vector2(
+				maxf(other.size.x, other_span.x), maxf(other.size.y, other_span.y)))
+			if rect.intersects(other_rect.grow(2.0)):
+				overlap += rect.intersection(other_rect).get_area()
+		if overlap <= 0.0:
+			return candidate
+		if overlap < best_overlap:
+			best_overlap = overlap
+			best = candidate
+	return best
 
 
 func flash(control: Control, color: Color) -> void:
@@ -176,6 +223,40 @@ func punch(control: Control, amount: float = 0.0) -> void:
 	punches[key] = state
 	control.scale = Vector2(1.0 + strength, 1.0 - strength * 0.5)
 	set_process(true)
+
+
+func lunge(control: Control, offset: Vector2, lean: float = 0.0, duration: float = 0.0) -> void:
+	# Шаг атакующего: фигура подаётся вперёд и возвращается на место.
+	# Движение плавное (синус), длительность и амплитуда берутся из balance.json.
+	if not full_effects or control == null:
+		return
+	var life: float = duration if duration > 0.0 else float(config.get("lunge_seconds", 0.24))
+	var key: int = control.get_instance_id()
+	var state: Dictionary = lunges.get(key, {})
+	if state.is_empty():
+		state = {"control": control, "base": control.position}
+	state["offset"] = offset
+	state["lean"] = lean
+	state["life"] = maxf(0.05, life)
+	state["elapsed"] = 0.0
+	lunges[key] = state
+	# Опора под ногами фигуры: наклон читается как замах, а не как падение.
+	control.pivot_offset = Vector2(control.size.x * 0.5, control.size.y)
+	set_process(true)
+
+
+func cancel_lunges() -> void:
+	for key in lunges.keys():
+		var state: Dictionary = lunges[key] as Dictionary
+		var control: Control = state.get("control") as Control
+		if is_instance_valid(control):
+			control.position = state.get("base", control.position) as Vector2
+			control.rotation = 0.0
+	lunges.clear()
+
+
+func lunge_count() -> int:
+	return lunges.size()
 
 
 func fade_to(control: Control, tint: Color) -> void:
@@ -273,6 +354,7 @@ func _process(delta: float) -> void:
 	active = _tick_sparks(delta) or active
 	active = _tick_slashes(delta) or active
 	active = _tick_punches(delta) or active
+	active = _tick_lunges(delta) or active
 	active = _tick_fades(delta) or active
 	if not active:
 		set_process(false)
@@ -348,6 +430,39 @@ func _tick_punches(delta: float) -> bool:
 		else:
 			state["elapsed"] = elapsed
 			punches[key] = state
+			active = true
+	return active
+
+
+func _tick_lunges(delta: float) -> bool:
+	var active: bool = false
+	for key in lunges.keys():
+		var state: Dictionary = lunges[key] as Dictionary
+		var control: Control = state.get("control") as Control
+		if not is_instance_valid(control):
+			lunges.erase(key)
+			continue
+		var elapsed: float = float(state.get("elapsed", 0.0)) + delta
+		var life: float = maxf(0.05, float(state.get("life", 0.24)))
+		var progress: float = clampf(elapsed / life, 0.0, 1.0)
+		var base: Vector2 = state.get("base", Vector2.ZERO) as Vector2
+		var offset: Vector2 = state.get("offset", Vector2.ZERO) as Vector2
+		var lean: float = float(state.get("lean", 0.0))
+		var step: float = sin(progress * PI)
+		control.position = base + offset * step
+		control.rotation = lean * step
+		if progress >= 1.0:
+			control.position = base
+			control.rotation = 0.0
+			lunges.erase(key)
+			# Карточки врагов стоят в контейнере: просим его пересобрать ряды,
+			# чтобы после шага не осталось ручного смещения.
+			var parent: Node = control.get_parent()
+			if parent is Container:
+				(parent as Container).queue_sort()
+		else:
+			state["elapsed"] = elapsed
+			lunges[key] = state
 			active = true
 	return active
 
@@ -444,6 +559,7 @@ func reset() -> void:
 		if is_instance_valid(control):
 			control.modulate = state.get("base", Color.WHITE) as Color
 	fades.clear()
+	cancel_lunges()
 	set_process(false)
 
 

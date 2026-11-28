@@ -816,6 +816,8 @@ func _configure_particles() -> void:
 func _on_viewport_resized() -> void:
 	if particles_effect != null:
 		particles_effect.position = size * 0.5
+	if effect_pool != null:
+		effect_pool.cancel_lunges()
 	_apply_responsive_layout()
 
 
@@ -1939,6 +1941,14 @@ func _on_stage_finished() -> void:
 
 
 func _enemy_anchor() -> Control:
+	var card: Control = _enemy_unit()
+	if card != null:
+		return card
+	return arena_enemies
+
+
+func _enemy_unit() -> Control:
+	# Карточка текущего противника: двигается целиком, вместе с именем и шкалой.
 	var index: int = 0
 	if campaign != null and campaign.system != null:
 		index = clampi(int(campaign.system.enemy_index), 0, maxi(0, enemy_cards.size() - 1))
@@ -1946,7 +1956,7 @@ func _enemy_anchor() -> Control:
 		var card: Control = enemy_cards[index] as Control
 		if card != null and card.visible:
 			return card
-	return arena_enemies
+	return null
 
 
 func _on_damage_dealt(target_name: String, amount: float, is_critical: bool) -> void:
@@ -1961,6 +1971,13 @@ func _on_damage_dealt(target_name: String, amount: float, is_critical: bool) -> 
 	_flash(side, color)
 	_spawn_floating_number(damage_text, side, color)
 	_hit_feedback(arena_hero if hit_hero else _enemy_figure(), color, is_critical)
+	if hit_hero:
+		# Бил враг: он подаётся к герою, а герой отшатывается.
+		_attack_lunge(_enemy_unit(), -1.0)
+		_recoil_lunge(arena_hero, -1.0)
+	else:
+		_attack_lunge(arena_hero, 1.0)
+		_recoil_lunge(_enemy_unit(), 1.0)
 	if audio_player != null:
 		audio_player.play("critical" if is_critical else "attack")
 
@@ -1979,7 +1996,8 @@ func _on_hero_defeated() -> void:
 
 func _on_skill_used(skill_name: String) -> void:
 	_add_log("Навык: %s" % skill_name)
-	_spawn_floating_number(str(skill_name).to_upper(), _arena_anchor(), AshenStyle.RUNE, int(effect_config.get("skill_font_size", 15)))
+	_attack_lunge(arena_hero, 1.0)
+	_spawn_floating_number(str(skill_name).to_upper(), _arena_anchor(), _skill_text_color(), int(effect_config.get("skill_font_size", 15)))
 	if audio_player != null:
 		audio_player.play("skill")
 
@@ -1994,7 +2012,7 @@ func _on_shield_changed(amount: float) -> void:
 func _on_boss_phase_started(enemy_name: String, phase_name: String) -> void:
 	_add_log("%s: %s" % [enemy_name, phase_name])
 	_push_notice("%s: %s" % [enemy_name, phase_name], AshenStyle.EMBER)
-	_spawn_floating_number(str(phase_name).to_upper(), _arena_anchor(), AshenStyle.EMBER, int(effect_config.get("skill_font_size", 15)))
+	_spawn_floating_number(str(phase_name).to_upper(), _arena_anchor(), AshenStyle.EMBER.lightened(0.12), int(effect_config.get("skill_font_size", 15)))
 	if audio_player != null:
 		audio_player.play("boss")
 
@@ -2485,6 +2503,31 @@ func _death_feedback(target: Control) -> void:
 	effect_pool.spawn_slash(center, AshenStyle.EMBER, 0.9)
 	effect_pool.flash(target, AshenStyle.EMBER)
 	effect_pool.fade_to(target, _death_tint())
+
+
+func _lunge_degrees() -> float:
+	return deg_to_rad(maxf(0.0, float(effect_config.get("lunge_lean_degrees", 4.0))))
+
+
+func _attack_lunge(attacker: Control, toward: float) -> void:
+	# Атакующий делает шаг к противнику: чуть вперёд и вверх, с наклоном корпуса.
+	if effect_pool == null or attacker == null:
+		return
+	var distance: float = maxf(4.0, float(effect_config.get("lunge_pixels", 26.0)))
+	effect_pool.lunge(attacker, Vector2(distance * toward, -distance * 0.16), _lunge_degrees() * toward)
+
+
+func _recoil_lunge(defender: Control, toward: float) -> void:
+	# Защитник отшатывается назад: короткое смещение без наклона.
+	if effect_pool == null or defender == null:
+		return
+	var distance: float = maxf(2.0, float(effect_config.get("recoil_pixels", 12.0)))
+	effect_pool.lunge(defender, Vector2(distance * toward, 0.0), 0.0)
+
+
+func _skill_text_color() -> Color:
+	# Руна на тёмной фигуре читается плохо: для подписи навыка берём её светлый тон.
+	return AshenStyle.RUNE.lightened(0.32)
 
 
 func _spawn_floating_number(text: String, near: Control, color: Color, font_size: int = 0) -> void:

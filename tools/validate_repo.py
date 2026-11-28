@@ -650,6 +650,14 @@ if float(effect_pool.get("death_fade_seconds", 0)) <= 0.0:
     err("data/balance.json: затухание поверженного врага должно занимать время")
 if int(effect_pool.get("skill_font_size", 0)) < 18:
     err("data/balance.json: всплывающие названия навыков должны быть не меньше 18")
+if not 0.08 <= float(effect_pool.get("lunge_seconds", 0)) <= 1.0:
+    err("data/balance.json: шаг атакующего должен занимать от 0.08 до 1 секунды")
+if float(effect_pool.get("lunge_pixels", 0)) < 8.0 or float(effect_pool.get("recoil_pixels", 0)) <= 0.0:
+    err("data/balance.json: шаг атакующего и отдача защитника должны быть заметными")
+if not 0.0 < float(effect_pool.get("lunge_lean_degrees", 0)) <= 20.0:
+    err("data/balance.json: наклон корпуса при ударе должен быть в разумных пределах")
+if float(effect_pool.get("label_lane_gap", -1)) < 0.0:
+    err("data/balance.json: зазор между строками подписей не может быть отрицательным")
 minimum_sizes = interface.get("minimum_sizes", {})
 if not isinstance(minimum_sizes, dict) or len(minimum_sizes) < 90:
     err("data/balance.json: размеры панелей и кнопок должны быть централизованы")

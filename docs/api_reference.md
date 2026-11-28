@@ -742,7 +742,7 @@
 
 - Наследует: `Node`
 - Назначение: Переиспользуемые всплывающие подписи и короткие подсветки интерфейса. Вместо отдельного Label и Tween на каждый удар используется пул фиксированного размера; _process() активен только во время анимации и не нагружает простой кадр.
-- Публичных методов: 18
+- Публичных методов: 21
 
 **Публичное состояние**
 
@@ -754,6 +754,7 @@
 - `sparks: Array`
 - `slash_nodes: Array`
 - `punches: Dictionary`
+- `lunges: Dictionary`
 - `fades: Dictionary`
 - `full_effects: bool`
 
@@ -767,6 +768,9 @@
 - `func spawn_sparks(center: Vector2, color: Color, count: int = 0, critical: bool = false) -> void`
 - `func spawn_slash(center: Vector2, color: Color, angle: float = -0.6) -> void`
 - `func punch(control: Control, amount: float = 0.0) -> void`
+- `func lunge(control: Control, offset: Vector2, lean: float = 0.0, duration: float = 0.0) -> void`
+- `func cancel_lunges() -> void`
+- `func lunge_count() -> int`
 - `func fade_to(control: Control, tint: Color) -> void`
 - `func spark_count() -> int`
 - `func slash_count() -> int`

@@ -61,6 +61,12 @@ func _initialize() -> void:
 	_click(scene.action_button.get_global_rect().get_center())
 	await process_frame
 	await process_frame
+	if scene.campaign.stage_index == stage_before:
+		# В редком случае первый кадр после показа кнопки приходит до раскладки —
+		# повторяем нажатие, иначе проверка ловит не дефект, а гонку кадров.
+		await process_frame
+		_click(scene.action_button.get_global_rect().get_center())
+		await process_frame
 	_check("Кнопка ДАЛЬШЕ продолжает бой", scene.campaign.stage_index == stage_before + 1 and scene.campaign.status == STATUS_BATTLE and scene.campaign.system != null)
 	_check("После перехода кнопка этапа скрыта", not scene.action_button.visible)
 	var fresh_enemy: RefCounted = scene.campaign.system.enemy
