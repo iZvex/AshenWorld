@@ -133,6 +133,36 @@ static func ring_texture(diameter: int, thickness: float, color: Color) -> Image
 	return ImageTexture.create_from_image(image)
 
 
+static func slash_texture(width: int, height: int, color: Color) -> ImageTexture:
+	# Дуга следа оружия: тонкий серп с яркой серединой и мягкими краями.
+	# Рисуется в памяти, внешних картинок и шейдеров не требуется.
+	var w: int = clampi(width, 8, 256)
+	var h: int = clampi(height, 8, 128)
+	var image: Image = Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var center_y: float = float(h) / 2.0
+	for x in range(w):
+		var t: float = float(x) / float(maxi(1, w - 1))
+		var bend: float = sin(PI * (t - 0.5))
+		var curve_y: float = center_y + bend * float(h) * 0.22
+		var taper: float = pow(sin(PI * t), 0.7)
+		var half: float = maxf(0.5, taper * float(h) * 0.085)
+		var glow: float = maxf(0.5, taper * float(h) * 0.2)
+		var start_y: int = clampi(int(round(curve_y - glow)), 0, h - 1)
+		var end_y: int = clampi(int(round(curve_y + glow)), 0, h - 1)
+		for y in range(start_y, end_y + 1):
+			var distance: float = absf(float(y) - curve_y)
+			var alpha: float = 1.0
+			if distance > half:
+				alpha = clampf(1.0 - (distance - half) / maxf(0.6, glow - half), 0.0, 1.0) * 0.3
+			else:
+				alpha = clampf((half - distance) / 0.9, 0.0, 1.0)
+			if alpha <= 0.01:
+				continue
+			image.set_pixel(x, y, Color(color.r, color.g, color.b, color.a * alpha))
+	return ImageTexture.create_from_image(image)
+
+
 static func slot_placeholder_style() -> StyleBoxFlat:
 	var box: StyleBoxFlat = StyleBoxFlat.new()
 	box.bg_color = Color(0.07, 0.05, 0.1, 0.72)

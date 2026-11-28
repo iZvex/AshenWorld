@@ -154,6 +154,7 @@ func _initialize() -> void:
 	_test_skill_cluster(scene)
 	_test_stage_transition(scene)
 	_test_auto_advance(scene, data)
+	_test_hit_effects(scene)
 	_test_equipment_ui(scene, data)
 	_test_progression_ui(scene, data)
 	_test_modes_ui(scene, data)
@@ -352,6 +353,41 @@ func _font_size(control: Control) -> int:
 	if control == null:
 		return 0
 	return control.get_theme_font_size("font_size")
+
+
+func _test_hit_effects(scene) -> void:
+	var pool = scene.effect_pool
+	_check("Пул эффектов готов к искрам и следам", pool.spark_pool_size() >= 16 and pool.slash_pool_size() >= 2)
+	pool.reset()
+	var enemy_name: String = str(scene.campaign.current_stage().get("name", ""))
+	var enemy_figure: Control = scene._enemy_figure()
+	scene._on_damage_dealt(enemy_name, 42.0, false)
+	_check("Попадание рисует след оружия", pool.slash_count() >= 1)
+	_check("Попадание рассыпает искры", pool.spark_count() >= 3)
+	_check("Фигура вздрагивает от попадания", enemy_figure != null and enemy_figure.scale != Vector2.ONE)
+	_check("Фигура подсвечивается при попадании", enemy_figure != null and enemy_figure.modulate != Color.WHITE)
+	scene._process(0.4)
+	pool._process(0.4)
+	_check("Искры гаснут сами", pool.spark_count() == 0 and pool.slash_count() == 0)
+	_check("Фигура возвращается в масштаб", enemy_figure != null and enemy_figure.scale.is_equal_approx(Vector2.ONE))
+	scene._on_damage_dealt(str(scene.campaign.system.hero.display_name), 12.0, false)
+	_check("Удар по герою тоже даёт искры", pool.spark_count() >= 3)
+	scene._process(0.5)
+	pool._process(0.5)
+	var dying: Control = scene._enemy_figure()
+	scene._on_enemy_defeated(enemy_name)
+	_check("Смерть врага запускает затухание", pool.fade_count() >= 1)
+	_check("Смерть врага даёт больше искр", pool.spark_count() >= 6)
+	pool._process(0.9)
+	_check("Поверженный враг остаётся серым силуэтом", dying != null and dying.modulate.a < 1.0 and pool.fade_count() == 0)
+	_check("Затухание оставляет фигуру на месте", dying != null and dying.visible)
+	pool.reset()
+	pool.set_full_effects(false)
+	scene._on_damage_dealt(enemy_name, 10.0, true)
+	_check("Режим минимальных эффектов выключает искры", pool.spark_count() == 0 and pool.slash_count() == 0)
+	pool.set_full_effects(true)
+	_check("Подписи уклонения и щита остаются читаемыми", scene.effect_pool.pool_size() == 8)
+	scene._update_view()
 
 
 func _test_quiet_hud(scene) -> void:

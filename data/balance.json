@@ -2662,7 +2662,22 @@
       "label_rise_pixels": 52.0,
       "label_font_size": 24,
       "skill_font_size": 20,
-      "flash_duration_seconds": 0.28
+      "flash_duration_seconds": 0.28,
+      "spark_capacity": 26,
+      "spark_count_per_hit": 6,
+      "spark_life_seconds": 0.38,
+      "spark_speed": 210.0,
+      "spark_gravity": 360.0,
+      "spark_size": 6,
+      "slash_capacity": 3,
+      "slash_life_seconds": 0.18,
+      "slash_length": 132.0,
+      "slash_height": 56.0,
+      "punch_amount": 0.055,
+      "punch_life_seconds": 0.18,
+      "death_fade_seconds": 0.5,
+      "death_tint_rgba": [0.4, 0.33, 0.42, 0.45],
+      "hit_flash_rgba": [1.0, 0.9, 0.82, 1.0]
     },
     "audio": {
       "mix_rate_hz": 22050,

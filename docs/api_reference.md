@@ -682,7 +682,7 @@
 
 - Наследует: `RefCounted`
 - Назначение: Единая палитра и игровые стили тёмного фэнтези. Крупные карточки и высокие полосы заменены одной строкой здоровья; нижняя навигация, рамки и активные вкладки выделены так, чтобы структура экрана читалась с первого взгляда.
-- Публичных методов: 32
+- Публичных методов: 33
 
 **Публичные константы**
 
@@ -713,6 +713,7 @@
 - `static func circle_button_style(background: Color = Color("#1B1020"), border: Color = GOLD) -> StyleBoxFlat`
 - `static func portrait_frame_style() -> StyleBoxFlat`
 - `static func ring_texture(diameter: int, thickness: float, color: Color) -> ImageTexture`
+- `static func slash_texture(width: int, height: int, color: Color) -> ImageTexture`
 - `static func slot_placeholder_style() -> StyleBoxFlat`
 - `static func auto_button_style(active: bool) -> StyleBoxFlat`
 - `static func ground_shadow_style() -> StyleBoxFlat`
@@ -739,7 +740,7 @@
 
 - Наследует: `Node`
 - Назначение: Переиспользуемые всплывающие подписи и короткие подсветки интерфейса. Вместо отдельного Label и Tween на каждый удар используется пул фиксированного размера; _process() активен только во время анимации и не нагружает простой кадр.
-- Публичных методов: 9
+- Публичных методов: 18
 
 **Публичное состояние**
 
@@ -748,6 +749,10 @@
 - `labels: Array`
 - `slots: Array`
 - `flashes: Dictionary`
+- `sparks: Array`
+- `slash_nodes: Array`
+- `punches: Dictionary`
+- `fades: Dictionary`
 - `full_effects: bool`
 
 **Методы**
@@ -757,6 +762,15 @@
 - `func spawn_text(text: String, near: Control, color: Color, font_size: int) -> void`
 - `func flash(control: Control, color: Color) -> void`
 - `func pulse(control: Control, color: Color) -> void`
+- `func spawn_sparks(center: Vector2, color: Color, count: int = 0, critical: bool = false) -> void`
+- `func spawn_slash(center: Vector2, color: Color, angle: float = -0.6) -> void`
+- `func punch(control: Control, amount: float = 0.0) -> void`
+- `func fade_to(control: Control, tint: Color) -> void`
+- `func spark_count() -> int`
+- `func slash_count() -> int`
+- `func fade_count() -> int`
+- `func spark_pool_size() -> int`
+- `func slash_pool_size() -> int`
 - `func reset() -> void`
 - `func active_count() -> int`
 - `func active_flash_count() -> int`

@@ -634,6 +634,20 @@ if int(fonts.get("default", 0)) < 20:
     err("data/balance.json: базовый шрифт интерфейса должен быть не меньше 20")
 if any(int(value) < 18 for value in node_sizes.values()):
     err("data/balance.json: рабочие подписи интерфейса должны быть не меньше 18")
+if int(effect_pool.get("spark_capacity", 0)) < 16:
+    err("data/balance.json: пул искр попаданий должен вмещать не меньше 16 частиц")
+if int(effect_pool.get("slash_capacity", 0)) < 2:
+    err("data/balance.json: следов оружия должно быть не меньше двух")
+if float(effect_pool.get("spark_life_seconds", 0)) <= 0.0 or float(effect_pool.get("slash_life_seconds", 0)) <= 0.0:
+    err("data/balance.json: эффекты попаданий должны иметь конечное время жизни")
+death_tint = effect_pool.get("death_tint_rgba", [])
+if not isinstance(death_tint, list) or len(death_tint) < 4 or float(death_tint[3]) >= 1.0:
+    err("data/balance.json: поверженный враг должен уходить в приглушённый силуэт")
+hit_flash = effect_pool.get("hit_flash_rgba", [])
+if not isinstance(hit_flash, list) or len(hit_flash) < 4:
+    err("data/balance.json: у попадания должен быть цвет вспышки")
+if float(effect_pool.get("death_fade_seconds", 0)) <= 0.0:
+    err("data/balance.json: затухание поверженного врага должно занимать время")
 if int(effect_pool.get("skill_font_size", 0)) < 18:
     err("data/balance.json: всплывающие названия навыков должны быть не меньше 18")
 minimum_sizes = interface.get("minimum_sizes", {})

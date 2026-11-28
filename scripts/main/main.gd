@@ -1088,6 +1088,9 @@ func _refresh_arena_enemies() -> void:
 	if arena_enemies != null:
 		arena_enemies.columns = clampi(count, 1, 6)
 	var enemy_ids: Array = _arena_enemy_ids(stage)
+	var defeated_index: int = 0
+	if campaign.system != null:
+		defeated_index = int(campaign.system.enemy_index)
 	for index in range(enemy_cards.size()):
 		var card: Control = enemy_cards[index] as Control
 		if card != null:
@@ -1097,6 +1100,10 @@ func _refresh_arena_enemies() -> void:
 			var silhouette: TextureRect = find_child("EnemySilhouette%d" % (index + 1), true, false) as TextureRect
 			if silhouette != null and figure != "" and ResourceLoader.exists(figure):
 				silhouette.texture = load(figure)
+			if silhouette != null:
+				# Поверженный противник остаётся серым силуэтом до конца этапа.
+				silhouette.modulate = _death_tint() if index < defeated_index else Color.WHITE
+				silhouette.scale = Vector2.ONE
 
 
 func _arena_enemy_ids(stage: Dictionary) -> Array:
@@ -1928,16 +1935,19 @@ func _on_damage_dealt(target_name: String, amount: float, is_critical: bool) -> 
 	var damage_text: String = "КРИТ %.0f" % amount if is_critical else "%.0f" % amount
 	_flash(side, color)
 	_spawn_floating_number(damage_text, side, color)
+	_hit_feedback(arena_hero if hit_hero else _enemy_figure(), color, is_critical)
 	if audio_player != null:
 		audio_player.play("critical" if is_critical else "attack")
 
 
 func _on_enemy_defeated(enemy_name: String) -> void:
 	_add_log("%s повержен" % enemy_name)
+	_death_feedback(_enemy_figure())
 
 
 func _on_hero_defeated() -> void:
 	_add_log("Герой пал")
+	_death_feedback(arena_hero)
 	if audio_player != null:
 		audio_player.play("defeat")
 
@@ -1975,6 +1985,9 @@ func _on_hero_healed(amount: float) -> void:
 
 func _on_attack_dodged(target_name: String) -> void:
 	_add_log("Уклонение: %s" % target_name)
+	var dodged_hero: bool = campaign != null and campaign.system != null and target_name == campaign.system.hero.display_name
+	var anchor: Control = hero_side if dodged_hero else _enemy_anchor()
+	_spawn_floating_number("УКЛОНЕНИЕ", anchor, AshenStyle.RUNE, int(effect_config.get("skill_font_size", 18)))
 
 
 func _apply_settings() -> void:
@@ -2252,6 +2265,61 @@ func _arena_anchor() -> Control:
 func _flash(side: Control, color: Color) -> void:
 	if effect_pool != null:
 		effect_pool.flash(side, color)
+
+
+func _enemy_figure() -> Control:
+	# Фигура текущего противника: у каждой карточки своя силуэтная текстура.
+	var index: int = 0
+	if campaign != null and campaign.system != null:
+		index = clampi(int(campaign.system.enemy_index), 0, maxi(0, enemy_cards.size() - 1))
+	var figure: TextureRect = find_child("EnemySilhouette%d" % (index + 1), true, false) as TextureRect
+	if figure != null and figure.texture != null:
+		return figure
+	return null
+
+
+func _hit_feedback(target: Control, color: Color, is_critical: bool) -> void:
+	# Короткий эффект попадания: вспышка по фигуре, след оружия и горсть искр.
+	# Всё живёт в пуле фиксированного размера, поэтому кадр не проседает.
+	if effect_pool == null or target == null:
+		return
+	var center: Vector2 = target.get_global_rect().get_center()
+	var spark_color: Color = AshenStyle.GOLD
+	if is_critical:
+		spark_color = AshenStyle.EMBER
+	elif color == AshenStyle.CRIMSON:
+		spark_color = AshenStyle.CRIMSON
+	effect_pool.flash(target, _hit_flash_color())
+	effect_pool.punch(target)
+	effect_pool.spawn_slash(center, AshenStyle.PARCHMENT, -0.55 if target == arena_hero else 0.55)
+	effect_pool.spawn_sparks(center, spark_color, 0, is_critical)
+
+
+func _hit_flash_color() -> Color:
+	var value: Variant = effect_config.get("hit_flash_rgba", [])
+	if value is Array and (value as Array).size() >= 4:
+		var raw: Array = value as Array
+		return Color(float(raw[0]), float(raw[1]), float(raw[2]), float(raw[3]))
+	return AshenStyle.PARCHMENT
+
+
+func _death_tint() -> Color:
+	var value: Variant = effect_config.get("death_tint_rgba", [])
+	if value is Array and (value as Array).size() >= 4:
+		var raw: Array = value as Array
+		return Color(float(raw[0]), float(raw[1]), float(raw[2]), float(raw[3]))
+	return Color(0.42, 0.35, 0.44, 0.5)
+
+
+func _death_feedback(target: Control) -> void:
+	# Смерть: короткая яркая вспышка, облако искр и спокойное затухание в серый силуэт.
+	if effect_pool == null or target == null:
+		return
+	var center: Vector2 = target.get_global_rect().get_center()
+	effect_pool.spawn_sparks(center, AshenStyle.EMBER, int(effect_config.get("spark_count_per_hit", 5)) + 4, true)
+	effect_pool.spawn_slash(center, AshenStyle.EMBER, 0.9)
+	effect_pool.flash(target, AshenStyle.EMBER)
+	effect_pool.fade_to(target, _death_tint())
 
 
 func _spawn_floating_number(text: String, near: Control, color: Color, font_size: int = 0) -> void:

@@ -287,6 +287,11 @@ jobs:
               assert interface["minimum_sizes"]["HeroHealthBar"][1] >= 26
               assert interface["minimum_sizes"]["EnemyMiniBar1"] == [124, 10]
               assert interface["minimum_sizes"]["EnemyNameLabel1"] == [0, 46]
+              pool = balance["presentation"]["effect_pool"]
+              assert pool["spark_capacity"] >= 16 and pool["slash_capacity"] >= 2
+              assert pool["spark_life_seconds"] > 0 and pool["slash_life_seconds"] > 0
+              assert len(pool["death_tint_rgba"]) == 4 and pool["death_tint_rgba"][3] < 1.0
+              assert len(pool["hit_flash_rgba"]) == 4 and pool["death_fade_seconds"] > 0
               assert len(hud["nav_icons"]) == 6 and hud["nickname"].strip() != ""
               assert len(hud["stub_icons"]) >= 8
               assert len(hud["stub_labels"]) >= 4 and hud["stub_text"] == "СКОРО"
