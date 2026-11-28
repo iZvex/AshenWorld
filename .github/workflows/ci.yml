@@ -297,10 +297,15 @@ jobs:
               assert len(hud["stub_labels"]) >= 4 and hud["stub_text"] == "СКОРО"
               assert hud["portrait_texture"] == "res://assets/ui/hero_portrait.png"
               assert hud["enemy_texture"] == "res://assets/ui/icons/enemy_wraith.svg"
-              assert hud["hero_figure"].endswith("hero_battle.png")
+              assert hud["hero_figure"].endswith("hero_battle_body.png")
+            rig = interface["rig"]
+            assert set(rig["characters"]) >= {"hero", "bone_legionnaire"}
+            assert rig["swing_windup_seconds"] > 0 and rig["swing_strike_seconds"] > 0
+            assert rig["characters"]["hero"]["strike_degrees"] != rig["characters"]["hero"]["windup_degrees"]
               assert len(hud["enemy_figures"]["figures"]) >= 3
               assert len(hud["enemy_figures"]["by_id"]) >= 10
-              assert any("hero_battle" in name and name.endswith(".ctex") for name in names)
+              for piece in ("hero_battle_body", "hero_battle_blade", "bone_legionnaire_body", "bone_legionnaire_blade"):
+                assert any(piece in name and name.endswith(".ctex") for name in names), piece
               for figure in ["ash_wraith", "bone_legionnaire", "ash_hound"]:
                   assert any(figure in name and name.endswith(".ctex") for name in names), figure
               assert hud["battle_overlay"]["orb_radius"]["StrikeButton"] >= 56
