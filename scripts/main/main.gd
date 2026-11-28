@@ -1636,7 +1636,7 @@ func _on_hero_defeated() -> void:
 
 func _on_skill_used(skill_name: String) -> void:
 	_add_log("Навык: %s" % skill_name)
-	_spawn_floating_number(str(skill_name).to_upper(), stage_notice, AshenStyle.RUNE, int(effect_config.get("skill_font_size", 15)))
+	_spawn_floating_number(str(skill_name).to_upper(), _arena_anchor(), AshenStyle.RUNE, int(effect_config.get("skill_font_size", 15)))
 	if audio_player != null:
 		audio_player.play("skill")
 
@@ -1650,7 +1650,7 @@ func _on_shield_changed(amount: float) -> void:
 
 func _on_boss_phase_started(enemy_name: String, phase_name: String) -> void:
 	_add_log("%s: %s" % [enemy_name, phase_name])
-	_spawn_floating_number(str(phase_name).to_upper(), stage_notice, AshenStyle.EMBER, int(effect_config.get("skill_font_size", 15)))
+	_spawn_floating_number(str(phase_name).to_upper(), _arena_anchor(), AshenStyle.EMBER, int(effect_config.get("skill_font_size", 15)))
 	if audio_player != null:
 		audio_player.play("boss")
 
@@ -1774,6 +1774,12 @@ func _add_log(line: String) -> void:
 	if log_lines.size() > 5:
 		log_lines.resize(5)
 	battle_log.text = "\n".join(log_lines)
+
+
+func _arena_anchor() -> Control:
+	if arena_enemies != null and arena_enemies.visible:
+		return arena_enemies
+	return stage_notice
 
 
 func _flash(side: Control, color: Color) -> void:

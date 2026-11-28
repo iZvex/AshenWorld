@@ -564,6 +564,26 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 			visible_enemies += 1
 	_check("Силуэты врагов показаны на арене", scene.arena_enemies.columns == 3 and scene.enemy_cards.size() == 5 and visible_enemies > 0 and visible_enemies <= 5)
 	_check("Нижнее меню 3 × 2 сохранено", scene.bottom_tabs.columns == 3 and scene.tabs.size() == 6)
+	var currency_row: HBoxContainer = scene.currency_bar.get_node_or_null("CurrencyRow") as HBoxContainer
+	var order_ok: bool = false
+	if currency_row != null:
+		var names: Array = []
+		for child in currency_row.get_children():
+			names.append(str(child.name))
+		order_ok = names == ["CoinIcon", "GoldLabel", "AshIcon", "MaterialsLabel"]
+	_check("Валюта идёт парами иконка-значение", order_ok)
+	var rail_ok: bool = true
+	for label_name in ["EventsLabel", "QuestsLabel", "RatingLabel"]:
+		var rail_label: Label = scene.find_child(label_name, true, false) as Label
+		if rail_label == null or not rail_label.text.contains("\n") or "СКОРО" not in rail_label.text:
+			rail_ok = false
+			continue
+		var rail_font: Font = rail_label.get_theme_font("font")
+		var rail_size: int = rail_label.get_theme_font_size("font_size")
+		for line_text in rail_label.text.split("\n"):
+			if rail_font.get_string_size(line_text, HORIZONTAL_ALIGNMENT_LEFT, -1, rail_size).x > 96.0:
+				rail_ok = false
+	_check("Подписи правой колонки не обрезаются", rail_ok)
 
 
 func _has_button(node: Node) -> bool:

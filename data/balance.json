@@ -3834,9 +3834,9 @@
         },
         "stub_labels": {
           "QuestSoonLabel": "СКОРО",
-          "EventsLabel": "СОБЫТИЯ · СКОРО",
-          "QuestsLabel": "ЗАДАНИЯ · СКОРО",
-          "RatingLabel": "РЕЙТИНГ · СКОРО",
+          "EventsLabel": "СОБЫТИЯ\nСКОРО",
+          "QuestsLabel": "ЗАДАНИЯ\nСКОРО",
+          "RatingLabel": "РЕЙТИНГ\nСКОРО",
           "StubStripLabel": "ЛАВКА · ЗЕЛЬЯ · СКОРО"
         }
       }
