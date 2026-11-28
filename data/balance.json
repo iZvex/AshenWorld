@@ -2776,15 +2776,17 @@
         "hero": {
           "figure": "res://assets/ui/hero_battle.png",
           "body": "res://assets/ui/hero_battle_body.png",
+          "clean_body": "res://assets/ui/hero_battle_clean.png",
           "blade": "res://assets/ui/hero_battle_blade.png",
           "grip": [88, 193],
-          "segments": [{"points": [[112, 212], [262, 332]], "radius": 12}],
+          "segments": [{"points": [[100, 204], [236, 300]], "radius": 20}, {"points": [[222, 288], [268, 342]], "radius": 12}],
           "windup_degrees": -62,
           "strike_degrees": 30
         },
         "bone_legionnaire": {
           "figure": "res://assets/ui/enemies/bone_legionnaire.png",
           "body": "res://assets/ui/enemies/bone_legionnaire_body.png",
+          "clean_body": "res://assets/ui/enemies/bone_legionnaire_clean.png",
           "blade": "res://assets/ui/enemies/bone_legionnaire_blade.png",
           "grip": [70, 152],
           "segments": [

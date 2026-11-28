@@ -778,7 +778,7 @@ else:
         if not isinstance(entry, dict):
             err(f"data/balance.json: риг {character_id} должен быть объектом")
             continue
-        for key in ("body", "blade"):
+        for key in ("body", "blade", "clean_body"):
             rel = str(entry.get(key, "")).replace("res://", "")
             if not rel or not (ROOT / rel).is_file() or not (ROOT / (rel + ".import")).is_file():
                 err(f"data/balance.json: у рига {character_id} нет файла {key}")

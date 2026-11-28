@@ -57,8 +57,8 @@ def _warp(piece, xform, canvas_size):
     det = a * d - b_ * c_
     if abs(det) < 1e-6:
         return Image.new('RGBA', canvas_size, (0, 0, 0, 0))
-    ia, ib = d / det, -b_ / det
-    ic, id_ = -c_ / det, a / det
+    ia, ib = d / det, -c_ / det
+    ic, id_ = -b_ / det, a / det
     # PIL ждёт обратное отображение: output -> input.
     coeffs = (ia, ib, -(ia * tx + ib * ty),
               ic, id_, -(ic * tx + id_ * ty))

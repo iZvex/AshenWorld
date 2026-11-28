@@ -117,54 +117,236 @@ def dilate(mask: np.ndarray, steps: int) -> np.ndarray:
     return grown
 
 
+def _mirror_fill(rgb: np.ndarray, mask: np.ndarray,
+                 solid: np.ndarray) -> tuple:
+    """Заполняет прорезь отражением второй половины фигуры.
+
+    Возвращает картинку и карту уже заполненных пикселей: остальное добирает
+    восстановление по краям, чтобы не портить готовую фактуру.
+    """
+    rgb = rgb.copy()
+    height, width = mask.shape
+    done = np.zeros_like(mask)
+    rows, cols = np.nonzero(mask & solid)
+    if rows.size == 0:
+        return rgb, done
+    for offset in (0, 2, -2, 4, -4, 6, -6, 10, -10):
+        mirrored = np.clip(width - 1 - cols + offset, 0, width - 1)
+        usable = (solid[rows, mirrored] & (~mask[rows, mirrored])
+                  & (~done[rows, cols]))
+        if usable.any():
+            rgb[rows[usable], cols[usable]] = rgb[rows[usable], mirrored[usable]]
+            done[rows[usable], cols[usable]] = True
+    return rgb, done
+
+
+def _spread_fill(rgb: np.ndarray, mask: np.ndarray, solid: np.ndarray) -> np.ndarray:
+    """Распространяет цвет тела внутрь прорези от её краёв."""
+    rgb = rgb.copy()
+    target = mask & solid
+    done = np.zeros_like(mask)
+    for _step in range(96):
+        rest = target & (~done)
+        if not rest.any():
+            break
+        known = (solid & (~target)) | done
+        acc = np.zeros_like(rgb)
+        cnt = np.zeros(mask.shape, dtype=np.float64)
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)):
+            shifted_known = np.roll(np.roll(known, dy, axis=0), dx, axis=1)
+            shifted_rgb = np.roll(np.roll(rgb, dy, axis=0), dx, axis=1)
+            acc += shifted_rgb * shifted_known[:, :, None]
+            cnt += shifted_known.astype(np.float64)
+        grow = rest & (cnt > 0)
+        if not grow.any():
+            break
+        rgb[grow] = acc[grow] / cnt[grow, None]
+        done |= grow
+    return rgb
+
+
+def inpaint_hole(rgb: np.ndarray, mask: np.ndarray, solid: np.ndarray,
+                 config: dict) -> np.ndarray:
+    """Затягивает прорезь от оружия фактурой самой фигуры.
+
+    Складки ткани идут сверху вниз, поэтому прорезь проще всего продолжить
+    сдвинутой копией тела: берём пиксель ниже по вертикали и подставляем его
+    в дырку. Остальное (где сдвиг не достаёт) добирает гладкая заливка.
+    """
+    height, width = mask.shape
+    target = mask & solid
+    filled = rgb.copy()
+    done = np.zeros_like(mask)
+    step = int(config.get("shift_pixels", 46))
+    for offset in (step, -step, step * 2, -step * 2, int(step * 1.5), -int(step * 1.5)):
+        ys = np.clip(np.arange(height) + offset, 0, height - 1)
+        candidate = rgb[ys, :]
+        usable = target & (~done) & solid[ys, :] & (~mask[ys, :])
+        filled[usable] = candidate[usable]
+        done |= usable
+    rest = target & (~done)
+    if rest.any():
+        smooth = np.asarray(Image.fromarray(np.clip(filled, 0, 255).astype(np.uint8))
+                            .filter(ImageFilter.GaussianBlur(6.0))).astype(np.float32)
+        filled[rest] = smooth[rest]
+    # Мягкий шов и тень: прорезь читается как затенённое место под оружием.
+    layer = Image.fromarray(np.clip(filled, 0, 255).astype(np.uint8))
+    soft = np.asarray(layer.filter(ImageFilter.GaussianBlur(2.0))).astype(np.float32)
+    band = dilate(mask, 2) & solid
+    filled[band] = (filled[band] * 0.45 + soft[band] * 0.55) * 0.86
+    return filled
+
+
+def inside_body(solid: np.ndarray, cut: np.ndarray, config: dict) -> np.ndarray:
+    """Какие пиксели прорези лежат внутри фигуры, а какие торчали в воздух.
+
+    Считаем расстояние до ближайшего пикселя тела: узкая полоса под оружием
+    всегда рядом с тканью, а клинок, уходящий за силуэт, оказывается далеко.
+    """
+    from scipy.ndimage import distance_transform_edt
+
+    body = solid & (~cut)
+    if not body.any():
+        return np.zeros_like(cut)
+    distance = distance_transform_edt(~body)
+    radius = float((config.get("segments") or [{}])[0].get("radius", 12))
+    limit = float(config.get("inside_pixels", round(radius) + 10))
+    return cut & (distance <= limit)
+
+
+def clean_base(image: Image.Image, config: dict, weapon: np.ndarray) -> np.ndarray:
+    """Готовая фигура без оружия, выровненная по исходной картинке.
+
+    Художник рисует фигуру с оружием, поэтому прорезь нечем заполнить. Для
+    таких персонажей рядом лежит чистая основа (``clean_body``): та же фигура
+    без оружия. Здесь она матируется, масштабируется под исходник и
+    подставляется только в полосу оружия — вся остальная графика остаётся
+    исходной.
+    """
+    from scipy import ndimage
+
+    path = ROOT / str(config.get("clean_body", "")).replace("res://", "")
+    original = np.asarray(image).astype(np.float32)
+    if not path.is_file():
+        return original
+    clean = np.asarray(Image.open(path).convert("RGBA")).astype(np.float32)
+    alpha = clean[:, :, 3]
+    if alpha.min() > 250:
+        # Шахматный фон мог быть запечён в картинку: убираем светлые поля,
+        # связанные с краем кадра.
+        light = (clean[:, :, :3].min(axis=2) > 195) & (
+            clean[:, :, :3].max(axis=2) - clean[:, :, :3].min(axis=2) < 24)
+        labels, count = ndimage.label(light)
+        border = set(labels[0, :]) | set(labels[-1, :]) | set(labels[:, 0]) | set(labels[:, -1])
+        border.discard(0)
+        background = np.isin(labels, list(border)) if border else np.zeros_like(light)
+        alpha = np.where(background, 0.0, 255.0)
+    solid = alpha > 40
+    solid = ndimage.binary_fill_holes(solid)
+    labels, count = ndimage.label(solid)
+    if count:
+        sizes = ndimage.sum(solid, labels, range(1, count + 1))
+        keep = np.isin(labels, [index + 1 for index, size in enumerate(sizes) if size > 400])
+        solid = solid & keep
+    clean[:, :, 3] = np.where(solid, 255.0, 0.0)
+    # Светлые точки от шахматного фона внутри фигуры.
+    for _step in range(4):
+        light = solid & (clean[:, :, :3].min(axis=2) > 195) & (
+            clean[:, :, :3].max(axis=2) - clean[:, :, :3].min(axis=2) < 24)
+        if not light.any():
+            break
+        median = np.stack([ndimage.median_filter(clean[:, :, index], size=5) for index in range(3)], axis=2)
+        clean[:, :, :3] = np.where(light[:, :, None], median, clean[:, :, :3])
+    ready = Image.fromarray(np.clip(clean, 0, 255).astype(np.uint8), "RGBA")
+    return align_to_original(ready, image)
+
+
+def align_to_original(clean: Image.Image, original: Image.Image) -> np.ndarray:
+    """Подгоняет чистую фигуру под исходник: высота, ступни, центр корпуса."""
+    base = np.asarray(original).astype(np.float32)
+    cleaned = np.asarray(clean).astype(np.float32)
+    base_solid = base[:, :, 3] > 40
+    clean_solid = cleaned[:, :, 3] > 40
+    if not clean_solid.any():
+        return base
+    base_rows, base_cols = np.nonzero(base_solid)
+    clean_rows, clean_cols = np.nonzero(clean_solid)
+    base_height = base_rows.max() - base_rows.min() + 1
+    clean_height = clean_rows.max() - clean_rows.min() + 1
+    scale = base_height / max(1, clean_height)
+    size = (max(1, int(round(clean.width * scale))), max(1, int(round(clean.height * scale))))
+    resized = np.asarray(clean.resize(size, Image.LANCZOS)).astype(np.float32)
+    rows, cols = np.nonzero(resized[:, :, 3] > 40)
+    if rows.size == 0:
+        return base
+    torso = rows < rows.mean()
+    dx = int(round(base_cols[base_rows < base_rows.mean()].mean() - cols[torso].mean()))
+    dy = int(round(base_rows.max() - rows.max()))
+    canvas = np.zeros_like(base)
+    height, width = base.shape[:2]
+    ys = np.arange(resized.shape[0]) + dy
+    xs = np.arange(resized.shape[1]) + dx
+    valid_y = (ys >= 0) & (ys < height)
+    valid_x = (xs >= 0) & (xs < width)
+    canvas[np.ix_(ys[valid_y], xs[valid_x])] = resized[np.ix_(np.nonzero(valid_y)[0], np.nonzero(valid_x)[0])]
+    return canvas
+
+
 def build(image: Image.Image, config: dict) -> tuple:
-    # Захватываем и свечение вокруг клинка: иначе оно остаётся на теле
-    # и заливка прорези подкрашивает её в красный.
-    mask = dilate(weapon_mask(image, config), int(config.get("grow_pixels", 3)))
+    """Возвращает тело, слой оружия и маску оружия."""
+    from scipy import ndimage
+
+    core = dilate(weapon_mask(image, config), int(config.get("grow_pixels", 3)))
     # Оружие: мягкая кромка, чтобы поворот не давал рваных краёв.
-    soft = Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8))
-    blade = np.asarray(image).astype(np.float32)
+    soft = Image.fromarray((core * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8))
+    source = np.asarray(image).astype(np.float32)
+    blade = source.copy()
     blade[:, :, 3] = blade[:, :, 3] * (np.asarray(soft).astype(np.float32) / 255.0)
     blade_image = Image.fromarray(np.clip(blade, 0, 255).astype(np.uint8))
 
-    # Тело: вырезаем оружие и заливаем прорезь цветом самой фигуры.
-    body = np.asarray(image).astype(np.float32)
-    body[mask, 3] = 0.0
-    # Сначала затягиваем цвета фигуры в прозрачные пиксели, иначе размытие
-    # подмешивает белый фон PNG и прорезь светится светлой полосой.
-    for _step in range(14):
-        known = body[:, :, 3] > 24
-        total = np.zeros_like(body[:, :, :3])
-        weight = np.zeros_like(body[:, :, :1])
-        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)):
-            shifted_known = np.roll(np.roll(known, dy, axis=0), dx, axis=1)
-            shifted_rgb = np.roll(np.roll(body[:, :, :3], dy, axis=0), dx, axis=1)
-            total += shifted_rgb * shifted_known[:, :, None]
-            weight += shifted_known[:, :, None]
-        fillable = (~known) & (weight[:, :, 0] > 0)
-        body[:, :, :3] = np.where(fillable[:, :, None], total / np.maximum(weight, 1.0), body[:, :, :3])
-        body[:, :, 3] = np.where(fillable, 255.0, body[:, :, 3])
+    body = source.copy()
+    if config.get("clean_body"):
+        # Полоса оружия берётся из заранее нарисованной чистой фигуры.
+        clean = clean_base(image, config, core)
+        band = ndimage.binary_dilation(core, iterations=int(config.get("patch_pixels", 9)))
+        # В полосе оружия берём чистую основу целиком, включая прозрачность:
+        # иначе остаются красная нить свечения и чёрные пятна.
+        body[:, :, 3] = np.where(band, clean[:, :, 3], source[:, :, 3])
+        substituted = band[:, :, None] & (clean[:, :, 3:] > 0)
+        body[:, :, :3] = np.where(substituted, clean[:, :, :3], source[:, :, :3])
+        body[:, :, 3] = ndimage.gaussian_filter(body[:, :, 3], 0.9)
+    else:
+        # Запасной путь: затягиваем прорезь соседними пикселями.
+        solid = source[:, :, 3] > 24
+        body[:, :, :3] = inpaint_hole(body[:, :, :3], core, solid, config)
+    body[:, :, :3] = _fix_alpha_border(body[:, :, :3], body[:, :, 3])
     body_image = Image.fromarray(np.clip(body, 0, 255).astype(np.uint8))
-    for _step in range(8):
-        blurred = np.asarray(body_image.filter(ImageFilter.GaussianBlur(2.0))).astype(np.float32)
-        current = np.asarray(body_image).astype(np.float32)
-        hole = mask & (current[:, :, 3] < 40)
-        current[hole] = blurred[hole]
-        body_image = Image.fromarray(np.clip(current, 0, 255).astype(np.uint8))
-    # Возвращаем прозрачность за пределами фигуры: заливка не должна рисовать фон.
-    restored = np.asarray(body_image).astype(np.float32)
-    outside = np.asarray(image).astype(np.float32)[:, :, 3] <= 24
-    restored[outside, 3] = 0.0
-    body_image = Image.fromarray(np.clip(restored, 0, 255).astype(np.uint8))
-    # Прорезь должна читаться как тень от оружия: гасим цвет до серого и темним,
-    # иначе на теле остаётся «призрак» клинка.
-    filled = np.asarray(body_image).astype(np.float32)
-    luminance = (filled[mask, 0] * 0.3 + filled[mask, 1] * 0.59 + filled[mask, 2] * 0.11) * 0.72
-    filled[mask, 0] = luminance
-    filled[mask, 1] = luminance * 0.94
-    filled[mask, 2] = luminance * 1.02
-    body_image = Image.fromarray(np.clip(filled, 0, 255).astype(np.uint8))
-    return body_image, blade_image, mask
+    return body_image, blade_image, core
+
+
+def _fix_alpha_border(rgb: np.ndarray, alpha: np.ndarray) -> np.ndarray:
+    """Красит прозрачные пиксели цветом фигуры, как импорт Godot.
+
+    Иначе при масштабировании прозрачные пиксели с чужим цветом дают кайму.
+    """
+    rgb = rgb.copy()
+    known = alpha > 24
+    for _step in range(12):
+        if known.all():
+            break
+        acc = np.zeros_like(rgb)
+        cnt = np.zeros(alpha.shape, dtype=np.float64)
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            shifted_known = np.roll(np.roll(known, dy, axis=0), dx, axis=1)
+            shifted_rgb = np.roll(np.roll(rgb, dy, axis=0), dx, axis=1)
+            acc += shifted_rgb * shifted_known[:, :, None]
+            cnt += shifted_known.astype(np.float64)
+        grow = (~known) & (cnt > 0)
+        if not grow.any():
+            break
+        rgb[grow] = acc[grow] / cnt[grow, None]
+        known |= grow
+    return rgb
 
 
 def preview(name: str, image: Image.Image, body: Image.Image, blade: Image.Image,
