@@ -15,6 +15,7 @@ var sparks: Array = []
 var slash_nodes: Array = []
 var punches: Dictionary = {}
 var lunges: Dictionary = {}
+var swings: Dictionary = {}
 var fades: Dictionary = {}
 var full_effects: bool = true
 
@@ -245,6 +246,41 @@ func lunge(control: Control, offset: Vector2, lean: float = 0.0, duration: float
 	set_process(true)
 
 
+func swing(control: Control, pivot: Vector2, windup_degrees: float, strike_degrees: float,
+		windup: float = 0.0, strike: float = 0.0, recover: float = 0.0) -> void:
+	# Взмах оружия по готовой картинке: замах, удар и возврат.
+	# pivot — точка хвата в координатах узла (масштабируется под текущий размер).
+	if not full_effects or control == null:
+		return
+	var markup: float = windup if windup > 0.0 else float(config.get("swing_windup_seconds", 0.1))
+	var hit: float = strike if strike > 0.0 else float(config.get("swing_strike_seconds", 0.11))
+	var back: float = recover if recover > 0.0 else float(config.get("swing_recover_seconds", 0.16))
+	var key: int = control.get_instance_id()
+	swings[key] = {
+		"control": control,
+		"pivot": pivot,
+		"windup": deg_to_rad(windup_degrees),
+		"strike": deg_to_rad(strike_degrees),
+		"stages": [maxf(0.02, markup), maxf(0.02, hit), maxf(0.02, back)],
+		"elapsed": 0.0,
+	}
+	control.pivot_offset = pivot
+	set_process(true)
+
+
+func cancel_swings() -> void:
+	for key in swings.keys():
+		var state: Dictionary = swings[key] as Dictionary
+		var control: Control = state.get("control") as Control
+		if is_instance_valid(control):
+			control.rotation = 0.0
+	swings.clear()
+
+
+func swing_count() -> int:
+	return swings.size()
+
+
 func cancel_lunges() -> void:
 	for key in lunges.keys():
 		var state: Dictionary = lunges[key] as Dictionary
@@ -355,6 +391,7 @@ func _process(delta: float) -> void:
 	active = _tick_slashes(delta) or active
 	active = _tick_punches(delta) or active
 	active = _tick_lunges(delta) or active
+	active = _tick_swings(delta) or active
 	active = _tick_fades(delta) or active
 	if not active:
 		set_process(false)
@@ -467,6 +504,50 @@ func _tick_lunges(delta: float) -> bool:
 	return active
 
 
+func _tick_swings(delta: float) -> bool:
+	var active: bool = false
+	for key in swings.keys():
+		var state: Dictionary = swings[key] as Dictionary
+		var control: Control = state.get("control") as Control
+		if not is_instance_valid(control):
+			swings.erase(key)
+			continue
+		var stages: Array = state.get("stages", []) as Array
+		var elapsed: float = float(state.get("elapsed", 0.0)) + delta
+		var windup: float = rad_to_deg(float(state.get("windup", 0.0)))
+		var strike: float = rad_to_deg(float(state.get("strike", 0.0)))
+		var first: float = float(stages[0]) if stages.size() > 0 else 0.1
+		var second: float = float(stages[1]) if stages.size() > 1 else 0.1
+		var third: float = float(stages[2]) if stages.size() > 2 else 0.16
+		var angle: float = 0.0
+		if elapsed <= first:
+			# Замах: плавно отводим оружие назад.
+			var phase: float = elapsed / first
+			angle = lerpf(0.0, windup, ease_out(phase))
+		elif elapsed <= first + second:
+			# Удар: быстрое движение вперёд.
+			var phase: float = (elapsed - first) / second
+			angle = lerpf(windup, strike, ease_out(phase))
+		elif elapsed <= first + second + third:
+			# Возврат в стойку.
+			var phase: float = (elapsed - first - second) / third
+			angle = lerpf(strike, 0.0, phase * phase)
+		else:
+			control.rotation = 0.0
+			swings.erase(key)
+			continue
+		control.rotation = deg_to_rad(angle)
+		state["elapsed"] = elapsed
+		swings[key] = state
+		active = true
+	return active
+
+
+func ease_out(value: float) -> float:
+	var t: float = clampf(value, 0.0, 1.0)
+	return 1.0 - (1.0 - t) * (1.0 - t)
+
+
 func _tick_fades(delta: float) -> bool:
 	var active: bool = false
 	var life: float = maxf(0.05, float(config.get("death_fade_seconds", 0.5)))
@@ -560,6 +641,7 @@ func reset() -> void:
 			control.modulate = state.get("base", Color.WHITE) as Color
 	fades.clear()
 	cancel_lunges()
+	cancel_swings()
 	set_process(false)
 
 

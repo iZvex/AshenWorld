@@ -742,7 +742,7 @@
 
 - Наследует: `Node`
 - Назначение: Переиспользуемые всплывающие подписи и короткие подсветки интерфейса. Вместо отдельного Label и Tween на каждый удар используется пул фиксированного размера; _process() активен только во время анимации и не нагружает простой кадр.
-- Публичных методов: 21
+- Публичных методов: 25
 
 **Публичное состояние**
 
@@ -755,6 +755,7 @@
 - `slash_nodes: Array`
 - `punches: Dictionary`
 - `lunges: Dictionary`
+- `swings: Dictionary`
 - `fades: Dictionary`
 - `full_effects: bool`
 
@@ -769,9 +770,13 @@
 - `func spawn_slash(center: Vector2, color: Color, angle: float = -0.6) -> void`
 - `func punch(control: Control, amount: float = 0.0) -> void`
 - `func lunge(control: Control, offset: Vector2, lean: float = 0.0, duration: float = 0.0) -> void`
+- `func swing(control: Control, pivot: Vector2, windup_degrees: float, strike_degrees: float, windup: float = 0.0, strike: float = 0.0, recover: float = 0.0) -> void`
+- `func cancel_swings() -> void`
+- `func swing_count() -> int`
 - `func cancel_lunges() -> void`
 - `func lunge_count() -> int`
 - `func fade_to(control: Control, tint: Color) -> void`
+- `func ease_out(value: float) -> float`
 - `func spark_count() -> int`
 - `func slash_count() -> int`
 - `func fade_count() -> int`
@@ -950,6 +955,9 @@
 - `auto_button: Button`
 - `responsive_base: Dictionary`
 - `animation_config: Dictionary`
+- `rig_config: Dictionary`
+- `hero_blade: TextureRect`
+- `enemy_blades: Array`
 - `ui_animations: Array`
 - `auto_advance: bool`
 - `auto_advance_timer: float`

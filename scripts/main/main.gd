@@ -140,6 +140,9 @@ var auto_button: Button
 const DESIGN_SCREEN: Vector2 = Vector2(720.0, 1280.0)
 var responsive_base: Dictionary = {}
 var animation_config: Dictionary = {}
+var rig_config: Dictionary = {}
+var hero_blade: TextureRect
+var enemy_blades: Array = []
 var ui_animations: Array = []
 var auto_advance: bool = false
 var auto_advance_timer: float = 0.0
@@ -235,6 +238,8 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 	away_config = PresentationCatalog.away_config(balance)
 	var animations_value: Variant = interface_config.get("animations", {})
 	animation_config = animations_value as Dictionary if animations_value is Dictionary else {}
+	var rig_value: Variant = interface_config.get("rig", {})
+	rig_config = rig_value as Dictionary if rig_value is Dictionary else {}
 	notice_config = PresentationCatalog.notice_config(balance)
 	_bind_nodes()
 	theme = AshenStyle.build_theme(interface_config)
@@ -419,6 +424,7 @@ func _apply_hud_config() -> void:
 	var hero_figure_path: String = str(hud_config.get("hero_figure", ""))
 	if arena_hero != null and hero_figure_path != "" and ResourceLoader.exists(hero_figure_path):
 		arena_hero.texture = load(hero_figure_path)
+	_apply_rig_textures()
 	var figures_value: Variant = hud_config.get("enemy_figures", {})
 	if figures_value is Dictionary:
 		var figures: Dictionary = figures_value as Dictionary
@@ -514,6 +520,10 @@ func _bind_nodes() -> void:
 	quest_stub = _find("QuestStub") as PanelContainer
 	future_rail = _find("FutureRail") as VBoxContainer
 	arena_hero = _find("ArenaHero") as TextureRect
+	hero_blade = _find("HeroBlade") as TextureRect
+	enemy_blades.clear()
+	for index in range(1, 6):
+		enemy_blades.append(_find("EnemyBlade%d" % index) as TextureRect)
 	hero_ground = _find("HeroGround") as Panel
 	enemy_ground = _find("EnemyGround") as Panel
 	arena_enemies = _find("ArenaEnemies") as GridContainer
@@ -818,6 +828,7 @@ func _on_viewport_resized() -> void:
 		particles_effect.position = size * 0.5
 	if effect_pool != null:
 		effect_pool.cancel_lunges()
+		effect_pool.cancel_swings()
 	_apply_responsive_layout()
 
 
@@ -1119,6 +1130,142 @@ func _refresh_arena_enemies() -> void:
 				# Поверженный противник остаётся серым силуэтом до конца этапа.
 				silhouette.modulate = _death_tint() if index < defeated_index else Color.WHITE
 				silhouette.scale = Vector2.ONE
+			var enemy_id: String = ""
+			if index < enemy_ids.size():
+				enemy_id = str(enemy_ids[index])
+			_set_enemy_blade(index, enemy_id)
+
+
+func _rig_characters() -> Dictionary:
+	var value: Variant = rig_config.get("characters", {})
+	return value as Dictionary if value is Dictionary else {}
+
+
+func _rig_character_for_figure(figure_path: String) -> String:
+	# Риг привязан к файлу фигуры: разные противники могут делить одну картинку.
+	if figure_path == "":
+		return ""
+	var characters: Dictionary = _rig_characters()
+	for key in characters.keys():
+		var entry_value: Variant = characters[key]
+		if not (entry_value is Dictionary):
+			continue
+		var entry: Dictionary = entry_value as Dictionary
+		if figure_path in [str(entry.get("figure", "")), str(entry.get("body", ""))]:
+			return str(key)
+	return ""
+
+
+func _rig_character_for_enemy(enemy_id: String) -> String:
+	var figure: String = str(enemy_figure_by_id.get(enemy_id, ""))
+	if figure == "":
+		figure = enemy_figure_default
+	return _rig_character_for_figure(figure)
+
+
+func _rig_blade_texture(char_id: String) -> String:
+	var characters: Dictionary = _rig_characters()
+	var entry_value: Variant = characters.get(char_id, {})
+	if not (entry_value is Dictionary):
+		return ""
+	return str((entry_value as Dictionary).get("blade", ""))
+
+
+func _apply_rig_textures() -> void:
+	# Слой оружия лежит поверх тела с той же сеткой: картинки нарезаны
+	# с одинаковым размером, поэтому в стойке клинок стоит ровно на месте.
+	var blade_path: String = _rig_blade_texture("hero")
+	if hero_blade != null and blade_path != "" and ResourceLoader.exists(blade_path):
+		hero_blade.texture = load(blade_path)
+		hero_blade.visible = true
+
+
+func _set_enemy_blade(index: int, enemy_id: String) -> void:
+	if index < 0 or index >= enemy_blades.size():
+		return
+	var blade: TextureRect = enemy_blades[index] as TextureRect
+	if blade == null:
+		return
+	var blade_path: String = _rig_blade_texture(_rig_character_for_enemy(enemy_id))
+	if blade_path != "" and ResourceLoader.exists(blade_path):
+		blade.texture = load(blade_path)
+		blade.visible = true
+	else:
+		blade.texture = null
+		blade.visible = false
+
+
+func _swing_pivot(node: Control, char_id: String) -> Vector2:
+	# Точка хвата в координатах узла: доля от исходной картинки, умноженная на размер на экране.
+	var characters: Dictionary = _rig_characters()
+	var entry_value: Variant = characters.get(char_id, {})
+	if not (entry_value is Dictionary) or node == null:
+		return node.size * 0.5 if node != null else Vector2.ZERO
+	var entry: Dictionary = entry_value as Dictionary
+	var grip: Array = entry.get("grip", []) as Array
+	var source: Texture2D = null
+	if node is TextureRect:
+		source = (node as TextureRect).texture
+	if grip.size() < 2 or source == null or source.get_width() <= 0:
+		return Vector2(node.size.x * 0.5, node.size.y)
+	return Vector2(
+		float(grip[0]) / float(source.get_width()) * node.size.x,
+		float(grip[1]) / float(source.get_height()) * node.size.y
+	)
+
+
+func _swing_weapon(char_id: String, node: Control, fallback: Control) -> void:
+	# Взмах: у кого нарезано оружие — крутим клинок, у остальных качаем всю фигуру.
+	if effect_pool == null or node == null:
+		return
+	var characters: Dictionary = _rig_characters()
+	var entry_value: Variant = characters.get(char_id, {})
+	if entry_value is Dictionary and not (entry_value as Dictionary).is_empty():
+		var entry: Dictionary = entry_value as Dictionary
+		effect_pool.swing(
+			node,
+			_swing_pivot(node, char_id),
+			float(entry.get("windup_degrees", -55.0)),
+			float(entry.get("strike_degrees", 30.0))
+		)
+		return
+	if fallback == null:
+		return
+	effect_pool.swing(
+		fallback,
+		Vector2(fallback.size.x * 0.5, fallback.size.y),
+		float(rig_config.get("figure_windup_degrees", -8.0)),
+		float(rig_config.get("figure_strike_degrees", 6.0))
+	)
+
+
+func _hero_swing() -> void:
+	_swing_weapon("hero", hero_blade, arena_hero)
+
+
+func _enemy_swing() -> void:
+	var card: Control = _enemy_unit()
+	if card == null:
+		return
+	var index: int = 0
+	if campaign != null and campaign.system != null:
+		index = clampi(int(campaign.system.enemy_index), 0, maxi(0, enemy_blades.size() - 1))
+	var blade: TextureRect = null
+	if index < enemy_blades.size():
+		blade = enemy_blades[index] as TextureRect
+	var character_id: String = _rig_character_for_enemy(_current_enemy_character())
+	_swing_weapon(character_id, blade, card)
+
+
+func _current_enemy_character() -> String:
+	# Идентификатор противника нужен, чтобы выбрать слой оружия и углы взмаха.
+	if campaign == null or campaign.system == null:
+		return ""
+	var ids: Array = _arena_enemy_ids(campaign.current_stage())
+	var index: int = clampi(int(campaign.system.enemy_index), 0, maxi(0, ids.size() - 1))
+	if index < ids.size():
+		return str(ids[index])
+	return ""
 
 
 func _arena_enemy_ids(stage: Dictionary) -> Array:
@@ -1972,11 +2119,13 @@ func _on_damage_dealt(target_name: String, amount: float, is_critical: bool) -> 
 	_spawn_floating_number(damage_text, side, color)
 	_hit_feedback(arena_hero if hit_hero else _enemy_figure(), color, is_critical)
 	if hit_hero:
-		# Бил враг: он подаётся к герою, а герой отшатывается.
+		# Бил враг: он подаётся к герою и замахивается, а герой отшатывается.
 		_attack_lunge(_enemy_unit(), -1.0)
+		_enemy_swing()
 		_recoil_lunge(arena_hero, -1.0)
 	else:
 		_attack_lunge(arena_hero, 1.0)
+		_hero_swing()
 		_recoil_lunge(_enemy_unit(), 1.0)
 	if audio_player != null:
 		audio_player.play("critical" if is_critical else "attack")
@@ -1997,6 +2146,7 @@ func _on_hero_defeated() -> void:
 func _on_skill_used(skill_name: String) -> void:
 	_add_log("Навык: %s" % skill_name)
 	_attack_lunge(arena_hero, 1.0)
+	_hero_swing()
 	_spawn_floating_number(str(skill_name).to_upper(), _arena_anchor(), _skill_text_color(), int(effect_config.get("skill_font_size", 15)))
 	if audio_player != null:
 		audio_player.play("skill")

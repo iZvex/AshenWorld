@@ -36,6 +36,7 @@ static func interface_config(balance: Dictionary) -> Dictionary:
 		"navigation": _dict(data, "navigation"),
 		"hud": _dict(data, "hud"),
 		"animations": _dict(data, "animations"),
+		"rig": _dict(data, "rig"),
 	}
 
 

@@ -77,6 +77,17 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
+[node name="HeroBlade" type="TextureRect" parent="ArenaHero"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="EnemyGround" type="Panel" parent="."]
 layout_mode = 0
 offset_left = 262.0
@@ -138,6 +149,17 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
+[node name="EnemyBlade1" type="TextureRect" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1/EnemySilhouette1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="EnemyCard2" type="PanelContainer" parent="ArenaEnemies"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -174,6 +196,17 @@ show_percentage = false
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyBlade2" type="TextureRect" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2/EnemySilhouette2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
@@ -218,6 +251,17 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
+[node name="EnemyBlade3" type="TextureRect" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3/EnemySilhouette3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="EnemyCard4" type="PanelContainer" parent="ArenaEnemies"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -258,6 +302,17 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
+[node name="EnemyBlade4" type="TextureRect" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4/EnemySilhouette4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="EnemyCard5" type="PanelContainer" parent="ArenaEnemies"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -294,6 +349,17 @@ show_percentage = false
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyBlade5" type="TextureRect" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5/EnemySilhouette5"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
@@ -935,7 +1001,6 @@ offset_top = 1090.0
 offset_right = 704.0
 offset_bottom = 1134.0
 text = "АВТОБОЙ"
-
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1

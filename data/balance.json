@@ -2766,6 +2766,36 @@
     },
     "interface": {
 
+    "rig": {
+      "swing_windup_seconds": 0.1,
+      "swing_strike_seconds": 0.11,
+      "swing_recover_seconds": 0.16,
+      "figure_windup_degrees": -8,
+      "figure_strike_degrees": 6,
+      "characters": {
+        "hero": {
+          "figure": "res://assets/ui/hero_battle.png",
+          "body": "res://assets/ui/hero_battle_body.png",
+          "blade": "res://assets/ui/hero_battle_blade.png",
+          "grip": [88, 193],
+          "segments": [{"points": [[112, 212], [262, 332]], "radius": 12}],
+          "windup_degrees": -62,
+          "strike_degrees": 30
+        },
+        "bone_legionnaire": {
+          "figure": "res://assets/ui/enemies/bone_legionnaire.png",
+          "body": "res://assets/ui/enemies/bone_legionnaire_body.png",
+          "blade": "res://assets/ui/enemies/bone_legionnaire_blade.png",
+          "grip": [70, 152],
+          "segments": [
+            {"points": [[14, 198], [34, 180]], "radius": 17},
+            {"points": [[34, 180], [78, 146]], "radius": 10}
+          ],
+          "windup_degrees": -55,
+          "strike_degrees": 25
+        }
+      }
+    },
     "animations": {
       "section_fade_seconds": 0.18,
       "section_rise_pixels": 8.0,
@@ -3957,29 +3987,29 @@
           "slots": 2,
           "slot_tooltip": "СКОРО"
         },
-        "hero_figure": "res://assets/ui/hero_battle.png",
+        "hero_figure": "res://assets/ui/hero_battle_body.png",
         "hero_figure_height": 228,
         "enemy_figures": {
-          "default": "res://assets/ui/enemies/bone_legionnaire.png",
+          "default": "res://assets/ui/enemies/bone_legionnaire_body.png",
           "figures": [
             "res://assets/ui/enemies/ash_wraith.png",
-            "res://assets/ui/enemies/bone_legionnaire.png",
+            "res://assets/ui/enemies/bone_legionnaire_body.png",
             "res://assets/ui/enemies/ash_hound.png"
           ],
           "by_id": {
-            "ash_walker": "res://assets/ui/enemies/bone_legionnaire.png",
+            "ash_walker": "res://assets/ui/enemies/bone_legionnaire_body.png",
             "cinder_hound": "res://assets/ui/enemies/ash_hound.png",
             "ash_moth": "res://assets/ui/enemies/ash_wraith.png",
-            "soot_archer": "res://assets/ui/enemies/bone_legionnaire.png",
+            "soot_archer": "res://assets/ui/enemies/bone_legionnaire_body.png",
             "ember_wolf": "res://assets/ui/enemies/ash_hound.png",
             "spark_spider": "res://assets/ui/enemies/ash_hound.png",
-            "charred_berserker": "res://assets/ui/enemies/bone_legionnaire.png",
+            "charred_berserker": "res://assets/ui/enemies/bone_legionnaire_body.png",
             "ash_wraith": "res://assets/ui/enemies/ash_wraith.png",
-            "ash_brute": "res://assets/ui/enemies/bone_legionnaire.png",
-            "cinder_warden": "res://assets/ui/enemies/bone_legionnaire.png",
+            "ash_brute": "res://assets/ui/enemies/bone_legionnaire_body.png",
+            "cinder_warden": "res://assets/ui/enemies/bone_legionnaire_body.png",
             "ember_shaman": "res://assets/ui/enemies/ash_wraith.png",
-            "ruin_guard": "res://assets/ui/enemies/bone_legionnaire.png",
-            "ash_lord": "res://assets/ui/enemies/bone_legionnaire.png",
+            "ruin_guard": "res://assets/ui/enemies/bone_legionnaire_body.png",
+            "ash_lord": "res://assets/ui/enemies/bone_legionnaire_body.png",
             "abyss_warden": "res://assets/ui/enemies/ash_wraith.png"
           }
         },

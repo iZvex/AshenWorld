@@ -439,7 +439,49 @@ func _test_attack_motion(scene) -> void:
 	scene._on_damage_dealt(str(scene.campaign.current_stage().get("name", "")), 12.0, false)
 	_check("Упрощённый режим выключает шаг атакующего", pool.lunge_count() == 0)
 	pool.set_full_effects(true)
+	_test_weapon_swing(scene)
 	scene._update_view()
+
+
+func _test_weapon_swing(scene) -> void:
+	# Готовые фигуры нарезаны на тело и оружие: клинок вращается вокруг кисти,
+	# поэтому удар читается как настоящий взмах, а не как сдвиг картинки.
+	var pool = scene.effect_pool
+	pool.reset()
+	_check("Слой клинка героя подключён", scene.hero_blade != null and scene.hero_blade.texture != null)
+	_check("Клинок героя лежит на теле с той же сеткой",
+		scene.hero_blade.anchor_right == 1.0 and scene.hero_blade.anchor_bottom == 1.0)
+	_check("У клинка героя есть точка хвата", scene._rig_characters().has("hero"))
+	var saved_size: Vector2 = scene.hero_blade.size
+	scene.hero_blade.size = Vector2(272.0, 408.0)
+	var pivot: Vector2 = scene._swing_pivot(scene.hero_blade, "hero")
+	_check("Точка хвата клинка считается от картинки",
+		pivot.x > 60.0 and pivot.x < 130.0 and pivot.y > 140.0 and pivot.y < 250.0)
+	scene.hero_blade.size = saved_size
+	scene._on_damage_dealt(str(scene.campaign.current_stage().get("name", "")), 30.0, false)
+	_check("Удар запускает взмах оружия", pool.swing_count() >= 1)
+	pool._process(0.06)
+	_check("Клинок уходит в замах", scene.hero_blade.rotation < -0.05)
+	pool._process(0.1)
+	_check("Клинок идёт в удар", scene.hero_blade.rotation > -0.05)
+	pool._process(0.5)
+	_check("Клинок возвращается в стойку", is_zero_approx(scene.hero_blade.rotation) and pool.swing_count() == 0)
+	_check("Тело героя остаётся управляемым шагом", scene.arena_hero.scale.is_equal_approx(Vector2.ONE))
+
+	# Противник с оружием: у латника нарезан топор.
+	pool.reset()
+	scene._set_enemy_blade(0, "ash_walker")
+	var enemy_blade: TextureRect = scene.enemy_blades[0] as TextureRect
+	_check("Оружие врага находится по его фигуре",
+		scene._rig_character_for_enemy("ash_walker") == "bone_legionnaire")
+	_check("Слой оружия врага подставлен", enemy_blade != null and enemy_blade.texture != null)
+	pool.swing(enemy_blade, Vector2(10.0, 10.0), -55.0, 25.0)
+	pool._process(0.05)
+	_check("Оружие врага тоже замахивается", enemy_blade.rotation < -0.05)
+	pool._process(0.5)
+	_check("Оружие врага возвращается в стойку", is_zero_approx(enemy_blade.rotation))
+	scene._set_enemy_blade(0, "cinder_hound")
+	_check("У зверя без оружия слой оружия скрыт", scene.enemy_blades[0].texture == null or not scene.enemy_blades[0].visible)
 
 
 func _test_ui_animations(scene) -> void:
@@ -885,7 +927,7 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 			overlay_nodes = false
 	_check("Журнал, подсказка и кнопка этапа живут в оверлее", overlay_nodes)
 	var arena_hero: TextureRect = scene.find_child("ArenaHero", true, false) as TextureRect
-	_check("Герой стоит на поле боя", arena_hero != null and arena_hero.texture != null and str(arena_hero.texture.resource_path).ends_with("hero_battle.png"))
+	_check("Герой стоит на поле боя", arena_hero != null and arena_hero.texture != null and str(arena_hero.texture.resource_path).contains("hero_battle"))
 	var figure_pool: Array = []
 	var figures_value: Variant = hud.get("enemy_figures", {})
 	if figures_value is Dictionary:

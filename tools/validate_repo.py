@@ -762,8 +762,31 @@ else:
         elif not (ROOT / icon_rel).is_file() or not (ROOT / (icon_rel + ".import")).is_file():
             err(f"Иконка заглушки {node_name} и её файл импорта отсутствуют")
 hero_figure = str(hud.get("hero_figure", ""))
-if not hero_figure.endswith("hero_battle.png"):
+if "hero_battle" not in hero_figure:
     err("data/balance.json: фигура героя на поле боя не задана")
+rig = interface.get("rig", {})
+if not isinstance(rig, dict) or not rig.get("characters"):
+    err("data/balance.json: не заданы слои оружия для взмахов")
+    rig = {}
+else:
+    rig_characters = rig.get("characters", {})
+    if "hero" not in rig_characters:
+        err("data/balance.json: у героя нет нарезанного клинка")
+    if float(rig.get("swing_strike_seconds", 0)) <= 0.0 or float(rig.get("swing_windup_seconds", 0)) <= 0.0:
+        err("data/balance.json: у взмаха должны быть замах и удар")
+    for character_id, entry in rig_characters.items():
+        if not isinstance(entry, dict):
+            err(f"data/balance.json: риг {character_id} должен быть объектом")
+            continue
+        for key in ("body", "blade"):
+            rel = str(entry.get(key, "")).replace("res://", "")
+            if not rel or not (ROOT / rel).is_file() or not (ROOT / (rel + ".import")).is_file():
+                err(f"data/balance.json: у рига {character_id} нет файла {key}")
+        grip = entry.get("grip", [])
+        if not isinstance(grip, list) or len(grip) < 2 or float(grip[0]) <= 0 or float(grip[1]) <= 0:
+            err(f"data/balance.json: у рига {character_id} не задана точка хвата")
+        if float(entry.get("strike_degrees", 0)) == float(entry.get("windup_degrees", 0)):
+            err(f"data/balance.json: у рига {character_id} замах совпадает с ударом")
 figures = hud.get("enemy_figures", {})
 if not isinstance(figures, dict) or len(figures.get("by_id", {})) < 10 or len(figures.get("figures", [])) < 3:
     err("data/balance.json: фигуры войск противника заданы не полностью")
