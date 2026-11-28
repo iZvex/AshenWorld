@@ -761,6 +761,13 @@ func _process(delta: float) -> void:
 		view_refresh_timer = 0.0
 
 
+func _format_amount(value: Variant) -> String:
+	var number: int = int(value)
+	if number >= 100000:
+		return "%dК" % int(number / 1000)
+	return str(number)
+
+
 func _update_view() -> void:
 	var summary: Dictionary = campaign.get_summary()
 	var battle = campaign.system
@@ -769,8 +776,8 @@ func _update_view() -> void:
 	battle_power_label.text = "БМ %.0f" % float(summary["equipment_power"])
 	experience_bar.max_value = float(summary["experience_to_next"])
 	experience_bar.value = float(summary["experience"])
-	gold_label.text = "ЗОЛОТО %d" % int(summary["gold"])
-	materials_label.text = "ПЕПЕЛ %d" % int(summary["materials"])
+	gold_label.text = _format_amount(summary["gold"])
+	materials_label.text = _format_amount(summary["materials"])
 	equipment_power_label.text = "СИЛА %.0f" % float(summary["equipment_power"])
 	if battle == null:
 		hero_label.text = "ГЕРОЙ —"

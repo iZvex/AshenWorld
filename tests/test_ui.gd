@@ -195,7 +195,7 @@ func _test_health_row(scene) -> void:
 	_check("Щит имеет отдельную тонкую шкалу", scene.shield_bar.custom_minimum_size.y <= 10.0 and scene.shield_bar.max_value > 0.0)
 	_check("Боевая мощь и опыт показаны под портретом", "БМ" in scene.battle_power_label.text and scene.experience_bar.get_parent() == scene.portrait_column)
 	_check("Этап показан в заголовке", "Пепельные земли" in scene.stage_label.text and "Этап 1/30" in scene.stage_label.text)
-	_check("Уровень, золото и пепел показаны в HUD", "УР." in scene.level_label.text and "ЗОЛОТО" in scene.gold_label.text and "ПЕПЕЛ" in scene.materials_label.text and scene.gold_label.get_parent() == scene.currency_row)
+	_check("Уровень, золото и пепел показаны в HUD", "УР." in scene.level_label.text and scene.gold_label.text.is_valid_int() and scene.materials_label.text.is_valid_int() and scene.gold_label.tooltip_text == "Золото" and scene.materials_label.tooltip_text == "Пепел" and scene.gold_label.get_parent() == scene.currency_row)
 	_check("Лог заполнен сразу", not scene.battle_log.text.is_empty())
 
 
