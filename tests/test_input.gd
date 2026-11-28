@@ -34,8 +34,9 @@ func _initialize() -> void:
 	_check("Контейнер разделов пропускает нажатия к оверлею", margin != null and margin.mouse_filter == Control.MOUSE_FILTER_IGNORE)
 
 	# Окно возвращения модальное: сначала закрываем его, как это сделал бы игрок.
+	# Кнопку не нажимаем, чтобы не создавать звуковые объекты в проверке нажатий.
 	if scene.away_window != null and scene.away_window.visible:
-		scene._on_away_claim_pressed()
+		scene.away_window.visible = false
 		await process_frame
 	_check("Окно возвращения закрыто перед проверкой нажатий", scene.away_window == null or not scene.away_window.visible)
 	# Нормализуем состояние: профиль в песочнице может быть в победе, поражении или финале.
