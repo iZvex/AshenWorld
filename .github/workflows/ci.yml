@@ -286,6 +286,7 @@ jobs:
               assert interface["layout"]["background_texture"] == "res://assets/ui/background_sketch.png"
               assert interface["minimum_sizes"]["HeroHealthBar"][1] >= 26
               assert interface["minimum_sizes"]["EnemyMiniBar1"] == [124, 10]
+              assert interface["minimum_sizes"]["EnemyNameLabel1"] == [0, 46]
               assert len(hud["nav_icons"]) == 6 and hud["nickname"].strip() != ""
               assert len(hud["stub_icons"]) >= 8
               assert len(hud["stub_labels"]) >= 4 and hud["stub_text"] == "СКОРО"
@@ -301,6 +302,21 @@ jobs:
               assert hud["battle_overlay"]["orb_radius"]["GuardButton"] >= 44
               assert interface["minimum_sizes"]["StrikeButton"] == [124, 124]
               assert interface["minimum_sizes"]["GuardButton"] == [96, 96]
+              overlay = hud["battle_overlay"]
+              assert overlay["icons"]["StrikeButton"].endswith("sword.svg")
+              assert overlay["icons"]["GuardButton"].endswith("shield.svg")
+              assert overlay["cooldown_ring"]["thickness"] >= 4
+              assert overlay["auto_delay_seconds"] >= 0.5
+              assert overlay["slots"] == 2 and overlay["slot_tooltip"] == "СКОРО"
+              assert overlay["auto_label"].strip() != ""
+              assert interface["minimum_sizes"]["SkillSlot3"] == [52, 52]
+              assert interface["minimum_sizes"]["SkillSlot4"] == [52, 52]
+              assert interface["minimum_sizes"]["AutoButton"] == [160, 44]
+              assert interface["fonts"]["node_sizes"]["StrikeCooldownLabel"] == 18
+              assert interface["fonts"]["node_sizes"]["GuardCooldownLabel"] == 18
+              assert interface["fonts"]["node_sizes"]["AutoButton"] == 18
+              assert any("sword.svg" in name and name.endswith(".ctex") for name in names)
+              assert any("shield.svg" in name and name.endswith(".ctex") for name in names)
               assert any("background_sketch" in name and name.endswith(".ctex") for name in names)
               assert any("hero_portrait" in name and name.endswith(".ctex") for name in names)
               assert any("enemy_wraith.svg" in name and name.endswith(".ctex") for name in names)

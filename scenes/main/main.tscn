@@ -1,10 +1,12 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3]
 [ext_resource type="Script" path="res://scripts/main/main.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/ui/background_sketch.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/ui/hero_portrait.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/ui/divider.svg" id="4"]
 [ext_resource type="Texture2D" path="res://assets/ui/sigil.svg" id="5"]
 [ext_resource type="Texture2D" path="res://assets/ui/ember.svg" id="6"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/sword.svg" id="7"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/shield.svg" id="8"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -111,10 +113,12 @@ theme_override_constants/separation = 4
 
 [node name="EnemyNameLabel1" type="Label" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
 text = "ВРАГ"
 horizontal_alignment = 1
-autowrap_mode = 0
+autowrap_mode = 2
 clip_text = true
+max_lines_visible = 2
 mouse_filter = 2
 
 [node name="EnemyMiniBar1" type="ProgressBar" parent="ArenaEnemies/EnemyCard1/EnemyCardBox1"]
@@ -149,10 +153,12 @@ theme_override_constants/separation = 4
 
 [node name="EnemyNameLabel2" type="Label" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
 text = "ВРАГ"
 horizontal_alignment = 1
-autowrap_mode = 0
+autowrap_mode = 2
 clip_text = true
+max_lines_visible = 2
 mouse_filter = 2
 
 [node name="EnemyMiniBar2" type="ProgressBar" parent="ArenaEnemies/EnemyCard2/EnemyCardBox2"]
@@ -187,10 +193,12 @@ theme_override_constants/separation = 4
 
 [node name="EnemyNameLabel3" type="Label" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
 text = "ВРАГ"
 horizontal_alignment = 1
-autowrap_mode = 0
+autowrap_mode = 2
 clip_text = true
+max_lines_visible = 2
 mouse_filter = 2
 
 [node name="EnemyMiniBar3" type="ProgressBar" parent="ArenaEnemies/EnemyCard3/EnemyCardBox3"]
@@ -225,10 +233,12 @@ theme_override_constants/separation = 4
 
 [node name="EnemyNameLabel4" type="Label" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
 text = "ВРАГ"
 horizontal_alignment = 1
-autowrap_mode = 0
+autowrap_mode = 2
 clip_text = true
+max_lines_visible = 2
 mouse_filter = 2
 
 [node name="EnemyMiniBar4" type="ProgressBar" parent="ArenaEnemies/EnemyCard4/EnemyCardBox4"]
@@ -263,10 +273,12 @@ theme_override_constants/separation = 4
 
 [node name="EnemyNameLabel5" type="Label" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
 text = "ВРАГ"
 horizontal_alignment = 1
-autowrap_mode = 0
+autowrap_mode = 2
 clip_text = true
+max_lines_visible = 2
 mouse_filter = 2
 
 [node name="EnemyMiniBar5" type="ProgressBar" parent="ArenaEnemies/EnemyCard5/EnemyCardBox5"]
@@ -772,7 +784,49 @@ offset_left = 556.0
 offset_top = 872.0
 offset_right = 680.0
 offset_bottom = 996.0
-text = "УДАР"
+tooltip_text = "Удар"
+
+[node name="StrikeIcon" type="TextureRect" parent="BattleOverlay/StrikeButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 16.0
+offset_right = -30.0
+offset_bottom = -42.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("7")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StrikeCooldown" type="TextureProgressBar" parent="BattleOverlay/StrikeButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+max_value = 1.0
+fill_mode = 4
+show_percentage = false
+
+[node name="StrikeCooldownLabel" type="Label" parent="BattleOverlay/StrikeButton"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="GuardButton" type="Button" parent="BattleOverlay"]
 layout_mode = 0
@@ -780,7 +834,99 @@ offset_left = 444.0
 offset_top = 916.0
 offset_right = 540.0
 offset_bottom = 1012.0
-text = "ЩИТ"
+tooltip_text = "Щит"
+
+[node name="GuardIcon" type="TextureRect" parent="BattleOverlay/GuardButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.0
+offset_top = 10.0
+offset_right = -22.0
+offset_bottom = -32.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GuardCooldown" type="TextureProgressBar" parent="BattleOverlay/GuardButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+max_value = 1.0
+fill_mode = 4
+show_percentage = false
+
+[node name="GuardCooldownLabel" type="Label" parent="BattleOverlay/GuardButton"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SkillSlot3" type="PanelContainer" parent="BattleOverlay"]
+layout_mode = 0
+offset_left = 572.0
+offset_top = 1004.0
+offset_right = 624.0
+offset_bottom = 1056.0
+tooltip_text = "СКОРО"
+mouse_filter = 2
+
+[node name="SlotIcon3" type="TextureRect" parent="BattleOverlay/SkillSlot3"]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("5")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SkillSlot4" type="PanelContainer" parent="BattleOverlay"]
+layout_mode = 0
+offset_left = 632.0
+offset_top = 1004.0
+offset_right = 684.0
+offset_bottom = 1056.0
+tooltip_text = "СКОРО"
+mouse_filter = 2
+
+[node name="SlotIcon4" type="TextureRect" parent="BattleOverlay/SkillSlot4"]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("5")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SkillsSoonLabel" type="Label" parent="BattleOverlay"]
+layout_mode = 0
+offset_left = 540.0
+offset_top = 1060.0
+offset_right = 704.0
+offset_bottom = 1084.0
+mouse_filter = 2
+text = "СКОРО"
+horizontal_alignment = 1
+
+[node name="AutoButton" type="Button" parent="BattleOverlay"]
+layout_mode = 0
+offset_left = 540.0
+offset_top = 1090.0
+offset_right = 704.0
+offset_bottom = 1134.0
+text = "АВТОБОЙ"
 
 
 [node name="Margin" type="MarginContainer" parent="."]

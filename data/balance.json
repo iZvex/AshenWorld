@@ -2869,6 +2869,10 @@
           "Notice1": 20,
           "Notice2": 20,
           "Notice3": 20,
+          "StrikeCooldownLabel": 18,
+          "GuardCooldownLabel": 18,
+          "AutoButton": 18,
+          "SkillsSoonLabel": 18,
           "BattlePowerLabel": 24,
           "LevelLabel": 20,
           "NicknameLabel": 19,
@@ -3571,27 +3575,39 @@
         ],
         "EnemyNameLabel1": [
           0,
-          22
+          46
         ],
         "EnemyNameLabel2": [
           0,
-          22
+          46
         ],
         "EnemyNameLabel3": [
           0,
-          22
+          46
         ],
         "EnemyNameLabel4": [
           0,
-          22
+          46
         ],
         "EnemyNameLabel5": [
           0,
-          22
+          46
         ],
         "ArenaHero": [
           230,
           356
+        ],
+        "SkillSlot3": [
+          52,
+          52
+        ],
+        "SkillSlot4": [
+          52,
+          52
+        ],
+        "AutoButton": [
+          160,
+          44
         ]
       },
       "spacing": {
@@ -3895,7 +3911,20 @@
           },
           "log_lines": 4,
           "strike_label": "УДАР",
-          "guard_label": "ЩИТ"
+          "guard_label": "ЩИТ",
+          "icons": {
+            "StrikeButton": "res://assets/ui/icons/sword.svg",
+            "GuardButton": "res://assets/ui/icons/shield.svg"
+          },
+          "cooldown_ring": {
+            "thickness": 5,
+            "ready_rgba": [0.96, 0.79, 0.54, 0.95],
+            "waiting_rgba": [0.33, 0.25, 0.4, 0.75]
+          },
+          "auto_delay_seconds": 1.4,
+          "auto_label": "АВТОБОЙ",
+          "slots": 2,
+          "slot_tooltip": "СКОРО"
         },
         "hero_figure": "res://assets/ui/hero_battle.png",
         "hero_figure_height": 228,

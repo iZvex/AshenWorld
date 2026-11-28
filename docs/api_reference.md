@@ -682,7 +682,7 @@
 
 - Наследует: `RefCounted`
 - Назначение: Единая палитра и игровые стили тёмного фэнтези. Крупные карточки и высокие полосы заменены одной строкой здоровья; нижняя навигация, рамки и активные вкладки выделены так, чтобы структура экрана читалась с первого взгляда.
-- Публичных методов: 29
+- Публичных методов: 32
 
 **Публичные константы**
 
@@ -712,6 +712,9 @@
 - `static func muted_panel_style() -> StyleBoxFlat`
 - `static func circle_button_style(background: Color = Color("#1B1020"), border: Color = GOLD) -> StyleBoxFlat`
 - `static func portrait_frame_style() -> StyleBoxFlat`
+- `static func ring_texture(diameter: int, thickness: float, color: Color) -> ImageTexture`
+- `static func slot_placeholder_style() -> StyleBoxFlat`
+- `static func auto_button_style(active: bool) -> StyleBoxFlat`
 - `static func ground_shadow_style() -> StyleBoxFlat`
 - `static func battlefield_card_style() -> StyleBoxFlat`
 - `static func enemy_bar_background() -> StyleBoxFlat`
@@ -795,7 +798,7 @@
 
 - Наследует: `Control`
 - Назначение: Портретный HUD в духе наброска: оригинальный фон, портрет героя, крупные шкалы, правая быстрая навигация и некликабельные заглушки будущих разделов. Реальная логика кампании, экипировки, прогрессии, сохранений, режимов, звука и эффектов сохранена.
-- Публичных методов: 1
+- Публичных методов: 2
 
 **Публичные константы**
 
@@ -914,6 +917,18 @@
 - `notice_times: Array`
 - `notice_colors: Array`
 - `save_indicator: TextureRect`
+- `strike_icon: TextureRect`
+- `guard_icon: TextureRect`
+- `strike_cooldown_ring: TextureProgressBar`
+- `guard_cooldown_ring: TextureProgressBar`
+- `strike_cooldown_label: Label`
+- `guard_cooldown_label: Label`
+- `skill_slot3: PanelContainer`
+- `skill_slot4: PanelContainer`
+- `skills_soon_label: Label`
+- `auto_button: Button`
+- `auto_advance: bool`
+- `auto_advance_timer: float`
 - `save_flash: float`
 - `away_config: Dictionary`
 - `notice_config: Dictionary`
@@ -986,3 +1001,4 @@
 **Методы**
 
 - `func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> void`
+- `func auto_label() -> String`

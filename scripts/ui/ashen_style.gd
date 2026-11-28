@@ -112,6 +112,53 @@ static func portrait_frame_style() -> StyleBoxFlat:
 	return box
 
 
+static func ring_texture(diameter: int, thickness: float, color: Color) -> ImageTexture:
+	# Кольцо для кругового индикатора перезарядки: рисуется в памяти,
+	# внешних картинок и шейдеров не требуется.
+	var size: int = clampi(diameter, 8, 256)
+	var image: Image = Image.create_empty(size, size, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var center: float = float(size - 1) / 2.0
+	var outer: float = float(size) / 2.0 - 1.0
+	var inner: float = maxf(1.0, outer - maxf(1.0, thickness))
+	for y in range(size):
+		for x in range(size):
+			var dx: float = float(x) - center
+			var dy: float = float(y) - center
+			var distance: float = sqrt(dx * dx + dy * dy)
+			if distance <= outer and distance >= inner:
+				var edge: float = minf(outer - distance, distance - inner)
+				var alpha: float = clampf(edge / 1.5, 0.0, 1.0)
+				image.set_pixel(x, y, Color(color.r, color.g, color.b, color.a * alpha))
+	return ImageTexture.create_from_image(image)
+
+
+static func slot_placeholder_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = Color(0.07, 0.05, 0.1, 0.72)
+	box.set_border_width_all(2)
+	box.border_color = Color(PANEL_BORDER.r, PANEL_BORDER.g, PANEL_BORDER.b, 0.55)
+	box.set_corner_radius_all(999)
+	box.content_margin_left = 0
+	box.content_margin_right = 0
+	box.content_margin_top = 0
+	box.content_margin_bottom = 0
+	return box
+
+
+static func auto_button_style(active: bool) -> StyleBoxFlat:
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = Color(0.78, 0.53, 0.24, 0.92) if active else Color(0.09, 0.06, 0.13, 0.88)
+	box.set_border_width_all(1)
+	box.border_color = GOLD if active else Color(PANEL_BORDER.r, PANEL_BORDER.g, PANEL_BORDER.b, 0.75)
+	box.set_corner_radius_all(12)
+	box.content_margin_left = 8
+	box.content_margin_right = 8
+	box.content_margin_top = 4
+	box.content_margin_bottom = 4
+	return box
+
+
 static func ground_shadow_style() -> StyleBoxFlat:
 	var box: StyleBoxFlat = StyleBoxFlat.new()
 	box.bg_color = Color(0.02, 0.01, 0.04, 0.48)

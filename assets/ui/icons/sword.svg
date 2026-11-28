@@ -1,5 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#17101F"/><stop offset="1" stop-color="#2A1830"/></linearGradient></defs>
-<circle cx="48" cy="48" r="45" fill="url(#bg)" stroke="#C8893C" stroke-width="4"/>
-<path d="M58 16 L70 20 L61 54 L55 60 L48 53 L53 47 Z" fill="#D8D2C6" stroke="#F4C98A" stroke-width="3"/><path d="M42 56 L56 70" stroke="#C8893C" stroke-width="8" stroke-linecap="round"/><path d="M35 63 L49 77" stroke="#8A3A3A" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="24" r="4" fill="#A63D40"/>
+<defs>
+<linearGradient id="blade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9E9486"/><stop offset="0.45" stop-color="#F4EEE1"/><stop offset="1" stop-color="#B6AC9C"/></linearGradient>
+<linearGradient id="grip" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A2036"/><stop offset="1" stop-color="#311425"/></linearGradient>
+</defs>
+<g transform="rotate(45 48 48)">
+<path d="M48 4 L59 26 L59 60 L37 60 L37 26 Z" fill="url(#blade)"/>
+<path d="M48 12 L53 30 L53 58 L48 58 Z" fill="#FFFBF2" opacity="0.55"/>
+<path d="M16 60 H80 A4 4 0 0 1 80 70 H16 A4 4 0 0 1 16 60 Z" fill="#C58B43"/>
+<path d="M20 61 H76 V63 H20 Z" fill="#E7BE7C" opacity="0.75"/>
+<rect x="42.5" y="70" width="11" height="16" rx="4" fill="url(#grip)"/>
+<path d="M43 75 H53 M43 80 H53" stroke="#C58B43" stroke-width="2"/>
+<circle cx="48" cy="89" r="6" fill="#C58B43"/>
+<circle cx="48" cy="89" r="2.5" fill="#7545B8"/>
+</g>
 </svg>

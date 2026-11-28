@@ -151,7 +151,9 @@ func _initialize() -> void:
 	_test_health_row(scene)
 	_test_battlefield_layout(scene)
 	_test_battle_controls(scene)
+	_test_skill_cluster(scene)
 	_test_stage_transition(scene)
+	_test_auto_advance(scene, data)
 	_test_equipment_ui(scene, data)
 	_test_progression_ui(scene, data)
 	_test_modes_ui(scene, data)
@@ -298,7 +300,11 @@ func _test_battle_controls(scene) -> void:
 	scene._update_view()
 	_check("Нажатие кнопки применяет удар", scene.campaign.get_cooldown_remaining("heavy_strike") > 0.0)
 	_check("Кнопка удара блокируется на откате", scene.strike_button.disabled)
-	_check("Время отката видно на кнопке", "УДАР" in scene.strike_button.text and "\n" in scene.strike_button.text)
+	_check("Текст на кнопке заменён иконкой", scene.strike_button.text == "" and scene.strike_icon.texture != null)
+	_check("Кольцо отката показывает восстановление", scene.strike_cooldown_ring.visible and scene.strike_cooldown_ring.value >= 0.0 and scene.strike_cooldown_ring.value < 0.6)
+	_check("Кольцо рисуется по часовой стрелке", scene.strike_cooldown_ring.fill_mode == TextureProgressBar.FILL_CLOCKWISE and scene.strike_cooldown_ring.texture_progress != null)
+	_check("Секунды отката подписаны под кнопкой", scene.strike_cooldown_label.visible and "." in scene.strike_cooldown_label.text)
+	_check("Иконка на откате приглушена", scene.strike_icon.modulate.a < 1.0)
 	_check("Навык записан в лог", "Навык" in scene.battle_log.text)
 	var hero_before: float = scene.hero_health_bar.value
 	var enemy_before: float = scene.enemy_health_bar.value
@@ -308,6 +314,44 @@ func _test_battle_controls(scene) -> void:
 	_check("После автоатаки здоровье врага уменьшилось", scene.enemy_health_bar.value < enemy_before)
 	_check("Всплывающие числа урона созданы", scene.effect_pool.active_count() > 0 and scene.effect_pool.pool_size() == 8)
 	_check("Лог ограничен пятью строками", scene.log_lines.size() <= 5)
+
+
+func _test_skill_cluster(scene) -> void:
+	_check("Слоты будущих навыков на месте", scene.skill_slot3 != null and scene.skill_slot4 != null)
+	_check("Слоты будущих навыков неинтерактивны", scene.skill_slot3.mouse_filter == Control.MOUSE_FILTER_IGNORE and scene.skill_slot4.mouse_filter == Control.MOUSE_FILTER_IGNORE)
+	_check("Слоты подписаны как скорые", scene.skill_slot3.tooltip_text == "СКОРО" and scene.skills_soon_label.text == "СКОРО")
+	_check("Слоты не уже минимума из баланса", scene.skill_slot3.custom_minimum_size.x >= 52.0 and scene.skill_slot4.custom_minimum_size.y >= 52.0)
+	_check("Переключатель автобоя подписан", scene.auto_button.text.contains("АВТОБОЙ") and scene.auto_button.text.contains("ВЫКЛ"))
+	_check("Секунды отката не мельче 18", _font_size(scene.strike_cooldown_label) >= 18 and _font_size(scene.guard_cooldown_label) >= 18 and _font_size(scene.auto_button) >= 18)
+	_check("Кнопки навыков меньше минимума из баланса", scene.auto_button.custom_minimum_size.x >= 160.0 and scene.auto_button.custom_minimum_size.y >= 44.0)
+	_check("Кнопки навыков не закрывают шкалу героя", not _design_rect(scene.strike_button).intersects(_design_rect(scene.hero_vitals)))
+	_check("Кластер навыков не закрывает кнопку этапа", not _design_rect(scene.auto_button).intersects(_design_rect(scene.action_button)))
+	_check("Кластер навыков не закрывает ленту уведомлений", not _design_rect(scene.auto_button).intersects(_design_rect(scene.notice_feed)))
+	_check("Кластер навыков стоит выше навигации", _design_rect(scene.auto_button).end.y <= _design_rect(scene.bottom_bar).position.y)
+
+
+func _test_auto_advance(scene, data) -> void:
+	_check("Автобой выключен при старте", not scene.auto_advance)
+	scene._on_auto_pressed()
+	_check("Переключатель включает автобой", scene.auto_advance and scene.auto_button.text.contains("ВКЛ"))
+	_check("Уведомление об автобое показано", "АВТОБОЙ" in scene.notice_labels[0].text)
+	scene._on_auto_pressed()
+	_check("Повторное нажатие выключает автобой", not scene.auto_advance and scene.auto_button.text.contains("ВЫКЛ"))
+	scene.auto_advance = true
+	var stage_before: int = scene.campaign.stage_index
+	scene.campaign.status = CampaignState.STATUS_VICTORY
+	scene._update_view()
+	scene.auto_advance_timer = 0.0
+	scene._tick_auto_advance(0.1)
+	_check("Автобой идёт дальше по этапам", scene.campaign.stage_index > stage_before or scene.campaign.status != CampaignState.STATUS_VICTORY)
+	scene.auto_advance = false
+	scene.auto_advance_timer = 0.0
+
+
+func _font_size(control: Control) -> int:
+	if control == null:
+		return 0
+	return control.get_theme_font_size("font_size")
 
 
 func _test_quiet_hud(scene) -> void:

@@ -640,6 +640,28 @@ minimum_sizes = interface.get("minimum_sizes", {})
 if not isinstance(minimum_sizes, dict) or len(minimum_sizes) < 90:
     err("data/balance.json: размеры панелей и кнопок должны быть централизованы")
     minimum_sizes = {}
+for slot_name, expected in (("SkillSlot3", [52, 52]), ("SkillSlot4", [52, 52]), ("AutoButton", [160, 44])):
+    value = minimum_sizes.get(slot_name, []) if isinstance(minimum_sizes, dict) else []
+    if not isinstance(value, list) or len(value) < 2 or [int(value[0]), int(value[1])] != expected:
+        err(f"data/balance.json: {slot_name} должен быть {expected[0]}x{expected[1]}")
+overlay_config = (interface.get("hud", {}) or {}).get("battle_overlay", {})
+if not isinstance(overlay_config, dict):
+    err("data/balance.json: battle_overlay должен описывать кнопки навыков")
+    overlay_config = {}
+skill_icons = overlay_config.get("icons", {})
+if not isinstance(skill_icons, dict) or not str(skill_icons.get("StrikeButton", "")).endswith("sword.svg") or not str(skill_icons.get("GuardButton", "")).endswith("shield.svg"):
+    err("data/balance.json: у кнопок удара и щита должны быть локальные иконки")
+cooldown_ring = overlay_config.get("cooldown_ring", {})
+if not isinstance(cooldown_ring, dict) or float(cooldown_ring.get("thickness", 0)) < 4:
+    err("data/balance.json: кольцо перезарядки должно иметь заметную толщину")
+if float(overlay_config.get("auto_delay_seconds", 0)) < 0.5:
+    err("data/balance.json: автобой должен ждать перед продолжением пути")
+if int(overlay_config.get("slots", 0)) < 2 or str(overlay_config.get("slot_tooltip", "")) != "СКОРО":
+    err("data/balance.json: слоты будущих навыков должны быть подписаны СКОРО")
+for name_index in range(1, 6):
+    value = minimum_sizes.get(f"EnemyNameLabel{name_index}", []) if isinstance(minimum_sizes, dict) else []
+    if not isinstance(value, list) or len(value) < 2 or int(value[1]) < 40:
+        err(f"data/balance.json: EnemyNameLabel{name_index} должен вмещать две строки имени врага")
 for bar_name, min_height, min_width in (("HeroHealthBar", 26, 0), ("EnemyMiniBar1", 10, 124)):
     value = minimum_sizes.get(bar_name, []) if isinstance(minimum_sizes, dict) else []
     if not isinstance(value, list) or len(value) < 2 or int(value[1]) < min_height or int(value[0]) < min_width:
@@ -737,7 +759,7 @@ if str(hud.get("portrait_texture", "")) != "res://assets/ui/hero_portrait.png":
 if str(hud.get("enemy_texture", "")) != "res://assets/ui/icons/enemy_wraith.svg" or int(hud.get("enemy_cards", 0)) != 5:
     err("data/balance.json: силуэты врагов арены должны быть описаны централизованно")
 
-for token in ["background_sketch.png", "hero_portrait.png", "ArenaHero", "ProfilePanel", "NicknameLabel", "RatingValueLabel", "HeroVitals", "HeroPortrait", "HeroHealthBar", "EnemyMiniBar1", "EnemyNameLabel1", "FutureRail", "ArenaEnemies", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle", "BattleOverlay", "LogCard", "StrikeButton", "GuardButton"]:
+for token in ["background_sketch.png", "hero_portrait.png", "ArenaHero", "ProfilePanel", "NicknameLabel", "RatingValueLabel", "HeroVitals", "HeroPortrait", "HeroHealthBar", "EnemyMiniBar1", "EnemyNameLabel1", "FutureRail", "ArenaEnemies", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle", "BattleOverlay", "LogCard", "StrikeButton", "GuardButton", "StrikeCooldown", "GuardCooldown", "StrikeCooldownLabel", "GuardCooldownLabel", "SkillSlot3", "SkillSlot4", "AutoButton"]:
     if token not in scene_src:
         err(f"scenes/main/main.tscn: отсутствует узел или ресурс игрового HUD ({token})")
 for forbidden in ["MiniMap", "Minimap", "Joystick", "VirtualJoystick", "MapFrame"]:

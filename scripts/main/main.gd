@@ -127,6 +127,18 @@ var notice_labels: Array = []
 var notice_times: Array = []
 var notice_colors: Array = []
 var save_indicator: TextureRect
+var strike_icon: TextureRect
+var guard_icon: TextureRect
+var strike_cooldown_ring: TextureProgressBar
+var guard_cooldown_ring: TextureProgressBar
+var strike_cooldown_label: Label
+var guard_cooldown_label: Label
+var skill_slot3: PanelContainer
+var skill_slot4: PanelContainer
+var skills_soon_label: Label
+var auto_button: Button
+var auto_advance: bool = false
+var auto_advance_timer: float = 0.0
 var save_flash: float = 0.0
 var away_config: Dictionary = {}
 var notice_config: Dictionary = {}
@@ -543,6 +555,16 @@ func _bind_nodes() -> void:
 	progression_hint_label = _find("ProgressionHintLabel") as Label
 	battle_overlay = _find("BattleOverlay") as Control
 	strike_button = _find("StrikeButton") as Button
+	strike_icon = _find("StrikeIcon") as TextureRect
+	strike_cooldown_ring = _find("StrikeCooldown") as TextureProgressBar
+	strike_cooldown_label = _find("StrikeCooldownLabel") as Label
+	guard_icon = _find("GuardIcon") as TextureRect
+	guard_cooldown_ring = _find("GuardCooldown") as TextureProgressBar
+	guard_cooldown_label = _find("GuardCooldownLabel") as Label
+	skill_slot3 = _find("SkillSlot3") as PanelContainer
+	skill_slot4 = _find("SkillSlot4") as PanelContainer
+	skills_soon_label = _find("SkillsSoonLabel") as Label
+	auto_button = _find("AutoButton") as Button
 	guard_button = _find("GuardButton") as Button
 	action_button = _find("ActionButton") as Button
 	log_card = _find("LogCard") as Panel
@@ -593,6 +615,73 @@ func _load_data() -> Dictionary:
 	return CombatCatalog.load_balance()
 
 
+func _style_skill_cluster(overlay_config: Dictionary) -> void:
+	var icons_value: Variant = overlay_config.get("icons", {})
+	var icons: Dictionary = icons_value as Dictionary if icons_value is Dictionary else {}
+	for pair in [[strike_icon, "StrikeButton"], [guard_icon, "GuardButton"]]:
+		var icon_node: TextureRect = pair[0] as TextureRect
+		var icon_path: String = str(icons.get(str(pair[1]), ""))
+		if icon_node != null and icon_path != "" and ResourceLoader.exists(icon_path):
+			icon_node.texture = load(icon_path)
+	var ring_value: Variant = overlay_config.get("cooldown_ring", {})
+	var ring: Dictionary = ring_value as Dictionary if ring_value is Dictionary else {}
+	var thickness: float = maxf(1.0, float(ring.get("thickness", 5)))
+	var ready_rgba: Color = _color_from_array(ring.get("ready_rgba", []), AshenStyle.GOLD)
+	var waiting_rgba: Color = _color_from_array(ring.get("waiting_rgba", []), AshenStyle.MUTED)
+	for pair in [[strike_cooldown_ring, strike_button.custom_minimum_size.x], [guard_cooldown_ring, guard_button.custom_minimum_size.x]]:
+		var bar: TextureProgressBar = pair[0] as TextureProgressBar
+		# Кольцо садится внутрь золотого обода, не споря с рамкой кнопки.
+		var diameter: int = int(maxf(24.0, float(pair[1]) - 12.0))
+		if bar == null:
+			continue
+		bar.texture_under = AshenStyle.ring_texture(diameter, thickness, waiting_rgba)
+		bar.texture_progress = AshenStyle.ring_texture(diameter, thickness, ready_rgba)
+		bar.fill_mode = TextureProgressBar.FILL_CLOCKWISE
+		bar.max_value = 1.0
+		bar.step = 0.001
+		bar.value = 0.0
+		bar.visible = false
+	if strike_cooldown_label != null:
+		strike_cooldown_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	if guard_cooldown_label != null:
+		guard_cooldown_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	for slot in [skill_slot3, skill_slot4]:
+		var slot_panel: PanelContainer = slot as PanelContainer
+		if slot_panel != null:
+			slot_panel.add_theme_stylebox_override("panel", AshenStyle.slot_placeholder_style())
+			slot_panel.tooltip_text = str(overlay_config.get("slot_tooltip", "СКОРО"))
+	if skills_soon_label != null:
+		skills_soon_label.add_theme_color_override("font_color", AshenStyle.MUTED)
+		skills_soon_label.text = str(overlay_config.get("slot_tooltip", "СКОРО"))
+	if auto_button != null:
+		auto_button.text = str(overlay_config.get("auto_label", "АВТОБОЙ"))
+		auto_button.tooltip_text = "Автоматически продолжать этапы"
+		_apply_auto_style()
+		auto_button.pressed.connect(_on_auto_pressed)
+
+
+func _apply_auto_style() -> void:
+	if auto_button == null:
+		return
+	for state_name in ["normal", "hover", "pressed", "focus"]:
+		auto_button.add_theme_stylebox_override(state_name, AshenStyle.auto_button_style(auto_advance))
+	auto_button.add_theme_color_override("font_color", AshenStyle.BACKGROUND if auto_advance else AshenStyle.GOLD)
+	auto_button.text = "%s: %s" % [str(auto_label()), "ВКЛ" if auto_advance else "ВЫКЛ"]
+
+
+func auto_label() -> String:
+	return str((hud_config.get("battle_overlay", {}) as Dictionary).get("auto_label", "АВТОБОЙ"))
+
+
+func _on_auto_pressed() -> void:
+	auto_advance = not auto_advance
+	if auto_advance and campaign != null and campaign.status != CampaignState.STATUS_BATTLE:
+		auto_advance_timer = _auto_delay()
+	_apply_auto_style()
+	_pulse_button(auto_button)
+	_push_notice("АВТОБОЙ ВКЛЮЧЁН" if auto_advance else "АВТОБОЙ ВЫКЛЮЧЕН", AshenStyle.GOLD)
+
+
 func _apply_styles() -> void:
 	header_frame.add_theme_stylebox_override("panel", AshenStyle.header_style())
 	bottom_bar.add_theme_stylebox_override("panel", AshenStyle.bottom_bar_style())
@@ -622,6 +711,7 @@ func _apply_styles() -> void:
 		orb.add_theme_stylebox_override("hover", AshenStyle.orb_style(true, orb_radius))
 		orb.add_theme_stylebox_override("pressed", AshenStyle.orb_style(true, orb_radius))
 		orb.add_theme_stylebox_override("disabled", AshenStyle.orb_style(false, orb_radius))
+	_style_skill_cluster(overlay_config)
 	action_button.add_theme_stylebox_override("normal", AshenStyle.action_button_style())
 	for bar in [hero_health_bar, shield_bar, experience_bar]:
 		bar.add_theme_stylebox_override("background", AshenStyle.bar_background())
@@ -831,6 +921,7 @@ func _process(delta: float) -> void:
 		profile_manager.tick(delta)
 	_tick_notices(delta)
 	_tick_save_indicator(delta)
+	_tick_auto_advance(delta)
 	# Перерисовка всех панелей выполняется не каждый кадр; смена статуса боя
 	# и нажатия кнопок обновляют экран сразу.
 	if previous_status == CampaignState.STATUS_BATTLE and campaign.status != CampaignState.STATUS_BATTLE:
@@ -941,19 +1032,9 @@ func _update_view() -> void:
 			stage_notice.text = "ПОРАЖЕНИЕ · ЭТАП МОЖНО ПОВТОРИТЬ"
 		CampaignState.STATUS_COMPLETE:
 			stage_notice.text = "%s · УР. %d" % [str(summary["status_name"]).to_upper(), int(summary["level"])]
-	var strike_cooldown: float = campaign.get_cooldown_remaining("heavy_strike")
-	var guard_cooldown: float = campaign.get_cooldown_remaining("ash_guard")
 	var skills_blocked: bool = campaign.status != CampaignState.STATUS_BATTLE
-	strike_button.disabled = skills_blocked or strike_cooldown > 0.0
-	guard_button.disabled = skills_blocked or guard_cooldown > 0.0
-	if strike_cooldown > 0.0:
-		strike_button.text = "УДАР\n%.1f" % strike_cooldown
-	else:
-		strike_button.text = "УДАР"
-	if guard_cooldown > 0.0:
-		guard_button.text = "ЩИТ\n%.1f" % guard_cooldown
-	else:
-		guard_button.text = "ЩИТ"
+	_refresh_skill_button(strike_button, strike_icon, strike_cooldown_ring, strike_cooldown_label, "heavy_strike", skills_blocked)
+	_refresh_skill_button(guard_button, guard_icon, guard_cooldown_ring, guard_cooldown_label, "ash_guard", skills_blocked)
 	action_button.visible = campaign.status != CampaignState.STATUS_BATTLE
 	action_button.disabled = false
 	if action_button.visible:
@@ -1815,6 +1896,8 @@ func _on_stage_finished() -> void:
 			_add_log("Герой пал. %s?" % str(ModeCatalog.modes_data(balance).get("defeat_action", "ПОВТОРИТЬ БОЙ")))
 		CampaignState.STATUS_COMPLETE:
 			_add_log("%s. Уровень %d" % [str(campaign.get_summary().get("status_name", "")), campaign.level])
+	if auto_advance:
+		auto_advance_timer = _auto_delay()
 	_save("итог этапа")
 
 
@@ -2008,6 +2091,42 @@ func _announce_startup(report: Dictionary) -> void:
 			_push_notice("СОХРАНЕНИЕ НОВОЙ ВЕРСИИ НЕ ТРОНУТО", AshenStyle.EMBER)
 		"migrated":
 			_push_notice("СОХРАНЕНИЕ ОБНОВЛЕНО", AshenStyle.GOLD)
+
+
+func _refresh_skill_button(button: Button, icon: TextureRect, ring: TextureProgressBar, label: Label, skill_id: String, blocked: bool) -> void:
+	if button == null:
+		return
+	button.text = ""
+	var remaining: float = maxf(0.0, campaign.get_cooldown_remaining(skill_id))
+	var total: float = maxf(0.01, float(campaign.get_skill_view(skill_id).get("cooldown_seconds", 1.0)))
+	var waiting: bool = remaining > 0.0
+	button.disabled = blocked or waiting
+	if ring != null:
+		ring.visible = waiting and not blocked
+		ring.value = clampf(1.0 - remaining / total, 0.0, 1.0)
+	if label != null:
+		label.visible = waiting and not blocked
+		label.text = "%.1f" % remaining if waiting else ""
+	if icon != null:
+		icon.modulate = Color(1.0, 1.0, 1.0, 0.45 if (blocked or waiting) else 1.0)
+
+
+func _auto_delay() -> float:
+	var overlay_value: Variant = hud_config.get("battle_overlay", {})
+	var overlay: Dictionary = overlay_value as Dictionary if overlay_value is Dictionary else {}
+	return maxf(0.2, float(overlay.get("auto_delay_seconds", 1.4)))
+
+
+func _tick_auto_advance(delta: float) -> void:
+	if not auto_advance or campaign == null or action_button == null:
+		return
+	if action_button == null or not action_button.visible or action_button.disabled:
+		return
+	if away_window != null and away_window.visible:
+		return
+	auto_advance_timer = maxf(0.0, auto_advance_timer - delta)
+	if auto_advance_timer <= 0.0:
+		_on_action_pressed()
 
 
 func _battle_hint_text() -> String:
