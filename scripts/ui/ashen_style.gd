@@ -112,6 +112,43 @@ static func portrait_frame_style() -> StyleBoxFlat:
 	return box
 
 
+static func ground_shadow_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = Color(0.02, 0.01, 0.04, 0.48)
+	box.set_border_width_all(2)
+	box.border_color = Color(GOLD.r, GOLD.g, GOLD.b, 0.12)
+	box.set_corner_radius_all(999)
+	box.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	box.shadow_size = 10
+	return box
+
+
+static func battlefield_card_style() -> StyleBoxFlat:
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = Color(0.0, 0.0, 0.0, 0.0)
+	box.set_border_width_all(0)
+	box.set_corner_radius_all(0)
+	box.content_margin_left = 0
+	box.content_margin_right = 0
+	box.content_margin_top = 0
+	box.content_margin_bottom = 0
+	return box
+
+
+static func enemy_bar_background() -> StyleBoxFlat:
+	var box: StyleBoxFlat = bar_background()
+	box.set_border_width_all(1)
+	box.border_color = Color(0.0, 0.0, 0.0, 0.75)
+	return box
+
+
+static func enemy_bar_fill() -> StyleBoxFlat:
+	var box: StyleBoxFlat = bar_fill(Color("#C8464E"))
+	box.set_border_width_all(1)
+	box.border_color = Color(1.0, 0.72, 0.6, 0.55)
+	return box
+
+
 static func level_badge_style() -> StyleBoxFlat:
 	var box: StyleBoxFlat = StyleBoxFlat.new()
 	box.bg_color = Color(0.08, 0.05, 0.12, 0.96)

@@ -640,7 +640,7 @@ minimum_sizes = interface.get("minimum_sizes", {})
 if not isinstance(minimum_sizes, dict) or len(minimum_sizes) < 90:
     err("data/balance.json: размеры панелей и кнопок должны быть централизованы")
     minimum_sizes = {}
-for bar_name, min_height, min_width in (("HeroHealthBar", 26, 0), ("EnemyMiniBar1", 12, 120)):
+for bar_name, min_height, min_width in (("HeroHealthBar", 26, 0), ("EnemyMiniBar1", 10, 124)):
     value = minimum_sizes.get(bar_name, []) if isinstance(minimum_sizes, dict) else []
     if not isinstance(value, list) or len(value) < 2 or int(value[1]) < min_height or int(value[0]) < min_width:
         err(f"data/balance.json: {bar_name} должен быть шкалой над фигурой (не ниже {min_height} пикселей)")

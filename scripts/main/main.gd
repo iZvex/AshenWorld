@@ -34,6 +34,8 @@ var enemy_hint_label: Label
 var stage_notice: Label
 var battle_overlay: Control
 var arena_hero: TextureRect
+var hero_ground: Panel
+var enemy_ground: Panel
 var equipment_button: Button
 var equipment_power_label: Label
 var equipment_panel: PanelContainer
@@ -420,7 +422,7 @@ func _apply_hud_config() -> void:
 		if card == null:
 			continue
 		enemy_cards.append(card)
-		card.add_theme_stylebox_override("panel", AshenStyle.enemy_card_style())
+		card.add_theme_stylebox_override("panel", AshenStyle.battlefield_card_style())
 		var silhouette: TextureRect = find_child("EnemySilhouette%d" % index, true, false) as TextureRect
 		if silhouette != null and enemy_texture_path != "" and ResourceLoader.exists(enemy_texture_path):
 			silhouette.texture = load(enemy_texture_path)
@@ -432,8 +434,8 @@ func _apply_hud_config() -> void:
 		var mini_bar: ProgressBar = find_child("EnemyMiniBar%d" % index, true, false) as ProgressBar
 		if mini_bar != null:
 			enemy_mini_bars.append(mini_bar)
-			mini_bar.add_theme_stylebox_override("background", AshenStyle.bar_background())
-			mini_bar.add_theme_stylebox_override("fill", AshenStyle.bar_fill(AshenStyle.CRIMSON))
+			mini_bar.add_theme_stylebox_override("background", AshenStyle.enemy_bar_background())
+			mini_bar.add_theme_stylebox_override("fill", AshenStyle.enemy_bar_fill())
 	for raw_name in ["QuestStub", "FutureRail", "StubStrip", "ArenaEnemies"]:
 		var decor: Control = find_child(str(raw_name), true, false) as Control
 		if decor != null:
@@ -493,6 +495,8 @@ func _bind_nodes() -> void:
 	quest_stub = _find("QuestStub") as PanelContainer
 	future_rail = _find("FutureRail") as VBoxContainer
 	arena_hero = _find("ArenaHero") as TextureRect
+	hero_ground = _find("HeroGround") as Panel
+	enemy_ground = _find("EnemyGround") as Panel
 	arena_enemies = _find("ArenaEnemies") as GridContainer
 	stub_strip = _find("StubStrip") as HBoxContainer
 	equipment_panel = inventory_panel
@@ -595,6 +599,8 @@ func _apply_styles() -> void:
 	profile_panel.add_theme_stylebox_override("panel", AshenStyle.hud_panel_style())
 	hero_vitals.add_theme_stylebox_override("panel", AshenStyle.vitals_plate_style())
 	currency_bar.add_theme_stylebox_override("panel", AshenStyle.muted_panel_style())
+	hero_ground.add_theme_stylebox_override("panel", AshenStyle.ground_shadow_style())
+	enemy_ground.add_theme_stylebox_override("panel", AshenStyle.ground_shadow_style())
 	quest_stub.add_theme_stylebox_override("panel", AshenStyle.muted_panel_style())
 	portrait_frame.add_theme_stylebox_override("panel", AshenStyle.portrait_frame_style())
 	level_badge.add_theme_stylebox_override("panel", AshenStyle.level_badge_style())
@@ -617,10 +623,11 @@ func _apply_styles() -> void:
 		orb.add_theme_stylebox_override("pressed", AshenStyle.orb_style(true, orb_radius))
 		orb.add_theme_stylebox_override("disabled", AshenStyle.orb_style(false, orb_radius))
 	action_button.add_theme_stylebox_override("normal", AshenStyle.action_button_style())
-	for bar in [hero_health_bar, enemy_health_bar, shield_bar, experience_bar]:
+	for bar in [hero_health_bar, shield_bar, experience_bar]:
 		bar.add_theme_stylebox_override("background", AshenStyle.bar_background())
+	enemy_health_bar.add_theme_stylebox_override("background", AshenStyle.enemy_bar_background())
 	hero_health_bar.add_theme_stylebox_override("fill", AshenStyle.bar_fill(AshenStyle.HERO_COLOR))
-	enemy_health_bar.add_theme_stylebox_override("fill", AshenStyle.bar_fill(AshenStyle.ENEMY_COLOR))
+	enemy_health_bar.add_theme_stylebox_override("fill", AshenStyle.enemy_bar_fill())
 	shield_bar.add_theme_stylebox_override("fill", AshenStyle.bar_fill(AshenStyle.SHIELD_COLOR))
 	experience_bar.add_theme_stylebox_override("fill", AshenStyle.bar_fill(AshenStyle.GOLD))
 	for label in [section_title, battle_title, inventory_title, summon_title, progression_title, mode_title, settings_title]:

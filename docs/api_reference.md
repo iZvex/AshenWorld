@@ -682,7 +682,7 @@
 
 - Наследует: `RefCounted`
 - Назначение: Единая палитра и игровые стили тёмного фэнтези. Крупные карточки и высокие полосы заменены одной строкой здоровья; нижняя навигация, рамки и активные вкладки выделены так, чтобы структура экрана читалась с первого взгляда.
-- Публичных методов: 25
+- Публичных методов: 29
 
 **Публичные константы**
 
@@ -712,6 +712,10 @@
 - `static func muted_panel_style() -> StyleBoxFlat`
 - `static func circle_button_style(background: Color = Color("#1B1020"), border: Color = GOLD) -> StyleBoxFlat`
 - `static func portrait_frame_style() -> StyleBoxFlat`
+- `static func ground_shadow_style() -> StyleBoxFlat`
+- `static func battlefield_card_style() -> StyleBoxFlat`
+- `static func enemy_bar_background() -> StyleBoxFlat`
+- `static func enemy_bar_fill() -> StyleBoxFlat`
 - `static func level_badge_style() -> StyleBoxFlat`
 - `static func currency_pill_style() -> StyleBoxFlat`
 - `static func vitals_plate_style() -> StyleBoxFlat`
@@ -817,6 +821,8 @@
 - `stage_notice: Label`
 - `battle_overlay: Control`
 - `arena_hero: TextureRect`
+- `hero_ground: Panel`
+- `enemy_ground: Panel`
 - `equipment_button: Button`
 - `equipment_power_label: Label`
 - `equipment_panel: PanelContainer`

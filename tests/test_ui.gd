@@ -173,7 +173,7 @@ func _test_sketch_layout(scene) -> void:
 	_check("Символ уменьшен", scene.sigil.custom_minimum_size.x <= 56.0)
 	_check("Разделитель уменьшен", scene.divider.custom_minimum_size.y <= 24.0)
 	_check("Полоса здоровья героя крупная", scene.hero_health_bar.custom_minimum_size.y >= 26.0)
-	_check("Шкала здоровья врага над фигурой", scene.enemy_health_bar.custom_minimum_size.x >= 120.0 and scene.enemy_health_bar.custom_minimum_size.y >= 12.0)
+	_check("Шкала здоровья врага над фигурой", scene.enemy_health_bar.custom_minimum_size.x >= 120.0 and scene.enemy_health_bar.custom_minimum_size.y >= 8.0 and scene.enemy_health_bar.custom_minimum_size.y <= 12.0)
 	_check("Кнопки навыков круглые", scene.strike_button.custom_minimum_size == Vector2(124, 124) and scene.guard_button.custom_minimum_size == Vector2(96, 96))
 	_check("Полоса журнала боя компактная", scene.log_card.custom_minimum_size.y <= 130.0)
 	_check("Панель экипировки компактная", scene.equipment_panel.custom_minimum_size.y <= 380.0)
@@ -212,8 +212,16 @@ func _test_health_row(scene) -> void:
 
 func _test_battlefield_layout(scene) -> void:
 	_check("Боковая колонка иконок убрана", scene.get_node_or_null("QuickRail") == null)
-	var figures_low: bool = (scene.arena_hero as Control).get_global_rect().position.y >= 520.0 and (scene.arena_enemies as Control).get_global_rect().position.y >= 520.0
+	var figures_low: bool = (scene.arena_hero as Control).get_global_rect().position.y >= 520.0 and (scene.arena_enemies as Control).get_global_rect().position.y >= 500.0
 	_check("Герой и враги стоят в глубине арены", figures_low)
+	var hero_rect: Rect2 = _design_rect(scene.arena_hero)
+	_check("Фигура героя крупная", hero_rect.size.x >= 225.0 and hero_rect.size.y >= 350.0)
+	_check("Герой не закрывает кнопку этапа", hero_rect.end.y <= _design_rect(scene.action_button).position.y - 12.0)
+	_check("Под героем и войсками лежит тень", scene.hero_ground != null and scene.enemy_ground != null and scene.hero_ground.get_index() < scene.arena_hero.get_index() and scene.enemy_ground.get_index() < scene.arena_enemies.get_index() and scene.hero_ground.mouse_filter == Control.MOUSE_FILTER_IGNORE)
+	_check("Тень стоит у ног героя и ниже фигур", _design_rect(scene.hero_ground).end.y <= 1040.0 and _design_rect(scene.hero_ground).position.y >= 940.0)
+	var enemy_bar: ProgressBar = scene.enemy_mini_bars[0] as ProgressBar
+	_check("Шкала врага компактная и контрастная", enemy_bar.custom_minimum_size.y <= 10.0 and enemy_bar.custom_minimum_size.x >= 120.0 and (enemy_bar.get_theme_stylebox("fill") as StyleBoxFlat).border_width_top >= 1)
+	_check("Арена врагов стала выше", _design_rect(scene.arena_enemies).size.y >= 360.0)
 	var action_rect: Rect2 = (scene.action_button as Control).get_global_rect()
 	_check("Кнопка продолжения по центру снизу", absf(action_rect.get_center().x - 360.0) <= 6.0 and action_rect.position.y >= 1000.0)
 	_check("Кнопка продолжения выше навигации", action_rect.end.y <= 1140.0 and str(scene.bottom_bar.offset_top) == "-140.0")
