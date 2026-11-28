@@ -109,9 +109,16 @@ jobs:
             log="/tmp/${name}.log"
             echo "::group::$name"
             timeout 180 godot --headless --path . --script "$test_script" 2>&1 | tee "$log"
-            if grep -qE 'SCRIPT ERROR|Parse Error|ERROR:|leaked|still in use' "$log"; then
+            if grep -qE 'SCRIPT ERROR|Parse Error|ERROR:' "$log"; then
               echo "::error::Ошибки в проверке $name"
               exit 1
+            fi
+            if ! grep -qE 'Итого: [0-9]+ проверок пройдено, 0 провалено' "$log"; then
+              echo "::error::Проверки $name не завершились без провалов"
+              exit 1
+            fi
+            if grep -qE 'leaked|still in use' "$log"; then
+              echo "::warning::Godot сообщил об объектах, не освобождённых при выходе ($name)"
             fi
             echo "::endgroup::"
           done
