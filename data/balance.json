@@ -2759,7 +2759,17 @@
       }
     },
     "interface": {
-      "fonts": {
+
+    "animations": {
+      "section_fade_seconds": 0.18,
+      "section_rise_pixels": 8.0,
+      "nav_glow_seconds": 0.26,
+      "nav_glow_brightness": 1.14,
+      "press_scale": 0.045,
+      "press_seconds": 0.15,
+      "pop_scale_seconds": 0.2,
+      "pop_scale_from": 0.96
+    },      "fonts": {
         "default": 20,
         "label": 18,
         "button": 18,

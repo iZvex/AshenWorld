@@ -110,8 +110,10 @@ func flash(control: Control, color: Color) -> void:
 	set_process(true)
 
 
-func pulse(control: Control, color: Color) -> void:
-	flash(control, color)
+func pulse(control: Control, _color: Color = Color.WHITE) -> void:
+	# Нажатие интерфейсной кнопки — короткое сжатие. Цвет элемента не подменяем,
+	# иначе перебивается свечение активной вкладки и состояния кнопок навыков.
+	punch(control, float(config.get("press_scale", 0.045)))
 
 
 func spawn_sparks(center: Vector2, color: Color, count: int = 0, critical: bool = false) -> void:

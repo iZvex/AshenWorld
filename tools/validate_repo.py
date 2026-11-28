@@ -795,6 +795,18 @@ for start_marker, end_marker, label in [
     section = scene_section(start_marker, end_marker)
     if not section or 'type="Button"' in section or 'type="TextureButton"' in section:
         err(f"scenes/main/main.tscn: секция {label} должна быть некликабельным декором без кнопок")
+animations_config = interface.get("animations", {})
+if not isinstance(animations_config, dict) or len(animations_config) < 6:
+    err("data/balance.json: плавные анимации интерфейса должны быть описаны в presentation.interface.animations")
+else:
+    for anim_key, anim_max in (("section_fade_seconds", 0.45), ("nav_glow_seconds", 0.45), ("pop_scale_seconds", 0.45), ("press_seconds", 0.4)):
+        value = float(animations_config.get(anim_key, 0.0))
+        if value <= 0.0 or value > anim_max:
+            err(f"data/balance.json: {anim_key} должен быть коротким и заметным")
+main_src = (ROOT / "scripts/main/main.gd").read_text(encoding="utf-8")
+for token in ("_animate_control", "_tick_ui_animations", '"glow"', '"pop"'):
+    if token not in main_src:
+        err(f"scripts/main/main.gd: плавные анимации интерфейса должны использовать {token}")
 style_src = (ROOT / "scripts/ui/ashen_style.gd").read_text(encoding="utf-8")
 for palette_name, palette_hex in (("BACKGROUND", "#100D16"), ("PANEL", "#211724"), ("GOLD", "#C58B43"),
                                   ("CRIMSON", "#8C263A"), ("RUNE", "#7545B8"), ("PARCHMENT", "#B8A7A0")):

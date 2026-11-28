@@ -137,6 +137,8 @@ var skill_slot3: PanelContainer
 var skill_slot4: PanelContainer
 var skills_soon_label: Label
 var auto_button: Button
+var animation_config: Dictionary = {}
+var ui_animations: Array = []
 var auto_advance: bool = false
 var auto_advance_timer: float = 0.0
 var save_flash: float = 0.0
@@ -229,6 +231,8 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 	var hud_value: Variant = interface_config.get("hud", {})
 	hud_config = hud_value as Dictionary if hud_value is Dictionary else {}
 	away_config = PresentationCatalog.away_config(balance)
+	var animations_value: Variant = interface_config.get("animations", {})
+	animation_config = animations_value as Dictionary if animations_value is Dictionary else {}
 	notice_config = PresentationCatalog.notice_config(balance)
 	_bind_nodes()
 	theme = AshenStyle.build_theme(interface_config)
@@ -931,6 +935,7 @@ func _process(delta: float) -> void:
 	_tick_notices(delta)
 	_tick_save_indicator(delta)
 	_tick_auto_advance(delta)
+	_tick_ui_animations(delta)
 	# Перерисовка всех панелей выполняется не каждый кадр; смена статуса боя
 	# и нажатия кнопок обновляют экран сразу.
 	if previous_status == CampaignState.STATUS_BATTLE and campaign.status != CampaignState.STATUS_BATTLE:
@@ -1474,6 +1479,8 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 		var panel: Control = content_panels[key] as Control
 		if panel != null:
 			panel.visible = str(key) == active_tab
+			if panel.visible:
+				_animate_control(panel, "fade")
 	for key in tabs.keys():
 		var button: Button = tabs[key] as Button
 		if button == null:
@@ -1484,6 +1491,8 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 		if entry_value is Dictionary:
 			entry = entry_value as Dictionary
 		var active: bool = key_id == active_tab
+		if active:
+			_animate_control(button, "glow")
 		var caption: String = hide_label if active and key_id != default_tab else str(entry.get("label", key_id.to_upper()))
 		var caption_node: Label = nav_labels.get(key_id, null) as Label
 		if caption_node != null:
@@ -2069,7 +2078,7 @@ func _on_effects_pressed() -> void:
 
 func _pulse_button(button: Button) -> void:
 	if effect_pool != null and button != null:
-		effect_pool.pulse(button, AshenStyle.RUNE)
+		effect_pool.pulse(button, AshenStyle.GOLD)
 	if audio_player != null:
 		audio_player.play("click")
 
@@ -2188,7 +2197,11 @@ func _refresh_away_window() -> void:
 	]
 	away_hint_label.text = str(away_config.get("hint", ""))
 	away_claim_button.text = str(away_config.get("claim_text", "ЗАБРАТЬ"))
+	var was_hidden: bool = not away_window.visible
 	away_window.visible = true
+	if was_hidden and away_card != null:
+		# Окно наград появляется мягко, а не рывком.
+		_animate_control(away_card, "pop")
 
 
 func _on_away_claim_pressed() -> void:
@@ -2261,6 +2274,90 @@ func _add_log(line: String) -> void:
 	# Пустая карточка журнала не висит над ареной: она появляется с первым событием.
 	if log_card != null:
 		log_card.visible = not log_lines.is_empty()
+
+
+func _animate_control(control: Control, kind: String, duration: float = 0.0) -> void:
+	# Плавные переходы интерфейса без Tween-узлов: у каждого элемента не больше
+	# одной активной записи, а сам список живёт в _process и гаснет вместе с анимацией.
+	if control == null or not is_instance_valid(control):
+		return
+	var seconds: float = duration
+	if seconds <= 0.0:
+		match kind:
+			"fade":
+				seconds = float(animation_config.get("section_fade_seconds", 0.18))
+			"glow":
+				seconds = float(animation_config.get("nav_glow_seconds", 0.26))
+			"pop":
+				seconds = float(animation_config.get("pop_scale_seconds", 0.2))
+			_:
+				seconds = 0.18
+	seconds = maxf(0.02, seconds)
+	var id: int = control.get_instance_id()
+	for index in range(ui_animations.size()):
+		var existing: Dictionary = ui_animations[index] as Dictionary
+		if int(existing.get("id", 0)) == id and str(existing.get("kind", "")) == kind:
+			existing["elapsed"] = 0.0
+			ui_animations[index] = existing
+			return
+	var base_scale: Vector2 = control.scale
+	var entry: Dictionary = {
+		"id": id,
+		"control": control,
+		"kind": kind,
+		"elapsed": 0.0,
+		"duration": seconds,
+		"base_scale": base_scale,
+		"base_modulate": control.modulate,
+	}
+	if kind == "fade":
+		control.modulate = Color(control.modulate.r, control.modulate.g, control.modulate.b, 0.0)
+	elif kind == "glow":
+		var brightness: float = float(animation_config.get("nav_glow_brightness", 1.14))
+		control.modulate = Color(brightness, brightness, brightness, control.modulate.a)
+	elif kind == "pop":
+		control.pivot_offset = control.size * 0.5
+		control.scale = base_scale * float(animation_config.get("pop_scale_from", 0.96))
+		control.modulate = Color(control.modulate.r, control.modulate.g, control.modulate.b, 0.0)
+	ui_animations.append(entry)
+
+
+func _tick_ui_animations(delta: float) -> void:
+	if ui_animations.is_empty():
+		return
+	var index: int = 0
+	while index < ui_animations.size():
+		var entry: Dictionary = ui_animations[index] as Dictionary
+		var control: Control = entry.get("control") as Control
+		if control == null or not is_instance_valid(control):
+			ui_animations.remove_at(index)
+			continue
+		var elapsed: float = float(entry.get("elapsed", 0.0)) + delta
+		var duration: float = maxf(0.02, float(entry.get("duration", 0.18)))
+		var progress: float = clampf(elapsed / duration, 0.0, 1.0)
+		var eased: float = 1.0 - pow(1.0 - progress, 3.0)
+		var kind: String = str(entry.get("kind", "fade"))
+		var base_modulate: Color = entry.get("base_modulate", Color.WHITE) as Color
+		var base_scale: Vector2 = entry.get("base_scale", Vector2.ONE) as Vector2
+		match kind:
+			"fade":
+				control.modulate = Color(base_modulate.r, base_modulate.g, base_modulate.b, eased)
+			"pop":
+				control.modulate = Color(base_modulate.r, base_modulate.g, base_modulate.b, eased)
+				var from_scale: float = float(animation_config.get("pop_scale_from", 0.96))
+				control.scale = base_scale * lerpf(from_scale, 1.0, eased)
+			"glow":
+				var brightness: float = float(animation_config.get("nav_glow_brightness", 1.14))
+				var level: float = lerpf(brightness, 1.0, eased)
+				control.modulate = Color(level, level, level, base_modulate.a)
+		entry["elapsed"] = elapsed
+		ui_animations[index] = entry
+		if progress >= 1.0:
+			control.modulate = base_modulate
+			control.scale = base_scale
+			ui_animations.remove_at(index)
+			continue
+		index += 1
 
 
 func _arena_anchor() -> Control:

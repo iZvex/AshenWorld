@@ -156,6 +156,7 @@ func _initialize() -> void:
 	_test_stage_transition(scene)
 	_test_auto_advance(scene, data)
 	_test_hit_effects(scene)
+	_test_ui_animations(scene)
 	_test_equipment_ui(scene, data)
 	_test_progression_ui(scene, data)
 	_test_modes_ui(scene, data)
@@ -390,6 +391,40 @@ func _test_hit_effects(scene) -> void:
 	pool.set_full_effects(true)
 	_check("Подписи уклонения и щита остаются читаемыми", scene.effect_pool.pool_size() == 8)
 	scene._update_view()
+
+
+func _test_ui_animations(scene) -> void:
+	var config: Dictionary = scene.animation_config
+	_check("Настройки анимаций интерфейса заданы", config.size() >= 6 and float(config.get("section_fade_seconds", 0.0)) > 0.0)
+	scene.ui_animations.clear()
+	scene._select_tab("inventory", false)
+	var panel: Control = scene.inventory_panel
+	_check("Раздел появляется с прозрачности", panel != null and panel.modulate.a < 0.2)
+	_check("Анимация раздела поставлена в очередь", scene.ui_animations.size() >= 1)
+	scene._tick_ui_animations(float(config.get("section_fade_seconds", 0.18)) * 0.5)
+	_check("Появление идёт плавно, а не рывком", panel.modulate.a > 0.2 and panel.modulate.a < 1.0)
+	scene._tick_ui_animations(float(config.get("section_fade_seconds", 0.18)))
+	_check("После анимации раздел полностью виден", is_equal_approx(panel.modulate.a, 1.0))
+	_check("Список анимаций очищается сам", scene.ui_animations.is_empty())
+	var settings_button: Button = scene.tabs.get("settings") as Button
+	settings_button.emit_signal("pressed")
+	var glow_level: float = settings_button.modulate.r
+	_check("Активная вкладка вспыхивает свечением", glow_level > 1.0)
+	scene._tick_ui_animations(float(config.get("nav_glow_seconds", 0.26)))
+	_check("Свечение гаснет до обычного", is_equal_approx(settings_button.modulate.r, 1.0))
+	scene.ui_animations.clear()
+	scene._pulse_button(settings_button)
+	_check("Нажатие даёт короткое сжатие кнопки", settings_button.scale != Vector2.ONE)
+	scene._process(float(config.get("press_seconds", 0.15)) + 0.05)
+	scene.effect_pool._process(float(config.get("press_seconds", 0.15)) + 0.05)
+	_check("Кнопка возвращается в исходный масштаб", settings_button.scale.is_equal_approx(Vector2.ONE))
+	scene._animate_control(scene.away_card, "pop")
+	_check("Окно наград выезжает из лёгкого уменьшения", scene.away_card.scale.x < 1.0)
+	scene._tick_ui_animations(float(config.get("pop_scale_seconds", 0.2)))
+	_check("Окно наград встаёт на место", scene.away_card.scale.is_equal_approx(Vector2.ONE) and is_equal_approx(scene.away_card.modulate.a, 1.0))
+	scene.ui_animations.clear()
+	scene._select_tab("battle", false)
+	scene.away_card.modulate = Color.WHITE
 
 
 func _test_quiet_hud(scene) -> void:

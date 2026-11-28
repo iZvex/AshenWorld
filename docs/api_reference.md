@@ -763,7 +763,7 @@
 - `func set_full_effects(value: bool) -> void`
 - `func spawn_text(text: String, near: Control, color: Color, font_size: int) -> void`
 - `func flash(control: Control, color: Color) -> void`
-- `func pulse(control: Control, color: Color) -> void`
+- `func pulse(control: Control, _color: Color = Color.WHITE) -> void`
 - `func spawn_sparks(center: Vector2, color: Color, count: int = 0, critical: bool = false) -> void`
 - `func spawn_slash(center: Vector2, color: Color, angle: float = -0.6) -> void`
 - `func punch(control: Control, amount: float = 0.0) -> void`
@@ -943,6 +943,8 @@
 - `skill_slot4: PanelContainer`
 - `skills_soon_label: Label`
 - `auto_button: Button`
+- `animation_config: Dictionary`
+- `ui_animations: Array`
 - `auto_advance: bool`
 - `auto_advance_timer: float`
 - `save_flash: float`
