@@ -62,6 +62,9 @@ jobs:
       - name: Проверка структуры, данных и описаний сборок
         run: python3 tools/validate_repo.py
 
+      - name: Сверка справочника API с кодом
+        run: python3 tools/api_report.py --check
+
       - name: Установка Godot без графического интерфейса
         if: needs.detect.outputs.has_project == 'true'
         run: |

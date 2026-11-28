@@ -9,7 +9,8 @@
   * синтаксис описаний сборок и файлов данных;
   * целостность данных кампании, режимов, экипировки, прогрессии, сохранений, AFK и полировки;
   * конфликтные маркеры и переводы строк в скриптах GDScript;
-  * базовую структуру project.godot, когда он появится.
+  * базовую структуру project.godot, когда он появится;
+  * границы подсистем из docs/boundaries.md и актуальность docs/api_reference.md.
 """
 from __future__ import annotations
 
@@ -57,8 +58,11 @@ else:
         err(f"Дублируются номера разделов: {duplicates}")
     if "8. **Готово. Полировка" not in text:
         err("README.md: восьмой этап не отмечен готовым")
-    if "9. **Далее. Подготовка" not in text:
-        err("README.md: девятый этап должен оставаться следующим")
+    if "9. **Готово. Подготовка" not in text:
+        err("README.md: девятый этап не отмечен готовым")
+    for doc_link in ("docs/api.md", "docs/boundaries.md", "docs/api_reference.md"):
+        if doc_link not in text:
+            err(f"README.md: нет ссылки на {doc_link}")
     if "Краткое резюме" not in text:
         err("В README.md нет раздела «Краткое резюме»")
     if len(text) < 1000:
@@ -796,10 +800,59 @@ for path in gd_paths:
         warn(f"{rel}: переводы строк CRLF (Godot ожидает LF)")
     if src.strip() and not src.endswith("\n"):
         warn(f"{rel}: нет перевода строки в конце файла")
-    for token in ["HTTPRequest.new", "WebSocket", "ENetMultiplayerPeer", "WebRTCMultiplayerPeer", "MultiplayerAPI", "HTTPClient"]:
+    for token in ["HTTPRequest.new", "WebSocket", "ENetMultiplayerPeer", "WebRTCMultiplayerPeer", "MultiplayerAPI",
+                  "HTTPClient", "StreamPeerTCP", "PacketPeer", "NetworkedMultiplayer"]:
         if token in src:
             err(f"{rel}: базовый игровой процесс должен оставаться офлайн ({token})")
 notes.append(f"Скриптов GDScript проверено: {len(gd_paths)}")
+
+# --- 6.5. Границы подсистем и документация API (этап 9) --------------------
+# Правила из docs/boundaries.md должны выполняться в коде, а не только на бумаге.
+def strip_comments(source: str) -> str:
+    return "\n".join(line for line in source.splitlines() if not line.strip().startswith("#"))
+
+
+state_dirs = ("scripts/combat", "scripts/campaign", "scripts/equipment", "scripts/progression", "scripts/save")
+allowed_disk = {"scripts/save/save_manager.gd", "scripts/combat/combat_catalog.gd", "scripts/core/game_config.gd"}
+logic_tokens = ("Control", "Node2D", "AshenStyle", "main.gd", "res://assets")
+for path in gd_paths:
+    rel_text = str(path.relative_to(ROOT)).replace("\\", "/")
+    code = strip_comments(path.read_text(encoding="utf-8"))
+    if rel_text.startswith("scripts/") and ("FileAccess" in code or "DirAccess" in code) and rel_text not in allowed_disk:
+        err(f"{rel_text}: запись и чтение файлов разрешены только в слое сохранений и загрузке баланса")
+    if any(rel_text.startswith(prefix) for prefix in state_dirs):
+        for token in logic_tokens:
+            if token in code:
+                err(f"{rel_text}: логика не должна зависеть от интерфейса ({token})")
+    if rel_text.endswith("catalog.gd") and re.search(r"(?m)^var\s+[a-zA-Z_]", code):
+        err(f"{rel_text}: каталоги не хранят состояние, только константы и static func")
+main_rel = "scripts/main/main.gd"
+if (ROOT / main_rel).is_file() and "FileAccess" in strip_comments((ROOT / main_rel).read_text(encoding="utf-8")):
+    err(f"{main_rel}: экран не пишет файлы напрямую, только через SaveManager/ProfileManager")
+api_doc = (ROOT / "docs/api.md").read_text(encoding="utf-8") if (ROOT / "docs/api.md").is_file() else ""
+boundaries_doc = (ROOT / "docs/boundaries.md").read_text(encoding="utf-8") if (ROOT / "docs/boundaries.md").is_file() else ""
+if not api_doc:
+    err("docs/api.md: контракты подсистем не описаны")
+if not boundaries_doc:
+    err("docs/boundaries.md: границы подсистем не описаны")
+for token in ["get_summary", "export_state", "import_state", "advance", "STATUS_BATTLE", "format_version", "api_reference.md", "boundaries.md"]:
+    if token not in api_doc:
+        err(f"docs/api.md: отсутствует описание контракта ({token})")
+for subsystem in ["game_config.gd", "combat_system.gd", "campaign_state.gd", "mode_catalog.gd", "equipment_state.gd",
+                  "progression_state.gd", "save_manager.gd", "profile_manager.gd", "presentation_catalog.gd", "main.gd"]:
+    if subsystem not in api_doc:
+        err(f"docs/api.md: подсистема {subsystem} не описана")
+for token in ["CatalogSource", "BattleAuthority", "SaveBackend", "PresenceSource", "авиарежим", "офлайн", "миграц"]:
+    if token not in boundaries_doc:
+        err(f"docs/boundaries.md: не описан обязательный пункт ({token})")
+report_check = subprocess.run(
+    [sys.executable, str(ROOT / "tools/api_report.py"), "--check"],
+    cwd=ROOT, capture_output=True, text=True,
+)
+if report_check.returncode != 0:
+    err(f"docs/api_reference.md: справочник API не собран заново ({report_check.stdout.strip()})")
+else:
+    notes.append("Справочник API актуален, границы подсистем проверены")
 
 # --- 7. Настройки проекта и требования портретного Android -----------------
 project = ROOT / "project.godot"
