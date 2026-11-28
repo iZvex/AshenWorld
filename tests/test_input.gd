@@ -3,6 +3,8 @@ extends SceneTree
 # Проверка нажатий на оверлее боя: раньше невидимая панель перехватывала
 # клики, и кнопка «ДАЛЬШЕ · ЭТАП» не продолжала бой.
 const STATUS_BATTLE: int = 0
+const STATUS_DEFEAT: int = 2
+const STATUS_COMPLETE: int = 3
 
 var passed: int = 0
 var failed: int = 0
@@ -11,6 +13,10 @@ var viewport: SubViewport
 
 
 func _initialize() -> void:
+	# Тест не должен зависеть от профиля, оставшегося от прошлых запусков.
+	var profile_path: String = ProjectSettings.globalize_path("user://ashenworld_profile.json")
+	if FileAccess.file_exists(profile_path):
+		DirAccess.remove_absolute(profile_path)
 	viewport = SubViewport.new()
 	viewport.size = Vector2i(720, 1280)
 	viewport.gui_disable_input = false
@@ -26,22 +32,40 @@ func _initialize() -> void:
 	_check("Невидимая боевая панель не перехватывает нажатия", battle_panel != null and battle_panel.mouse_filter == Control.MOUSE_FILTER_IGNORE)
 	_check("Контейнер разделов пропускает нажатия к оверлею", margin != null and margin.mouse_filter == Control.MOUSE_FILTER_IGNORE)
 
+	# Нормализуем состояние: профиль в песочнице может быть в победе, поражении или финале.
+	if scene.campaign.status == STATUS_DEFEAT:
+		scene.campaign.retry_stage()
+	elif scene.campaign.status == STATUS_COMPLETE:
+		scene.campaign.restart_campaign()
+	await process_frame
+	# Приводим бой в состояние победы, чтобы кнопка этапа была доступна.
+	var guard: int = 0
+	while scene.campaign.status == STATUS_BATTLE and guard < 40:
+		var enemy: RefCounted = scene.campaign.system.enemy if scene.campaign.system != null else null
+		if enemy != null and bool(enemy.get("alive")):
+			enemy.call("receive_damage", float(enemy.get("max_health")) + 10.0)
+		scene.campaign.advance(0.05)
+		guard += 1
+	_check("Смерть врага вне атаки не стопорит бой", guard < 40 and scene.campaign.status != STATUS_BATTLE)
+	scene.call("_update_view")
+	await process_frame
 	var stage_before: int = scene.campaign.stage_index
+	_check("Перед нажатием доступна кнопка этапа", scene.action_button.visible and scene.campaign.status != STATUS_BATTLE)
 	_click(scene.action_button.get_global_rect().get_center())
 	await process_frame
 	await process_frame
 	_check("Кнопка ДАЛЬШЕ продолжает бой", scene.campaign.stage_index == stage_before + 1 and scene.campaign.status == STATUS_BATTLE and scene.campaign.system != null)
 	_check("После перехода кнопка этапа скрыта", not scene.action_button.visible)
-	var enemy: RefCounted = scene.campaign.system.enemy
-	_check("Новый бой получил свежего врага", enemy != null and bool(enemy.get("alive")) and float(enemy.get("health")) > 0.0)
+	var fresh_enemy: RefCounted = scene.campaign.system.enemy
+	_check("Новый бой получил свежего врага", fresh_enemy != null and bool(fresh_enemy.get("alive")) and float(fresh_enemy.get("health")) > 0.0)
 
 	var hero_hp_before: float = scene.campaign.system.hero.health
-	var enemy_hp_before: float = float(enemy.get("health")) if enemy != null else 0.0
+	var enemy_hp_before: float = float(fresh_enemy.get("health")) if fresh_enemy != null else 0.0
 	for _step in range(40):
 		scene.campaign.advance(0.05)
 	var enemy_now: RefCounted = scene.campaign.system.enemy
 	var damaged: bool = scene.campaign.system.hero.health < hero_hp_before
-	if enemy_now != null and enemy_now != enemy:
+	if enemy_now != null and enemy_now != fresh_enemy:
 		damaged = true
 	elif enemy_now != null and float(enemy_now.get("health")) < enemy_hp_before:
 		damaged = true
@@ -58,6 +82,18 @@ func _initialize() -> void:
 	_check("В разделе оверлей боя скрыт", overlay != null and not overlay.visible)
 
 	print("Итого: %d проверок пройдено, %d провалено" % [passed, failed])
+	for tween in get_processed_tweens():
+		if tween is Tween:
+			tween.kill()
+	for player in scene.find_children("*", "AudioStreamPlayer", true, false):
+		(player as AudioStreamPlayer).stop()
+		(player as AudioStreamPlayer).stream = null
+	await process_frame
+	root.remove_child(viewport)
+	viewport.free()
+	viewport = null
+	for _frame in range(3):
+		await process_frame
 	quit(0 if failed == 0 else 1)
 
 

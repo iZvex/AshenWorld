@@ -96,6 +96,12 @@ func advance(delta: float) -> void:
 	if not running or delta <= 0.0:
 		return
 	elapsed += delta
+	# Враг мог погибнуть вне обычной атаки: от эффекта, навыка или прямого урона.
+	# Без этой проверки бой останавливался навсегда, потому что смена врага
+	# выполнялась только внутри perform_attack.
+	if enemy != null and not enemy.alive:
+		enemy_defeated.emit(enemy.display_name)
+		spawn_next_enemy()
 	if hero.alive and hero.health_regen > 0.0:
 		var restored: float = hero.heal(hero.health_regen * delta)
 		if restored > 0.0:
