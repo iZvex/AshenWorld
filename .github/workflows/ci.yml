@@ -285,7 +285,7 @@ jobs:
               assert interface["layout"]["grid_columns"]["ArenaEnemies"] == 3
               assert interface["layout"]["background_texture"] == "res://assets/ui/background_sketch.png"
               assert interface["minimum_sizes"]["HeroHealthBar"][1] >= 26
-              assert interface["minimum_sizes"]["EnemyMiniBar1"] == [120, 12]
+              assert interface["minimum_sizes"]["EnemyMiniBar1"] == [124, 10]
               assert len(hud["nav_icons"]) == 6 and hud["nickname"].strip() != ""
               assert len(hud["stub_icons"]) >= 8
               assert len(hud["stub_labels"]) >= 4 and hud["stub_text"] == "СКОРО"
