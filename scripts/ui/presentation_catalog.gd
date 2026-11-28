@@ -46,6 +46,26 @@ static func performance_config(balance: Dictionary) -> Dictionary:
 	}
 
 
+static func away_config(balance: Dictionary) -> Dictionary:
+	var data: Dictionary = _dict(section(balance), "away")
+	return {
+		"min_seconds": clampi(int(data.get("min_seconds", 60)), 0, 86400),
+		"title": str(data.get("title", "С ВОЗВРАЩЕНИЕМ")),
+		"claim_text": str(data.get("claim_text", "ЗАБРАТЬ")),
+		"hint": str(data.get("hint", "Отряд продолжал бой, пока вас не было")),
+	}
+
+
+static func notice_config(balance: Dictionary) -> Dictionary:
+	var data: Dictionary = _dict(section(balance), "notices")
+	return {
+		"capacity": clampi(int(data.get("capacity", 3)), 1, 6),
+		"duration_seconds": clampf(float(data.get("duration_seconds", 3.6)), 0.5, 15.0),
+		"fade_seconds": clampf(float(data.get("fade_seconds", 0.6)), 0.05, 5.0),
+		"font_size": clampi(int(data.get("font_size", 20)), 18, 32),
+	}
+
+
 static func effect_pool_config(balance: Dictionary) -> Dictionary:
 	var value: Variant = section(balance).get("effect_pool", {})
 	var data: Dictionary = value as Dictionary if value is Dictionary else {}

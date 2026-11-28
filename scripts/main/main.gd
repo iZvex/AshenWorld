@@ -113,6 +113,21 @@ var mode_title: Label
 var settings_title: Label
 var settings_info_label: Label
 var performance_label: Label
+var away_window: Control
+var away_card: PanelContainer
+var away_title_label: Label
+var away_time_label: Label
+var away_rewards_label: Label
+var away_hint_label: Label
+var away_claim_button: Button
+var notice_feed: VBoxContainer
+var notice_labels: Array = []
+var notice_times: Array = []
+var notice_colors: Array = []
+var save_indicator: TextureRect
+var save_flash: float = 0.0
+var away_config: Dictionary = {}
+var notice_config: Dictionary = {}
 var settings_hint_label: Label
 var bottom_tabs: BoxContainer
 var background: TextureRect
@@ -194,6 +209,8 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 	navigation_config = navigation_value as Dictionary if navigation_value is Dictionary else {}
 	var hud_value: Variant = interface_config.get("hud", {})
 	hud_config = hud_value as Dictionary if hud_value is Dictionary else {}
+	away_config = PresentationCatalog.away_config(balance)
+	notice_config = PresentationCatalog.notice_config(balance)
 	_bind_nodes()
 	theme = AshenStyle.build_theme(interface_config)
 	_apply_interface_config()
@@ -229,11 +246,9 @@ func setup(data: Dictionary, profile_path: String = "", now_unix: int = -1) -> v
 	selected_pet_id = str(campaign.development.selected_pet_id)
 	_setup_navigation()
 	_apply_settings()
-	_add_log("Этап %d: %s" % [campaign.stage_number(), str(campaign.current_stage().get("name", ""))])
-	var startup_lines: Array = startup_report.get("log_lines", []) as Array
-	for line in startup_lines:
-		_add_log(str(line))
+	_announce_startup(startup_report)
 	_update_view()
+	_refresh_away_window()
 	var startup_summary: Dictionary = campaign.get_summary()
 	print("Игровой цикл, режимы, звук и эффекты запущены: %s, профиль %s" % [
 		str(startup_summary.get("mode_progress", "")),
@@ -535,6 +550,20 @@ func _bind_nodes() -> void:
 	settings_info_label = _find("SettingsInfoLabel") as Label
 	performance_label = _find("PerformanceLabel") as Label
 	settings_hint_label = _find("SettingsHintLabel") as Label
+	away_window = _find("AwayWindow") as Control
+	away_card = _find("AwayCard") as PanelContainer
+	away_title_label = _find("AwayTitleLabel") as Label
+	away_time_label = _find("AwayTimeLabel") as Label
+	away_rewards_label = _find("AwayRewardsLabel") as Label
+	away_hint_label = _find("AwayHintLabel") as Label
+	away_claim_button = _find("AwayClaimButton") as Button
+	notice_feed = _find("NoticeFeed") as VBoxContainer
+	save_indicator = _find("SaveIndicator") as TextureRect
+	for notice_name in ["Notice1", "Notice2", "Notice3"]:
+		var notice_label: Label = _find(str(notice_name)) as Label
+		notice_labels.append(notice_label)
+		notice_times.append(0.0)
+		notice_colors.append(AshenStyle.GOLD)
 
 func _load_data() -> Dictionary:
 	# В игре данные приходят из автозагрузки, а в точечном тесте сцены
@@ -582,6 +611,17 @@ func _apply_styles() -> void:
 	for label in [battle_hint_label, settings_info_label, settings_hint_label, summon_hint_label]:
 		label.add_theme_color_override("font_color", AshenStyle.RUNE)
 	performance_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	away_card.add_theme_stylebox_override("panel", AshenStyle.content_panel_style())
+	away_claim_button.add_theme_stylebox_override("normal", AshenStyle.action_button_style())
+	away_title_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	away_time_label.add_theme_color_override("font_color", AshenStyle.RUNE)
+	away_rewards_label.add_theme_color_override("font_color", AshenStyle.EMBER)
+	away_hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
+	hint_label.add_theme_color_override("font_color", AshenStyle.MUTED)
+	for notice_label in notice_labels:
+		var notice: Label = notice_label as Label
+		notice.add_theme_color_override("font_color", AshenStyle.GOLD)
+		notice.add_theme_font_size_override("font_size", int(notice_config.get("font_size", 20)))
 	battle_power_label.add_theme_color_override("font_color", AshenStyle.GOLD)
 	for raw_name in ["QuestTitleLabel", "QuestSoonLabel", "EventsLabel", "QuestsLabel", "RatingLabel", "StubStripLabel"]:
 		var decor_label: Label = find_child(str(raw_name), true, false) as Label
@@ -689,6 +729,7 @@ func _connect_ui_signals() -> void:
 	particles_button.pressed.connect(_on_particles_pressed)
 	fps_button.pressed.connect(_on_fps_pressed)
 	effects_button.pressed.connect(_on_effects_pressed)
+	away_claim_button.pressed.connect(_on_away_claim_pressed)
 
 
 func _populate_filters() -> void:
@@ -764,6 +805,8 @@ func _process(delta: float) -> void:
 		measured_fps = Engine.get_frames_per_second()
 	if profile_manager != null:
 		profile_manager.tick(delta)
+	_tick_notices(delta)
+	_tick_save_indicator(delta)
 	# Перерисовка всех панелей выполняется не каждый кадр; смена статуса боя
 	# и нажатия кнопок обновляют экран сразу.
 	if previous_status == CampaignState.STATUS_BATTLE and campaign.status != CampaignState.STATUS_BATTLE:
@@ -906,13 +949,12 @@ func _update_view() -> void:
 		_refresh_progression_ui()
 	if mode_visible:
 		_refresh_mode_ui()
+	hint_label.text = _battle_hint_text()
+	if log_card != null:
+		log_card.visible = not log_lines.is_empty()
 	if profile_manager != null:
+		# Частота кадров живёт только в настройках: в бою технических значений нет.
 		var fps_text: String = "—" if measured_fps <= 0.0 else "%.0f" % measured_fps
-		hint_label.text = "%s · %s · КАДРЫ %s" % [
-			profile_manager.hint_text(),
-			str(summary["mode_short"]),
-			fps_text,
-		]
 		performance_label.text = "КАДРЫ %s · ЦЕЛЬ %d" % [fps_text, int(profile_manager.settings().get("target_fps", 60))]
 	_refresh_settings_ui()
 	_refresh_arena_enemies()
@@ -1742,6 +1784,7 @@ func _on_stage_finished() -> void:
 					int(reward.get("attribute_points", 0)),
 					int(reward.get("skill_points", 0)),
 				])
+				_push_notice("НОВЫЙ УРОВЕНЬ %d" % campaign.level, AshenStyle.GOLD)
 		CampaignState.STATUS_DEFEAT:
 			_add_log("Герой пал. %s?" % str(ModeCatalog.modes_data(balance).get("defeat_action", "ПОВТОРИТЬ БОЙ")))
 		CampaignState.STATUS_COMPLETE:
@@ -1801,6 +1844,7 @@ func _on_shield_changed(amount: float) -> void:
 
 func _on_boss_phase_started(enemy_name: String, phase_name: String) -> void:
 	_add_log("%s: %s" % [enemy_name, phase_name])
+	_push_notice("%s: %s" % [enemy_name, phase_name], AshenStyle.EMBER)
 	_spawn_floating_number(str(phase_name).to_upper(), _arena_anchor(), AshenStyle.EMBER, int(effect_config.get("skill_font_size", 15)))
 	if audio_player != null:
 		audio_player.play("boss")
@@ -1848,6 +1892,8 @@ func _refresh_settings_ui(current: Dictionary = {}) -> void:
 	particles_button.text = "ЧАСТИЦЫ ВКЛ" if bool(settings.get("particles_enabled", true)) else "ЧАСТИЦЫ ВЫКЛ"
 	fps_button.text = "%d КАДРОВ/С" % int(settings.get("target_fps", 60))
 	effects_button.text = "ЭФФЕКТЫ ПОЛНЫЕ" if bool(settings.get("effects_enabled", true)) else "ЭФФЕКТЫ ПРОСТЫЕ"
+	# Состояние профиля живёт в настройках, а не в боевом HUD.
+	settings_info_label.text = profile_manager.hint_text()
 
 
 func _on_sound_pressed() -> void:
@@ -1898,8 +1944,11 @@ func _save(reason: String) -> Dictionary:
 	if profile_manager == null:
 		return {"success": false, "reason": "Профиль не подключён"}
 	var result: Dictionary = profile_manager.save(reason)
-	if not bool(result.get("success", false)):
+	if bool(result.get("success", false)):
+		_flash_save_indicator()
+	else:
 		_add_log("Сохранение недоступно: %s" % str(result.get("reason", "")))
+		_push_notice("СОХРАНЕНИЕ НЕДОСТУПНО", AshenStyle.EMBER)
 	return result
 
 
@@ -1917,7 +1966,121 @@ func _notification(what: int) -> void:
 			var report: Dictionary = profile_manager.on_resume()
 			if bool(report.get("eligible", false)):
 				_add_log(SaveCatalog.reward_text(report))
+				_refresh_away_window()
 			_update_view()
+
+
+func _announce_startup(report: Dictionary) -> void:
+	# Служебные строки профиля остаются в отчёте и настройках, а в бой попадают
+	# только короткие игровые сообщения.
+	match str(report.get("status", "new")):
+		"recovered":
+			_push_notice("СОХРАНЕНИЕ ВОССТАНОВЛЕНО ИЗ КОПИИ", AshenStyle.EMBER)
+		"corrupted":
+			_push_notice("СОХРАНЕНИЕ НЕ ПРОЧИТАНО, НАЧАТ НОВЫЙ ПУТЬ", AshenStyle.EMBER)
+		"future":
+			_push_notice("СОХРАНЕНИЕ НОВОЙ ВЕРСИИ НЕ ТРОНУТО", AshenStyle.EMBER)
+		"migrated":
+			_push_notice("СОХРАНЕНИЕ ОБНОВЛЕНО", AshenStyle.GOLD)
+
+
+func _battle_hint_text() -> String:
+	match campaign.status:
+		CampaignState.STATUS_VICTORY:
+			return "ДАЛЬШЕ — ПРОДОЛЖИТЬ ПУТЬ"
+		CampaignState.STATUS_DEFEAT:
+			return "ЭТАП МОЖНО ПОВТОРИТЬ"
+		CampaignState.STATUS_COMPLETE:
+			return "КАМПАНИЯ ПРОЙДЕНА"
+	return "НАЖМИТЕ УДАР ИЛИ ЩИТ"
+
+
+func _refresh_away_window() -> void:
+	if away_window == null:
+		return
+	var offline: Dictionary = {}
+	if profile_manager != null:
+		var offline_value: Variant = profile_manager.get_report().get("offline", {})
+		if offline_value is Dictionary:
+			offline = offline_value as Dictionary
+	var seconds: int = int(offline.get("credited_seconds", 0))
+	var show: bool = bool(offline.get("eligible", false)) and seconds >= int(away_config.get("min_seconds", 60))
+	if not show:
+		away_window.visible = false
+		return
+	var suffix: String = " · ЛИМИТ" if bool(offline.get("capped", false)) else ""
+	away_title_label.text = str(away_config.get("title", "С ВОЗВРАЩЕНИЕМ"))
+	away_time_label.text = "ВЫ ОТСУТСТВОВАЛИ %s%s" % [SaveCatalog.format_duration(seconds).to_upper(), suffix]
+	away_rewards_label.text = "+%d ОПЫТА · +%d ЗОЛОТА · +%d ПЕПЛА" % [
+		int(offline.get("experience", 0)),
+		int(offline.get("gold", 0)),
+		int(offline.get("materials", 0)),
+	]
+	away_hint_label.text = str(away_config.get("hint", ""))
+	away_claim_button.text = str(away_config.get("claim_text", "ЗАБРАТЬ"))
+	away_window.visible = true
+
+
+func _on_away_claim_pressed() -> void:
+	_pulse_button(away_claim_button)
+	if audio_player != null:
+		audio_player.play("click")
+	if away_window != null:
+		away_window.visible = false
+	_push_notice("НАГРАДЫ ЗА ОТСУТСТВИЕ ЗАБРАНЫ", AshenStyle.GOLD)
+
+
+func _push_notice(text: String, color: Color = Color.WHITE) -> void:
+	if notice_labels.is_empty():
+		return
+	for index in range(notice_labels.size() - 1, 0, -1):
+		var source: Label = notice_labels[index - 1] as Label
+		var target: Label = notice_labels[index] as Label
+		target.text = source.text
+		target.visible = source.visible
+		target.modulate = source.modulate
+		notice_times[index] = notice_times[index - 1]
+		notice_colors[index] = notice_colors[index - 1]
+	var first: Label = notice_labels[0] as Label
+	first.text = text
+	first.visible = true
+	first.modulate = Color(color.r, color.g, color.b, 1.0)
+	notice_times[0] = float(notice_config.get("duration_seconds", 3.6))
+	notice_colors[0] = color
+
+
+func _tick_notices(delta: float) -> void:
+	if notice_labels.is_empty():
+		return
+	var fade: float = maxf(0.05, float(notice_config.get("fade_seconds", 0.6)))
+	for index in range(notice_labels.size()):
+		var label: Label = notice_labels[index] as Label
+		if not label.visible:
+			continue
+		notice_times[index] = maxf(0.0, float(notice_times[index]) - delta)
+		var remaining: float = float(notice_times[index])
+		var color: Color = AshenStyle.GOLD
+		if notice_colors[index] is Color:
+			color = notice_colors[index] as Color
+		if remaining <= 0.0:
+			label.visible = false
+			label.text = ""
+			continue
+		label.modulate = Color(color.r, color.g, color.b, clampf(remaining / fade, 0.0, 1.0))
+
+
+func _flash_save_indicator() -> void:
+	if save_indicator == null:
+		return
+	save_flash = 1.0
+	save_indicator.modulate = Color(1, 1, 1, 0.9)
+
+
+func _tick_save_indicator(delta: float) -> void:
+	if save_indicator == null or save_flash <= 0.0:
+		return
+	save_flash = maxf(0.0, save_flash - delta)
+	save_indicator.modulate = Color(1, 1, 1, 0.9 * clampf(save_flash, 0.0, 1.0))
 
 
 func _add_log(line: String) -> void:
@@ -1925,6 +2088,9 @@ func _add_log(line: String) -> void:
 	if log_lines.size() > 5:
 		log_lines.resize(5)
 	battle_log.text = "\n".join(log_lines)
+	# Пустая карточка журнала не висит над ареной: она появляется с первым событием.
+	if log_card != null:
+		log_card.visible = not log_lines.is_empty()
 
 
 func _arena_anchor() -> Control:

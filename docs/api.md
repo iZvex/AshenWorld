@@ -155,14 +155,17 @@ CampaignState.new(balance: Dictionary, initial_seed: int = 12345)
 
 ## 10. Представление
 
-- `PresentationCatalog` (`scripts/ui/presentation_catalog.gd`) — только чтение: `interface_config()`, `performance_config()`, `effect_pool_config()`, `particle_config()`, `audio_config()`, `sound_spec()`, `build_stream()`, `ui_refresh_seconds()`, `section()`. Ничего не кеширует и не хранит состояние.
+- `PresentationCatalog` (`scripts/ui/presentation_catalog.gd`) — только чтение: `interface_config()`, `performance_config()`, `effect_pool_config()`, `particle_config()`, `audio_config()`, `sound_spec()`, `build_stream()`, `ui_refresh_seconds()`, `away_config()`, `notice_config()`, `section()`. Ничего не кеширует и не хранит состояние.
+- `away_config(balance)` — параметры окна возвращения (`min_seconds`, `title`, `claim_text`, `hint`) из `presentation.away`; `notice_config(balance)` — размер и время жизни ленты уведомлений (`capacity`, `duration_seconds`, `fade_seconds`, `font_size`) из `presentation.notices`. Обе функции возвращают значения с ограничениями, поэтому неверный баланс не ломает HUD.
 - `AshenStyle` (`scripts/ui/ashen_style.gd`) — статические конструкторы `StyleBoxFlat` и `Theme`: `build_theme(interface_config)`, `nav_button_style(active)`, `orb_style(active, radius)`, `bar_fill(color)` и другие. Палитра — константы модуля.
 - `AshenAudio` (`scripts/ui/ashen_audio.gd`, `Node`) — `configure(balance, sound_on)`, `set_enabled(value)`, `play(event_id)`, `stream_count()`, `voice_count()`. События: `attack`, `critical`, `skill`, `shield`, `victory`, `defeat`, `boss`, `click`. Пул из 6 голосов, процедурный PCM, внешних файлов нет.
 - `EffectPool` (`scripts/ui/effect_pool.gd`, `Node`) — `configure(target, data)`, `spawn_text(text, near, color, font_size)`, `flash()`, `pulse()`, `reset()`, `active_count()`, `active_flash_count()`, `pool_size()`. Пул фиксированного размера (8), лишние эффекты отбрасываются.
 
 ## 11. Слой экрана
 
-`scripts/main/main.gd` (`Control`) — единственная точка склейки логики и интерфейса. Публично используются `setup(data, profile_path = "", now_unix = -1)` (повторный вызов игнорируется), поля `campaign`, `profile_manager`, `audio_player`, `effect_pool`, кнопки и подписи для тестов. Вся остальная логика — приватные методы `_update_view()`, `_select_tab()`, `_refresh_arena_vitals()`.
+`scripts/main/main.gd` (`Control`) — единственная точка склейки логики и интерфейса. Публично используются `setup(data, profile_path = "", now_unix = -1)` (повторный вызов игнорируется), поля `campaign`, `profile_manager`, `audio_player`, `effect_pool`, `away_window`, `notice_labels`, `save_indicator`, кнопки и подписи для тестов. Вся остальная логика — приватные методы `_update_view()`, `_select_tab()`, `_refresh_arena_vitals()`, `_refresh_away_window()`, `_push_notice()`, `_battle_hint_text()`.
+
+Правило тихого HUD: в боевом слое нет служебных строк. Состояние профиля и частота кадров живут только в разделе настроек, офлайн-награды показываются окном возвращения, короткие события — лентой уведомлений, а запись профиля — вспышкой иконки; журнал боя скрыт, пока в нём нет боевых событий.
 
 Правила слоя: не писать файлы самостоятельно (только через `ProfileManager`/`SaveManager`), не считать формулы (только через каталоги), не хранить игровое состояние.
 

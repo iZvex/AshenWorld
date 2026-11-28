@@ -15,8 +15,9 @@ var viewport: SubViewport
 func _initialize() -> void:
 	# Тест не должен зависеть от профиля, оставшегося от прошлых запусков.
 	var profile_path: String = ProjectSettings.globalize_path("user://ashenworld_profile.json")
-	if FileAccess.file_exists(profile_path):
-		DirAccess.remove_absolute(profile_path)
+	for suffix in ["", ".tmp"]:
+		if FileAccess.file_exists(profile_path + suffix):
+			DirAccess.remove_absolute(profile_path + suffix)
 	viewport = SubViewport.new()
 	viewport.size = Vector2i(720, 1280)
 	viewport.gui_disable_input = false
@@ -32,6 +33,11 @@ func _initialize() -> void:
 	_check("Невидимая боевая панель не перехватывает нажатия", battle_panel != null and battle_panel.mouse_filter == Control.MOUSE_FILTER_IGNORE)
 	_check("Контейнер разделов пропускает нажатия к оверлею", margin != null and margin.mouse_filter == Control.MOUSE_FILTER_IGNORE)
 
+	# Окно возвращения модальное: сначала закрываем его, как это сделал бы игрок.
+	if scene.away_window != null and scene.away_window.visible:
+		scene._on_away_claim_pressed()
+		await process_frame
+	_check("Окно возвращения закрыто перед проверкой нажатий", scene.away_window == null or not scene.away_window.visible)
 	# Нормализуем состояние: профиль в песочнице может быть в победе, поражении или финале.
 	if scene.campaign.status == STATUS_DEFEAT:
 		scene.campaign.retry_stage()

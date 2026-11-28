@@ -2628,6 +2628,18 @@
     "ui_refresh_seconds": 0.1,
     "performance_sample_seconds": 1.0,
     "performance_warning_fps": 45.0,
+    "away": {
+      "min_seconds": 60,
+      "title": "С ВОЗВРАЩЕНИЕМ",
+      "claim_text": "ЗАБРАТЬ",
+      "hint": "Отряд продолжал бой, пока вас не было"
+    },
+    "notices": {
+      "capacity": 3,
+      "duration_seconds": 3.6,
+      "fade_seconds": 0.6,
+      "font_size": 20
+    },
     "ambient_particles": {
       "amount": 12,
       "lifetime_seconds": 4.0,
@@ -2848,7 +2860,15 @@
           "EnemyNameLabel2": 18,
           "EnemyNameLabel3": 18,
           "EnemyNameLabel4": 18,
-          "EnemyNameLabel5": 18
+          "EnemyNameLabel5": 18,
+          "AwayTitleLabel": 30,
+          "AwayTimeLabel": 24,
+          "AwayRewardsLabel": 22,
+          "AwayHintLabel": 18,
+          "AwayClaimButton": 22,
+          "Notice1": 20,
+          "Notice2": 20,
+          "Notice3": 20
         }
       },
       "minimum_sizes": {

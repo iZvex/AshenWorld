@@ -152,8 +152,9 @@ func on_resume() -> Dictionary:
 
 
 func hint_text() -> String:
-	return "Автобой · профиль %s · локальное сохранение · офлайн до %d ч" % [
+	return "Профиль %s · сохранение в память устройства каждые %d с · офлайн до %d ч" % [
 		SaveManager.status_text(startup_status),
+		int(autosave_interval),
 		SaveCatalog.limit_hours(balance),
 	]
 

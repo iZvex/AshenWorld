@@ -757,7 +757,7 @@
 
 - Наследует: `RefCounted`
 - Назначение: Единый каталог полировки восьмого этапа: все длительности эффектов, размеры пула, параметры фоновых частиц и локальных звуков берутся из раздела presentation файла data/balance.json. Внешние аудиофайлы, сеть и онлайн-сервисы не используются: короткие сигналы создаются в памяти.
-- Публичных методов: 9
+- Публичных методов: 11
 
 **Публичные константы**
 
@@ -773,6 +773,8 @@
 - `static func ui_refresh_seconds(balance: Dictionary) -> float`
 - `static func interface_config(balance: Dictionary) -> Dictionary`
 - `static func performance_config(balance: Dictionary) -> Dictionary`
+- `static func away_config(balance: Dictionary) -> Dictionary`
+- `static func notice_config(balance: Dictionary) -> Dictionary`
 - `static func effect_pool_config(balance: Dictionary) -> Dictionary`
 - `static func particle_config(balance: Dictionary) -> Dictionary`
 - `static func audio_config(balance: Dictionary) -> Dictionary`
@@ -892,6 +894,21 @@
 - `settings_title: Label`
 - `settings_info_label: Label`
 - `performance_label: Label`
+- `away_window: Control`
+- `away_card: PanelContainer`
+- `away_title_label: Label`
+- `away_time_label: Label`
+- `away_rewards_label: Label`
+- `away_hint_label: Label`
+- `away_claim_button: Button`
+- `notice_feed: VBoxContainer`
+- `notice_labels: Array`
+- `notice_times: Array`
+- `notice_colors: Array`
+- `save_indicator: TextureRect`
+- `save_flash: float`
+- `away_config: Dictionary`
+- `notice_config: Dictionary`
 - `settings_hint_label: Label`
 - `bottom_tabs: BoxContainer`
 - `background: TextureRect`

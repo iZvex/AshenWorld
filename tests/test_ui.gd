@@ -33,9 +33,10 @@ func _initialize() -> void:
 	_check("Сцена создана", scene != null)
 	_check("Локальный профиль подключён", scene.profile_manager != null)
 	_check("Профиль создан при первом запуске", str(scene.profile_manager.get_report().get("status", "")) == "new")
-	_check("Нижняя строка сообщает о локальном сохранении", "локальное сохранение" in scene.hint_label.text)
-	_check("Офлайн-лимит показан", "12 ч" in scene.hint_label.text)
+	_check("В боевой подсказке нет технических данных", not ("КАДРЫ" in scene.hint_label.text or "версия" in scene.hint_label.text or "Офлайн" in scene.hint_label.text or "автосохранение" in scene.hint_label.text))
+	_check("Боевая подсказка говорит о действиях", "УДАР" in scene.hint_label.text)
 	_check("Ряд рабочих настроек добавлен", scene.sound_button != null and scene.particles_button != null and scene.fps_button != null and scene.effects_button != null)
+	_check("Лента уведомлений пуста при старте", _visible_notices(scene) == 0)
 	_check("Настройки игрока доступны", not scene.sound_button.disabled and not scene.particles_button.disabled and not scene.fps_button.disabled and not scene.effects_button.disabled)
 	_check("Звук и частицы включены по умолчанию", "ВКЛ" in scene.sound_button.text and "ВКЛ" in scene.particles_button.text)
 	_check("Частота кадров показана", "КАДРОВ/С" in scene.fps_button.text and Engine.max_fps == 60)
@@ -156,9 +157,11 @@ func _initialize() -> void:
 	_test_modes_ui(scene, data)
 	_test_bottom_navigation(scene, data)
 	_test_sketch_hud(scene, data)
+	_test_quiet_hud(scene)
 
 	root.remove_child(scene)
 	scene.free()
+	_test_away_window(data)
 	SaveManager.new(data, TEST_PROFILE_PATH).clear_files()
 	print("Итого: %d проверок пройдено, %d провалено" % [passed, failed])
 	quit(1 if failed > 0 else 0)
@@ -198,7 +201,8 @@ func _test_health_row(scene) -> void:
 	_check("Щит имеет отдельную тонкую шкалу", scene.shield_bar.custom_minimum_size.y <= 10.0 and scene.shield_bar.max_value > 0.0)
 	_check("Этап показан в заголовке", "Пепельные земли" in scene.stage_label.text and "Этап 1/30" in scene.stage_label.text)
 	_check("Уровень, золото и пепел показаны в HUD", "УР." in scene.level_label.text and scene.gold_label.text.is_valid_int() and scene.materials_label.text.is_valid_int() and scene.gold_label.tooltip_text == "Золото" and scene.materials_label.tooltip_text == "Пепел" and scene.gold_label.get_parent() == scene.currency_row)
-	_check("Лог заполнен сразу", not scene.battle_log.text.is_empty())
+	_check("Журнал боя не засорён служебными строками", scene.log_lines.is_empty() and not ("Профиль" in scene.battle_log.text or "версия" in scene.battle_log.text or "автосохранение" in scene.battle_log.text))
+	_check("Пустой журнал не висит над ареной", not scene.log_card.visible)
 
 
 func _test_battlefield_layout(scene) -> void:
@@ -291,6 +295,70 @@ func _test_battle_controls(scene) -> void:
 	_check("После автоатаки здоровье врага уменьшилось", scene.enemy_health_bar.value < enemy_before)
 	_check("Всплывающие числа урона созданы", scene.effect_pool.active_count() > 0 and scene.effect_pool.pool_size() == 8)
 	_check("Лог ограничен пятью строками", scene.log_lines.size() <= 5)
+
+
+func _test_quiet_hud(scene) -> void:
+	_check("Лента уведомлений состоит из трёх строк", scene.notice_labels.size() == 3 and scene.notice_feed != null)
+	_check("Индикатор сохранения — иконка без текста", scene.save_indicator != null and scene.save_indicator.texture != null and not (scene.save_indicator is Label))
+	_check("Частота кадров осталась только в настройках", "КАДРЫ" in scene.performance_label.text and not ("КАДРЫ" in scene.hint_label.text))
+	scene._push_notice("ПРОВЕРКА ЛЕНТЫ", AshenStyle.GOLD)
+	_check("Уведомление появилось в ленте", scene.notice_labels[0].visible and "ПРОВЕРКА ЛЕНТЫ" in scene.notice_labels[0].text)
+	scene._push_notice("ВТОРОЕ", AshenStyle.EMBER)
+	_check("Новое уведомление встаёт первым", "ВТОРОЕ" in scene.notice_labels[0].text and "ПРОВЕРКА ЛЕНТЫ" in scene.notice_labels[1].text)
+	scene._tick_notices(3.2)
+	_check("Лента гаснет по времени из баланса", scene.notice_labels[0].modulate.a < 1.0)
+	scene._tick_notices(10.0)
+	_check("Просроченные уведомления скрыты", _visible_notices(scene) == 0)
+	scene._save("проверка индикатора")
+	_check("Индикатор сохранения вспыхивает после записи", scene.save_flash > 0.0 and scene.save_indicator.modulate.a > 0.0)
+	scene._tick_save_indicator(2.0)
+	_check("Индикатор сохранения гаснет сам", scene.save_flash <= 0.0)
+	_check("Окно возвращения не мешает первому запуску", scene.away_window != null and not scene.away_window.visible)
+	_check("У окна возвращения есть кнопка получения", scene.away_claim_button.text == "ЗАБРАТЬ")
+	_check("Лента уведомлений пропускает нажатия", scene.notice_feed.mouse_filter == Control.MOUSE_FILTER_IGNORE and (scene.notice_labels[0] as Label).mouse_filter == Control.MOUSE_FILTER_IGNORE)
+	_check("Лента уведомлений не закрывает кнопку этапа", not _design_rect(scene.notice_feed).intersects(_design_rect(scene.action_button)))
+	_check("Лента уведомлений стоит над навигацией", _design_rect(scene.notice_feed).end.y <= _design_rect(scene.bottom_bar).position.y)
+	var card_rect: Rect2 = _design_rect(scene.away_card)
+	_check("Карточка возвращения влезает в портретный экран", card_rect.position.x >= 12.0 and card_rect.end.x <= 708.0 and card_rect.position.y >= 120.0 and card_rect.end.y <= 1160.0)
+	_check("Карточка возвращения не шире экрана", card_rect.size.x <= 696.0 and card_rect.size.y >= 260.0)
+	_check("Окно возвращения перекрывает арену", scene.away_window.mouse_filter == Control.MOUSE_FILTER_STOP)
+
+
+func _design_rect(control: Control) -> Rect2:
+	var origin: Vector2 = Vector2(control.anchor_left * 720.0 + control.offset_left, control.anchor_top * 1280.0 + control.offset_top)
+	var corner: Vector2 = Vector2(control.anchor_right * 720.0 + control.offset_right, control.anchor_bottom * 1280.0 + control.offset_bottom)
+	return Rect2(origin, corner - origin)
+
+
+func _visible_notices(scene) -> int:
+	var count: int = 0
+	for label in scene.notice_labels:
+		if (label as Label).visible:
+			count += 1
+	return count
+
+
+func _test_away_window(data: Dictionary) -> void:
+	var opener = MainScene.instantiate()
+	root.add_child(opener)
+	opener.set_process(false)
+	opener.setup(data, TEST_PROFILE_PATH, TEST_TIME)
+	opener._save("подготовка окна возвращения")
+	root.remove_child(opener)
+	opener.free()
+	var scene = MainScene.instantiate()
+	root.add_child(scene)
+	scene.set_process(false)
+	scene.setup(data, TEST_PROFILE_PATH, TEST_TIME + 3600)
+	_check("Возврат после часа показывает окно", scene.away_window.visible)
+	_check("Окно сообщает длительность отсутствия", "вы отсутствовали 1 ч" in scene.away_time_label.text.to_lower())
+	_check("Окно перечисляет награды", "ОПЫТА" in scene.away_rewards_label.text and "ЗОЛОТА" in scene.away_rewards_label.text)
+	_check("Окно объясняет отсутствие текстом", "продолжал бой" in scene.away_hint_label.text)
+	scene.away_claim_button.emit_signal("pressed")
+	_check("Кнопка закрывает окно возвращения", not scene.away_window.visible)
+	_check("Получение наград попадает в ленту", scene.notice_labels[0].visible and "ОТСУТСТВИЕ" in scene.notice_labels[0].text)
+	root.remove_child(scene)
+	scene.free()
 
 
 func _test_stage_transition(scene) -> void:
