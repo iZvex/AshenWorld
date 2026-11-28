@@ -45,6 +45,26 @@ def tex(key):
     cache[key] = im
     return im
 
+def _is_identity(xform, scale):
+    a, b_, c_, d, tx, ty = [float(v) for v in xform]
+    return (abs(a - scale) < 0.01 and abs(d - scale) < 0.01
+            and abs(b_) < 0.01 and abs(c_) < 0.01)
+
+
+def _warp(piece, xform, canvas_size):
+    """Рисует кусок по глобальной матрице Godot: canvas = A * local + t."""
+    a, b_, c_, d, tx, ty = [float(v) for v in xform]
+    det = a * d - b_ * c_
+    if abs(det) < 1e-6:
+        return Image.new('RGBA', canvas_size, (0, 0, 0, 0))
+    ia, ib = d / det, -b_ / det
+    ic, id_ = -c_ / det, a / det
+    # PIL ждёт обратное отображение: output -> input.
+    coeffs = (ia, ib, -(ia * tx + ib * ty),
+              ic, id_, -(ic * tx + id_ * ty))
+    return piece.transform(canvas_size, Image.AFFINE, coeffs, resample=Image.BICUBIC)
+
+
 def contain_fit(im, box_w, box_h):
     iw, ih = im.size
     sc = min(box_w/iw, box_h/ih)
@@ -89,7 +109,17 @@ for n in d['nodes']:
         if mod[3] < 1 or mod[0] < 1:
             a = piece.split()[3].point(lambda v: int(v*mod[3]))
             piece.putalpha(a)
-        img.alpha_composite(piece, (int(b[0]), int(b[1])))
+        # Матрица узла в единицах Godot, а картинка уже отрисована в S раз
+        # крупнее: масштаб не трогаем, умножаем только перенос.
+        xform = [float(v) for v in n.get('xform', [])] or None
+        if xform and len(xform) == 6:
+            xform = xform[:4] + [xform[4] * S, xform[5] * S]
+        if xform and len(xform) == 6 and not _is_identity(xform, 1.0):
+            # Точная глобальная матрица узла из дампа: картинка переносится
+            # аффинно, поэтому поворот родителя и pivot_offset учтены.
+            img.alpha_composite(_warp(piece, xform, img.size))
+        else:
+            img.alpha_composite(piece, (int(round(b[0])), int(round(b[1]))))
     elif t == 'ColorRect' and 'color' in n:
         col = mul(c(n['color']), mod)
         layer = Image.new('RGBA', img.size, (0,0,0,0))
