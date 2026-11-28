@@ -649,7 +649,7 @@ if not isinstance(overlay_config, dict):
     err("data/balance.json: battle_overlay должен описывать кнопки навыков")
     overlay_config = {}
 skill_icons = overlay_config.get("icons", {})
-if not isinstance(skill_icons, dict) or not str(skill_icons.get("StrikeButton", "")).endswith("sword.svg") or not str(skill_icons.get("GuardButton", "")).endswith("shield.svg"):
+if not isinstance(skill_icons, dict) or not str(skill_icons.get("StrikeButton", "")).endswith("sword_icon.png") or not str(skill_icons.get("GuardButton", "")).endswith("shield_icon.png"):
     err("data/balance.json: у кнопок удара и щита должны быть локальные иконки")
 cooldown_ring = overlay_config.get("cooldown_ring", {})
 if not isinstance(cooldown_ring, dict) or float(cooldown_ring.get("thickness", 0)) < 4:

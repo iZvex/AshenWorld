@@ -641,10 +641,15 @@ func _style_skill_cluster(overlay_config: Dictionary) -> void:
 		bar.step = 0.001
 		bar.value = 0.0
 		bar.visible = false
-	if strike_cooldown_label != null:
-		strike_cooldown_label.add_theme_color_override("font_color", AshenStyle.GOLD)
-	if guard_cooldown_label != null:
-		guard_cooldown_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+	for cooldown_label in [strike_cooldown_label, guard_cooldown_label]:
+		var seconds_label: Label = cooldown_label as Label
+		if seconds_label == null:
+			continue
+		# Цифры ложатся поверх приглушённой иконки, поэтому им нужна тёмная обводка.
+		seconds_label.add_theme_color_override("font_color", AshenStyle.GOLD)
+		seconds_label.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.08, 0.92))
+		seconds_label.add_theme_constant_override("outline_size", 4)
+		seconds_label.add_theme_stylebox_override("normal", AshenStyle.slot_placeholder_style())
 	for slot in [skill_slot3, skill_slot4]:
 		var slot_panel: PanelContainer = slot as PanelContainer
 		if slot_panel != null:
