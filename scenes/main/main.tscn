@@ -60,8 +60,8 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 26.0
-offset_top = 390.0
-offset_right = 520.0
+offset_top = 380.0
+offset_right = 586.0
 offset_bottom = 600.0
 columns = 3
 mouse_filter = 2
@@ -526,6 +526,96 @@ mouse_filter = 2
 text = "ЛАВКА · ЗЕЛЬЯ · СКОРО"
 autowrap_mode = 2
 
+[node name="BattleOverlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BattleTitle" type="Label" parent="BattleOverlay"]
+visible = false
+layout_mode = 0
+offset_left = 16.0
+offset_top = 728.0
+offset_right = 384.0
+offset_bottom = 760.0
+text = "ПОЛЕ БОЯ"
+horizontal_alignment = 1
+
+[node name="BattleHintLabel" type="Label" parent="BattleOverlay"]
+visible = false
+layout_mode = 0
+offset_left = 16.0
+offset_top = 764.0
+offset_right = 384.0
+offset_bottom = 824.0
+text = "Автобой идёт постоянно. «УДАР» и «ЩИТ» применяются вручную."
+autowrap_mode = 2
+horizontal_alignment = 1
+
+[node name="LogCard" type="Panel" parent="BattleOverlay"]
+clip_contents = true
+layout_mode = 0
+offset_left = 16.0
+offset_top = 620.0
+offset_right = 384.0
+offset_bottom = 746.0
+mouse_filter = 2
+
+[node name="BattleLog" type="Label" parent="BattleOverlay/LogCard"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 10.0
+offset_right = -14.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+text = ""
+autowrap_mode = 2
+vertical_alignment = 0
+
+[node name="HintLabel" type="Label" parent="BattleOverlay"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 754.0
+offset_right = 620.0
+offset_bottom = 832.0
+text = "Автобой · локальное сохранение · офлайн до 12 ч"
+autowrap_mode = 2
+mouse_filter = 2
+
+[node name="ActionButton" type="Button" parent="BattleOverlay"]
+visible = false
+layout_mode = 0
+offset_left = 16.0
+offset_top = 840.0
+offset_right = 384.0
+offset_bottom = 888.0
+text = "ДАЛЬШЕ"
+
+[node name="StrikeButton" type="Button" parent="BattleOverlay"]
+layout_mode = 0
+offset_left = 492.0
+offset_top = 880.0
+offset_right = 616.0
+offset_bottom = 1004.0
+text = "УДАР"
+
+[node name="GuardButton" type="Button" parent="BattleOverlay"]
+layout_mode = 0
+offset_left = 392.0
+offset_top = 920.0
+offset_right = 488.0
+offset_bottom = 1016.0
+text = "ЩИТ"
+
+
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -593,65 +683,6 @@ size_flags_vertical = 3
 [node name="BattlePanel" type="PanelContainer" parent="Margin/Panel/ContentArea"]
 layout_mode = 2
 size_flags_vertical = 3
-
-[node name="BattleScroll" type="ScrollContainer" parent="Margin/Panel/ContentArea/BattlePanel"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="BattleBox" type="VBoxContainer" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="BattleTitle" type="Label" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
-layout_mode = 2
-text = "ПОЛЕ БОЯ"
-horizontal_alignment = 1
-
-[node name="BattleHintLabel" type="Label" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
-layout_mode = 2
-text = "Автобой идёт постоянно. «УДАР» и «ЩИТ» применяются вручную."
-autowrap_mode = 2
-horizontal_alignment = 1
-
-[node name="SkillRow" type="HBoxContainer" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
-layout_mode = 2
-size_flags_vertical = 0
-
-[node name="StrikeButton" type="Button" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox/SkillRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "УДАР"
-
-[node name="GuardButton" type="Button" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox/SkillRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "ЩИТ"
-
-[node name="ActionButton" type="Button" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
-visible = false
-layout_mode = 2
-size_flags_vertical = 0
-text = "ДАЛЬШЕ"
-
-[node name="LogCard" type="PanelContainer" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
-layout_mode = 2
-size_flags_vertical = 0
-
-[node name="BattleLog" type="Label" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox/LogCard"]
-layout_mode = 2
-size_flags_vertical = 3
-text = ""
-autowrap_mode = 2
-vertical_alignment = 0
-
-[node name="HintLabel" type="Label" parent="Margin/Panel/ContentArea/BattlePanel/BattleScroll/BattleBox"]
-layout_mode = 2
-size_flags_vertical = 0
-text = "Автобой · локальное сохранение · офлайн до 12 ч"
-autowrap_mode = 2
-horizontal_alignment = 1
 
 [node name="InventoryPanel" type="PanelContainer" parent="Margin/Panel/ContentArea"]
 visible = false

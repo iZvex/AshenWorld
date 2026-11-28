@@ -286,6 +286,10 @@ jobs:
               assert len(hud["stub_labels"]) >= 5 and hud["stub_text"] == "СКОРО"
               assert hud["portrait_texture"] == "res://assets/ui/hero_portrait.png"
               assert hud["enemy_texture"] == "res://assets/ui/icons/enemy_wraith.svg"
+              assert hud["battle_overlay"]["orb_radius"]["StrikeButton"] >= 56
+              assert hud["battle_overlay"]["orb_radius"]["GuardButton"] >= 44
+              assert interface["minimum_sizes"]["StrikeButton"] == [124, 124]
+              assert interface["minimum_sizes"]["GuardButton"] == [96, 96]
               assert any("background_sketch" in name and name.endswith(".ctex") for name in names)
               assert any("hero_portrait" in name and name.endswith(".ctex") for name in names)
               assert any("enemy_wraith.svg" in name and name.endswith(".ctex") for name in names)

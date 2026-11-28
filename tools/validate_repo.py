@@ -711,7 +711,7 @@ if str(hud.get("portrait_texture", "")) != "res://assets/ui/hero_portrait.png":
 if str(hud.get("enemy_texture", "")) != "res://assets/ui/icons/enemy_wraith.svg" or int(hud.get("enemy_cards", 0)) != 5:
     err("data/balance.json: силуэты врагов арены должны быть описаны централизованно")
 
-for token in ["background_sketch.png", "hero_portrait.png", "HealthPanel", "HeroPortrait", "HeroHealthBar", "EnemyHealthBar", "QuickRail", "FutureRail", "ArenaEnemies", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle"]:
+for token in ["background_sketch.png", "hero_portrait.png", "HealthPanel", "HeroPortrait", "HeroHealthBar", "EnemyHealthBar", "QuickRail", "FutureRail", "ArenaEnemies", "BottomBar", "BottomTabs", "SummonPanel", "SettingsPanel", "SectionTitle", "BattleOverlay", "LogCard", "StrikeButton", "GuardButton"]:
     if token not in scene_src:
         err(f"scenes/main/main.tscn: отсутствует узел или ресурс игрового HUD ({token})")
 for forbidden in ["MiniMap", "Minimap", "Joystick", "VirtualJoystick", "MapFrame"]:
@@ -726,7 +726,7 @@ def scene_section(start_marker: str, end_marker: str) -> str:
 for start_marker, end_marker, label in [
     ('[node name="QuestStub"', '[node name="FutureRail"', "задания"),
     ('[node name="FutureRail"', '[node name="StubStrip"', "будущих разделов"),
-    ('[node name="StubStrip"', '[node name="Margin"', "декоративных заглушек"),
+    ('[node name="StubStrip"', '[node name="BattleOverlay"', "декоративных заглушек"),
     ('[node name="ArenaEnemies"', '[node name="HealthPanel"', "арены"),
 ]:
     section = scene_section(start_marker, end_marker)
@@ -745,7 +745,7 @@ presentation_catalog = (ROOT / "scripts/ui/presentation_catalog.gd").read_text(e
 if "static func interface_config" not in presentation_catalog or '"hud": _dict(data, "hud")' not in presentation_catalog:
     err("scripts/ui/presentation_catalog.gd: отсутствует чтение параметров интерфейса или HUD")
 ui_doc = (ROOT / "docs/ui.md").read_text(encoding="utf-8") if (ROOT / "docs/ui.md").is_file() else ""
-for token in ["нижнее меню", "presentation.interface", "портрет", "быстрая", "СКОРО", "мини-карт", "джойстик", "БОЙ", "ИНВЕНТАРЬ", "ПРИЗЫВ", "НАСТРОЙКИ"]:
+for token in ["нижнее меню", "presentation.interface", "портрет", "быстрая", "СКОРО", "мини-карт", "джойстик", "оверле", "БОЙ", "ИНВЕНТАРЬ", "ПРИЗЫВ", "НАСТРОЙКИ"]:
     if token not in ui_doc:
         err(f"docs/ui.md: отсутствует описание игрового интерфейса ({token})")
 ui_tests = (ROOT / "tests/test_ui.gd").read_text(encoding="utf-8") if (ROOT / "tests/test_ui.gd").is_file() else ""

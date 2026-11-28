@@ -2958,8 +2958,8 @@
           0
         ],
         "GuardButton": [
-          0,
-          60
+          96,
+          96
         ],
         "HeaderFrame": [
           0,
@@ -2975,7 +2975,7 @@
         ],
         "HintLabel": [
           0,
-          40
+          80
         ],
         "HistoryLabel": [
           0,
@@ -3015,7 +3015,7 @@
         ],
         "LogCard": [
           0,
-          150
+          126
         ],
         "MassDismantleButton": [
           0,
@@ -3206,8 +3206,8 @@
           48
         ],
         "StrikeButton": [
-          0,
-          60
+          124,
+          124
         ],
         "SummonButton": [
           0,
@@ -3838,6 +3838,15 @@
           "QuestsLabel": "ЗАДАНИЯ\nСКОРО",
           "RatingLabel": "РЕЙТИНГ\nСКОРО",
           "StubStripLabel": "ЛАВКА · ЗЕЛЬЯ · СКОРО"
+        },
+        "battle_overlay": {
+          "orb_radius": {
+            "StrikeButton": 62,
+            "GuardButton": 48
+          },
+          "log_lines": 4,
+          "strike_label": "УДАР",
+          "guard_label": "ЩИТ"
         }
       }
     }

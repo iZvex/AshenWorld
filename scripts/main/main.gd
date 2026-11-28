@@ -36,6 +36,7 @@ var shield_bar: ProgressBar
 var separator_label: Label
 var enemy_hint_label: Label
 var stage_notice: Label
+var battle_overlay: Control
 var equipment_button: Button
 var equipment_power_label: Label
 var equipment_panel: PanelContainer
@@ -78,7 +79,7 @@ var progression_hint_label: Label
 var strike_button: Button
 var guard_button: Button
 var action_button: Button
-var log_card: PanelContainer
+var log_card: Panel
 var battle_log: Label
 var hint_label: Label
 var mode_button: Button
@@ -477,10 +478,11 @@ func _bind_nodes() -> void:
 	progression_pet_details = _find("ProgressionPetDetails") as Label
 	pet_upgrade_button = _find("PetUpgradeButton") as Button
 	progression_hint_label = _find("ProgressionHintLabel") as Label
+	battle_overlay = _find("BattleOverlay") as Control
 	strike_button = _find("StrikeButton") as Button
 	guard_button = _find("GuardButton") as Button
 	action_button = _find("ActionButton") as Button
-	log_card = _find("LogCard") as PanelContainer
+	log_card = _find("LogCard") as Panel
 	battle_log = _find("BattleLog") as Label
 	hint_label = _find("HintLabel") as Label
 	mode_status_label = _find("ModeStatusLabel") as Label
@@ -521,8 +523,21 @@ func _apply_styles() -> void:
 	currency_bar.add_theme_stylebox_override("panel", AshenStyle.muted_panel_style())
 	quest_stub.add_theme_stylebox_override("panel", AshenStyle.muted_panel_style())
 	portrait_frame.add_theme_stylebox_override("panel", AshenStyle.portrait_frame_style())
-	for panel in [battle_panel, inventory_panel, summon_panel, progression_panel, mode_panel, settings_panel, log_card]:
+	battle_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	for panel in [inventory_panel, summon_panel, progression_panel, mode_panel, settings_panel]:
 		panel.add_theme_stylebox_override("panel", AshenStyle.content_panel_style())
+	log_card.add_theme_stylebox_override("panel", AshenStyle.log_strip_style())
+	var overlay_value: Variant = hud_config.get("battle_overlay", {})
+	var overlay_config: Dictionary = overlay_value as Dictionary if overlay_value is Dictionary else {}
+	var radius_value: Variant = overlay_config.get("orb_radius", {})
+	var orb_radii: Dictionary = radius_value as Dictionary if radius_value is Dictionary else {}
+	for orb_pair in [[strike_button, int(orb_radii.get("StrikeButton", 62))], [guard_button, int(orb_radii.get("GuardButton", 48))]]:
+		var orb: Button = orb_pair[0] as Button
+		var orb_radius: int = int(orb_pair[1])
+		orb.add_theme_stylebox_override("normal", AshenStyle.orb_style(false, orb_radius))
+		orb.add_theme_stylebox_override("hover", AshenStyle.orb_style(true, orb_radius))
+		orb.add_theme_stylebox_override("pressed", AshenStyle.orb_style(true, orb_radius))
+		orb.add_theme_stylebox_override("disabled", AshenStyle.orb_style(false, orb_radius))
 	action_button.add_theme_stylebox_override("normal", AshenStyle.action_button_style())
 	for bar in [hero_health_bar, enemy_health_bar, shield_bar, experience_bar]:
 		bar.add_theme_stylebox_override("background", AshenStyle.bar_background())
@@ -785,11 +800,11 @@ func _update_view() -> void:
 	strike_button.disabled = skills_blocked or strike_cooldown > 0.0
 	guard_button.disabled = skills_blocked or guard_cooldown > 0.0
 	if strike_cooldown > 0.0:
-		strike_button.text = "УДАР · %.1f" % strike_cooldown
+		strike_button.text = "УДАР\n%.1f" % strike_cooldown
 	else:
 		strike_button.text = "УДАР"
 	if guard_cooldown > 0.0:
-		guard_button.text = "ЩИТ · %.1f" % guard_cooldown
+		guard_button.text = "ЩИТ\n%.1f" % guard_cooldown
 	else:
 		guard_button.text = "ЩИТ"
 	action_button.visible = campaign.status != CampaignState.STATUS_BATTLE
@@ -1160,6 +1175,11 @@ func _select_tab(tab_id: String, with_sound: bool = true) -> void:
 	if tab_id == active_tab and tab_id != default_tab:
 		tab_id = default_tab
 	active_tab = tab_id
+	var battle_active: bool = active_tab == default_tab
+	if battle_overlay != null:
+		battle_overlay.visible = battle_active
+	if arena_enemies != null:
+		arena_enemies.visible = battle_active
 	for key in content_panels.keys():
 		var panel: Control = content_panels[key] as Control
 		if panel != null:

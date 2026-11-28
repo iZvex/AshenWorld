@@ -131,6 +131,32 @@ static func enemy_card_style() -> StyleBoxFlat:
 	return box
 
 
+static func orb_style(active: bool = false, radius: int = 62) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.42, 0.16, 0.09, 0.92) if active else Color(0.10, 0.06, 0.12, 0.82)
+	style.border_color = GOLD if active else PANEL_BORDER
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(radius)
+	style.content_margin_left = 6.0
+	style.content_margin_right = 6.0
+	style.content_margin_top = 4.0
+	style.content_margin_bottom = 4.0
+	return style
+
+
+static func log_strip_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.03, 0.08, 0.72)
+	style.border_color = Color(PANEL_BORDER.r, PANEL_BORDER.g, PANEL_BORDER.b, 0.55)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(14)
+	style.content_margin_left = 14.0
+	style.content_margin_right = 14.0
+	style.content_margin_top = 10.0
+	style.content_margin_bottom = 10.0
+	return style
+
+
 static func active_tab_style() -> StyleBoxFlat:
 	var box: StyleBoxFlat = button_style(Color("#C8893C"), GOLD)
 	box.set_border_width_all(2)

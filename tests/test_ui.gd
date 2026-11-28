@@ -169,8 +169,8 @@ func _test_sketch_layout(scene) -> void:
 	_check("Разделитель уменьшен", scene.divider.custom_minimum_size.y <= 24.0)
 	_check("Полоса здоровья героя крупная", scene.hero_health_bar.custom_minimum_size.y >= 26.0)
 	_check("Полоса здоровья врага крупная", scene.enemy_health_bar.custom_minimum_size.y >= 26.0)
-	_check("Кнопки навыков компактные", scene.strike_button.custom_minimum_size.y <= 60.0 and scene.guard_button.custom_minimum_size.y <= 60.0)
-	_check("Лог компактный", scene.log_card.custom_minimum_size.y <= 160.0)
+	_check("Кнопки навыков круглые", scene.strike_button.custom_minimum_size == Vector2(124, 124) and scene.guard_button.custom_minimum_size == Vector2(96, 96))
+	_check("Полоса журнала боя компактная", scene.log_card.custom_minimum_size.y <= 130.0)
 	_check("Панель экипировки компактная", scene.equipment_panel.custom_minimum_size.y <= 380.0)
 	_check("Панель экипировки скрыта по умолчанию", not scene.equipment_panel.visible)
 	_check("Панель прогрессии компактная", scene.progression_panel.custom_minimum_size.y <= 460.0)
@@ -253,7 +253,7 @@ func _test_battle_controls(scene) -> void:
 	scene._update_view()
 	_check("Нажатие кнопки применяет удар", scene.campaign.get_cooldown_remaining("heavy_strike") > 0.0)
 	_check("Кнопка удара блокируется на откате", scene.strike_button.disabled)
-	_check("Время отката видно на кнопке", "УДАР ·" in scene.strike_button.text)
+	_check("Время отката видно на кнопке", "УДАР" in scene.strike_button.text and "\n" in scene.strike_button.text)
 	_check("Навык записан в лог", "Навык" in scene.battle_log.text)
 	var hero_before: float = scene.hero_health_bar.value
 	var enemy_before: float = scene.enemy_health_bar.value
@@ -544,8 +544,11 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 	if inventory_quick != null:
 		inventory_quick.emit_signal("pressed")
 		_check("Быстрая иконка открывает настоящий инвентарь", scene.active_tab == "inventory" and scene.inventory_panel.visible)
+		var hidden_overlay: Control = scene.find_child("BattleOverlay", true, false) as Control
+		_check("Открытый раздел прячет боевой оверлей и арену", hidden_overlay != null and not hidden_overlay.visible and not scene.arena_enemies.visible and scene.inventory_panel.visible)
 		inventory_quick.emit_signal("pressed")
 		_check("Повторное нажатие возвращает на поле боя", scene.active_tab == scene.default_tab and scene.battle_panel.visible)
+		_check("Возврат в бой снова показывает оверлей и арену", hidden_overlay != null and hidden_overlay.visible and scene.arena_enemies.visible)
 	var stubs_ok: bool = scene.future_rail.mouse_filter == 2 and not _has_button(scene.future_rail) and not _has_button(scene.quest_stub) and not _has_button(scene.stub_strip) and not _has_button(scene.arena_enemies)
 	for label_name in ["QuestSoonLabel", "EventsLabel", "QuestsLabel", "RatingLabel", "StubStripLabel"]:
 		var label: Label = scene.find_child(label_name, true, false) as Label
@@ -564,6 +567,24 @@ func _test_sketch_hud(scene, data: Dictionary) -> void:
 			visible_enemies += 1
 	_check("Силуэты врагов показаны на арене", scene.arena_enemies.columns == 3 and scene.enemy_cards.size() == 5 and visible_enemies > 0 and visible_enemies <= 5)
 	_check("Нижнее меню 3 × 2 сохранено", scene.bottom_tabs.columns == 3 and scene.tabs.size() == 6)
+	var overlay: Control = scene.find_child("BattleOverlay", true, false) as Control
+	var strike: Button = scene.find_child("StrikeButton", true, false) as Button
+	var guard: Button = scene.find_child("GuardButton", true, false) as Button
+	var overlay_ok: bool = overlay != null and overlay.visible and scene.arena_enemies.visible and scene.battle_panel.get_child_count() == 0
+	_check("Боевой экран показан оверлеем поверх арены", overlay_ok)
+	var orbs_ok: bool = false
+	if strike != null and guard != null:
+		var strike_style: StyleBox = strike.get_theme_stylebox("normal")
+		var guard_style: StyleBox = guard.get_theme_stylebox("normal")
+		orbs_ok = strike_style is StyleBoxFlat and guard_style is StyleBoxFlat \
+			and (strike_style as StyleBoxFlat).corner_radius_top_left >= int(strike.custom_minimum_size.x / 2) - 1 \
+			and (guard_style as StyleBoxFlat).corner_radius_top_left >= int(guard.custom_minimum_size.x / 2) - 1
+	_check("Умения оформлены круглыми кнопками", orbs_ok)
+	var overlay_nodes: bool = true
+	for overlay_name in ["LogCard", "HintLabel", "ActionButton", "BattleLog"]:
+		if scene.find_child(overlay_name, true, false) == null:
+			overlay_nodes = false
+	_check("Журнал, подсказка и кнопка этапа живут в оверлее", overlay_nodes)
 	var currency_row: HBoxContainer = scene.currency_bar.get_node_or_null("CurrencyRow") as HBoxContainer
 	var order_ok: bool = false
 	if currency_row != null:

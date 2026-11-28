@@ -52,7 +52,12 @@ func _test_balance(data: Dictionary) -> void:
 	var quick_rail: Dictionary = hud.get("quick_rail", {}) as Dictionary
 	var stub_icons: Dictionary = hud.get("stub_icons", {}) as Dictionary
 	var stub_labels: Dictionary = hud.get("stub_labels", {}) as Dictionary
+	var overlay_value: Variant = hud.get("battle_overlay", {})
+	var overlay: Dictionary = overlay_value as Dictionary if overlay_value is Dictionary else {}
+	var radius_value: Variant = overlay.get("orb_radius", {})
+	var radii: Dictionary = radius_value as Dictionary if radius_value is Dictionary else {}
 	_check("Конфигурация HUD наброска централизована", quick_rail.size() == 6 and stub_icons.size() >= 9 and stub_labels.size() >= 5 and str(hud.get("stub_text", "")) == "СКОРО")
+	_check("Боевой оверлей описан в balance.json", int(radii.get("StrikeButton", 0)) >= 56 and int(radii.get("GuardButton", 0)) >= 44 and int(overlay.get("log_lines", 0)) >= 3)
 	_check("Портрет и силуэты врагов заданы локальными ресурсами", str(hud.get("portrait_texture", "")).ends_with("hero_portrait.png") and str(hud.get("enemy_texture", "")).ends_with("enemy_wraith.svg") and int(hud.get("enemy_cards", 0)) == 5)
 	_check("Шкалы здоровья укрупнены централизованно", int((minimum_sizes.get("HeroHealthBar", [0, 0]) as Array)[1]) >= 26 and int((minimum_sizes.get("EnemyHealthBar", [0, 0]) as Array)[1]) >= 26)
 	_check("Версия баланса восьмого этапа", int(data.get("version", 0)) == 8)
